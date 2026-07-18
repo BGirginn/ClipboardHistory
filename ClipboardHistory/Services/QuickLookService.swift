@@ -1,0 +1,106 @@
+import AppKit
+import Foundation
+import QuickLookUI
+
+@MainActor
+final class QuickLookService: NSObject, @MainActor QLPreviewPanelDataSource, @MainActor QLPreviewPanelDelegate {
+    private var previewURLs: [URL] = []
+    private var temporaryDirectory: URL?
+
+    func show(item: ClipboardItem, storage: StorageService) {
+        Task { [weak self] in
+            guard let self else { return }
+            let urls = await materializePreviewURLs(for: item, storage: storage)
+            guard !urls.isEmpty else { return }
+            previewURLs = urls
+            guard let panel = QLPreviewPanel.shared() else { return }
+            panel.dataSource = self
+            panel.delegate = self
+            panel.currentPreviewItemIndex = 0
+            panel.makeKeyAndOrderFront(nil)
+            panel.reloadData()
+        }
+    }
+
+    func close() {
+        QLPreviewPanel.shared()?.orderOut(nil)
+        cleanupTemporaryFiles()
+    }
+
+    func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
+        previewURLs.count
+    }
+
+    func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> QLPreviewItem! {
+        guard previewURLs.indices.contains(index) else { return nil }
+        return previewURLs[index] as NSURL
+    }
+
+    func previewPanelWillClose(_ panel: QLPreviewPanel!) {
+        cleanupTemporaryFiles()
+    }
+
+    private func materializePreviewURLs(
+        for item: ClipboardItem,
+        storage: StorageService
+    ) async -> [URL] {
+        if item.type == .files {
+            return item.fileURLs.map { URL(fileURLWithPath: $0) }.filter {
+                FileManager.default.fileExists(atPath: $0.path)
+            }
+        }
+
+        var payloads: [(String, Data)] = []
+        switch item.type {
+        case .image:
+            if let filename = item.imageFilename,
+               let data = await storage.imageData(filename: filename, isEncrypted: item.isEncrypted) {
+                payloads.append((filename, data))
+            }
+        case .imageGroup:
+            for filename in item.assetFilenames {
+                if let data = await storage.imageData(filename: filename, isEncrypted: item.isEncrypted) {
+                    payloads.append((filename, data))
+                }
+            }
+        case .pdf, .richText:
+            if let filename = item.payloadFilename,
+               let data = await storage.payloadData(filename: filename, isEncrypted: item.isEncrypted) {
+                payloads.append((filename, data))
+            }
+        case .text, .files:
+            break
+        }
+        guard !payloads.isEmpty else { return [] }
+
+        let directory = FileManager.default.temporaryDirectory.appending(
+            path: "ClipboardHistoryPreview-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            var urls: [URL] = []
+            for (filename, data) in payloads {
+                let destination = directory.appending(path: filename, directoryHint: .notDirectory)
+                try data.write(to: destination, options: .atomic)
+                urls.append(destination)
+            }
+            temporaryDirectory = directory
+            return urls
+        } catch {
+            AppLog.storage.error(
+                "Quick Look materialization failed; category=\(String(describing: type(of: error)), privacy: .public)"
+            )
+            try? FileManager.default.removeItem(at: directory)
+            return []
+        }
+    }
+
+    private func cleanupTemporaryFiles() {
+        if let temporaryDirectory {
+            try? FileManager.default.removeItem(at: temporaryDirectory)
+        }
+        temporaryDirectory = nil
+        previewURLs = []
+    }
+}
