@@ -113,6 +113,10 @@ final class ClipboardMonitor {
         ignoresNextChange = true
     }
 
+    func cancelIgnoringNextCopy() {
+        ignoresNextChange = false
+    }
+
     func clearCurrentContent(if identity: ClipboardPasteboardIdentity) -> Bool {
         guard currentIdentity == identity else { return false }
         _ = pasteboard.clearContents()

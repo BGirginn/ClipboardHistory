@@ -51,7 +51,7 @@ struct ClipboardPanelHeaderView: View {
                     accessibilityValue: viewModel.isIgnoringNextCopy ? "Armed" : "Available",
                     isActive: viewModel.isIgnoringNextCopy,
                     tint: .orange,
-                    action: viewModel.ignoreNextCopy
+                    action: viewModel.toggleIgnoreNextCopy
                 )
 
                 ClipboardHeaderActionButton(

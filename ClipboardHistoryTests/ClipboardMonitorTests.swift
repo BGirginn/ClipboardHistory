@@ -149,6 +149,17 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         var ignoredChangeCount = 0
         monitor.didIgnoreNextChange = { ignoredChangeCount += 1 }
         monitor.ignoreNextCopy()
+        monitor.cancelIgnoringNextCopy()
+        pasteboard.clearContents()
+        pasteboard.setString("captured after cancellation", forType: .string)
+        await monitor.pollNowAndWait()
+        guard case let .text(cancelledValue, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected the change after cancellation to be captured")
+        }
+        XCTAssertEqual(cancelledValue, "captured after cancellation")
+
+        receivedContent = nil
+        monitor.ignoreNextCopy()
         pasteboard.clearContents()
         pasteboard.setString("ignored once", forType: .string)
         await monitor.pollNowAndWait()

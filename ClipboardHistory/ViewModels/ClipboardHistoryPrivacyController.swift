@@ -75,9 +75,14 @@ extension ClipboardHistoryViewModel {
         searchFocusRequest += 1
     }
 
-    func ignoreNextCopy() {
-        monitor.ignoreNextCopy()
-        isIgnoringNextCopy = true
+    func toggleIgnoreNextCopy() {
+        if isIgnoringNextCopy {
+            monitor.cancelIgnoringNextCopy()
+            isIgnoringNextCopy = false
+        } else {
+            monitor.ignoreNextCopy()
+            isIgnoringNextCopy = true
+        }
     }
 
     func togglePrivateMode() {

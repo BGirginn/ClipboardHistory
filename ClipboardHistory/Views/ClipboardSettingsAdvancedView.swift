@@ -56,7 +56,7 @@ struct ClipboardSettingsAdvancedView: View {
                 Button(
                     "Ignore Next Copy",
                     systemImage: "arrow.right.to.line.compact",
-                    action: viewModel.ignoreNextCopy
+                    action: viewModel.toggleIgnoreNextCopy
                 )
                 Text("Transient, concealed, and auto-generated pasteboard types are always ignored.")
                     .font(.caption)

@@ -52,7 +52,11 @@ final class FacadeActionCoverageTests: XCTestCase {
         let originalFocusRequest = context.viewModel.searchFocusRequest
         context.viewModel.focusSearch()
         XCTAssertEqual(context.viewModel.searchFocusRequest, originalFocusRequest + 1)
-        context.viewModel.ignoreNextCopy()
+        context.viewModel.toggleIgnoreNextCopy()
+        XCTAssertTrue(context.viewModel.isIgnoringNextCopy)
+        context.viewModel.toggleIgnoreNextCopy()
+        XCTAssertFalse(context.viewModel.isIgnoringNextCopy)
+        context.viewModel.toggleIgnoreNextCopy()
         XCTAssertTrue(context.viewModel.isIgnoringNextCopy)
         context.pasteboard.clearContents()
         context.pasteboard.setString("ignored by request", forType: .string)
