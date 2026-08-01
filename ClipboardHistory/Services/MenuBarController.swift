@@ -54,7 +54,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         }
 
         popover.behavior = .applicationDefined
-        popover.animates = true
+        popover.animates = false
         popover.delegate = self
         popover.contentSize = NSSize(width: 380, height: 500)
         panelCloseCoordinator = PanelCloseCoordinator(

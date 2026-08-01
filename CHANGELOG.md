@@ -6,6 +6,7 @@ All notable changes are documented here. The project follows semantic versioning
 
 - Removed the panel search bar and its Command-F focus path.
 - Added a right-click menu with an explicit Quit action to the menu-bar icon.
+- Disabled the popover opening animation to eliminate frame-by-frame panel stutter.
 
 ## 1.0.0-beta.1 - 2026-08-01
 

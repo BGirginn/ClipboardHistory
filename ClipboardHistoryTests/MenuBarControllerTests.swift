@@ -48,7 +48,7 @@ final class MenuBarControllerTests: XCTestCase {
             dependencies: dependencies,
             panelEventMonitor: MenuPanelEventMonitorStub()
         )
-        popover.animates = false
+        XCTAssertFalse(popover.animates)
         panel.animationBehavior = .none
 
         context.settings.appearance = .light
