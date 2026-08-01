@@ -5,6 +5,7 @@ import XCTest
 
 @testable import ClipboardHistory
 
+#if DEBUG
 @MainActor
 final class FacadeActionCoverageTests: XCTestCase {
     func testSelectionSearchPreviewRestorePasteAndDeleteCommands() async throws {
@@ -1098,3 +1099,4 @@ private actor FacadeRecoveryImporter: StorageRecoveryImporting {
         StorageRecoveryImportResult(importedItemCount: 0, rollbackBackupURL: nil)
     }
 }
+#endif
