@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 import XCTest
 
 @testable import ClipboardHistory
@@ -278,6 +279,147 @@ final class StorageDeepCoverageTests: XCTestCase {
 
         let defaultStorage = StorageService()
         await defaultStorage.close()
+    }
+
+    func testSchemaInitializationAndMigrationFailuresRollbackDeterministically() async throws {
+        struct InjectedFailure: Error {}
+        for needle in [
+            "CREATE TABLE IF NOT EXISTS ClipboardItems",
+            "ALTER TABLE ClipboardItems ADD COLUMN protectedMetadata",
+            "CREATE TABLE ClipboardCollections"
+        ] {
+            let root = temporaryDirectory("SchemaFailure")
+            defer { try? FileManager.default.removeItem(at: root) }
+            let storage = StorageService(
+                baseDirectory: root,
+                operationFailureInjector: { operation in
+                    guard case let .executeSQL(sql) = operation,
+                          sql.contains(needle) else { return }
+                    throw InjectedFailure()
+                }
+            )
+            let history = await storage.loadHistory()
+            XCTAssertTrue(history.isEmpty)
+            await storage.close()
+        }
+
+        let integrityRoot = temporaryDirectory("IntegrityRecovery")
+        defer { try? FileManager.default.removeItem(at: integrityRoot) }
+        let integrity = StorageService(
+            baseDirectory: integrityRoot,
+            databaseIntegrityCheckOverride: { false }
+        )
+        let integrityHistory = await integrity.loadHistory()
+        XCTAssertTrue(integrityHistory.isEmpty)
+        await integrity.close()
+
+        let openFailureRoot = temporaryDirectory("DatabaseOpenFailure")
+        defer { try? FileManager.default.removeItem(at: openFailureRoot) }
+        try FileManager.default.createDirectory(
+            at: openFailureRoot.appending(path: "history.sqlite3", directoryHint: .isDirectory),
+            withIntermediateDirectories: true
+        )
+        let openFailure = StorageService(baseDirectory: openFailureRoot)
+        let openFailureHistory = await openFailure.loadHistory()
+        XCTAssertTrue(openFailureHistory.isEmpty)
+        await openFailure.close()
+
+        let preserveRoot = temporaryDirectory("PreserveMigrationFailure")
+        defer { try? FileManager.default.removeItem(at: preserveRoot) }
+        try FileManager.default.createDirectory(at: preserveRoot, withIntermediateDirectories: true)
+        try Data("invalid legacy JSON".utf8).write(
+            to: preserveRoot.appending(path: "history.json")
+        )
+        let preserveFailure = StorageService(
+            baseDirectory: preserveRoot,
+            operationFailureInjector: { operation in
+                guard case let .prepareSQL(sql) = operation,
+                      sql.contains("INSERT OR REPLACE INTO Settings") else { return }
+                throw InjectedFailure()
+            }
+        )
+        let preserveFailureHistory = await preserveFailure.loadHistory()
+        XCTAssertTrue(preserveFailureHistory.isEmpty)
+        await preserveFailure.close()
+
+        let corruptSchemaRoot = temporaryDirectory("CorruptSchemaFailure")
+        defer { try? FileManager.default.removeItem(at: corruptSchemaRoot) }
+        let corruptSchema = StorageService(
+            baseDirectory: corruptSchemaRoot,
+            operationFailureInjector: { operation in
+                guard case let .executeSQL(sql) = operation,
+                      sql.contains("CREATE TABLE IF NOT EXISTS ClipboardItems") else { return }
+                throw InjectedFailure()
+            },
+            databaseCorruptionStateOverride: true
+        )
+        let corruptSchemaHistory = await corruptSchema.loadHistory()
+        XCTAssertTrue(corruptSchemaHistory.isEmpty)
+        await corruptSchema.close()
+    }
+
+    func testRepositoryBindingsSettingsMaintenanceAndOrphanPaths() async throws {
+        let root = temporaryDirectory("RepositoryRemainingBranches")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let storage = StorageService(baseDirectory: root, encryptionService: .ephemeral())
+        _ = await storage.loadHistory()
+
+        try await storage.execute("""
+            CREATE TEMP TRIGGER fail_setting_insert BEFORE INSERT ON Settings
+            BEGIN SELECT RAISE(ABORT, 'setting failure'); END
+            """)
+        await assertThrowsAsync {
+            try await storage.setSettingValue("value", for: "failing-setting")
+        }
+        try await storage.execute("DROP TRIGGER fail_setting_insert")
+
+        let bindingRoot = temporaryDirectory("BindingFailure")
+        defer { try? FileManager.default.removeItem(at: bindingRoot) }
+        let bindingFailure = StorageService(
+            baseDirectory: bindingRoot,
+            sqliteTextBinder: { _, _, _ in SQLITE_RANGE }
+        )
+        _ = await bindingFailure.loadHistory()
+        await assertThrowsAsync {
+            try await bindingFailure.setSettingValue("value", for: "key")
+        }
+        await bindingFailure.close()
+
+        let item = ClipboardItem(type: .text, text: "batch", hash: "batch")
+        try await storage.upsertBatchThrowing([item])
+
+        try await storage.execute("""
+            CREATE TEMP TRIGGER fail_migration_insert BEFORE INSERT ON ClipboardItems
+            BEGIN SELECT RAISE(ABORT, 'migration failure'); END
+            """)
+        await storage.migrateEncryption(items: [item], mode: .all)
+        try await storage.execute("DROP TRIGGER fail_migration_insert")
+
+        let old = ClipboardItem(
+            type: .text,
+            text: "old",
+            creationDate: .now.addingTimeInterval(-10 * 86_400),
+            hash: "old"
+        )
+        try await storage.upsertThrowing(old)
+        try await storage.execute("""
+            CREATE TEMP TRIGGER fail_cleanup_delete BEFORE DELETE ON ClipboardItems
+            BEGIN SELECT RAISE(ABORT, 'cleanup failure'); END
+            """)
+        let failedCleanup = await storage.cleanup(
+            historyLimit: 1,
+            retentionDays: 1,
+            imageRetentionDays: 1,
+            maximumStorageBytes: .max
+        )
+        XCTAssertEqual(failedCleanup.removedItemCount, 0)
+        try await storage.execute("DROP TRIGGER fail_cleanup_delete")
+
+        let orphan = storage.imagesDirectory.appending(path: "orphan.png")
+        try Data([1, 2, 3]).write(to: orphan)
+        _ = try await storage.loadHistoryThrowing()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: orphan.path))
+        await storage.close()
     }
 
     private func temporaryDirectory(_ prefix: String) -> URL {

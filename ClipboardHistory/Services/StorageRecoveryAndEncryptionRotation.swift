@@ -8,10 +8,8 @@ extension StorageService {
             let keyData = try KeychainService.generateRandomKey()
             try keyProvider.replaceKey(with: keyData)
             encryption = try EncryptionService(keyData: keyData)
-        } else if encryption != nil {
-            encryption = .ephemeral()
         } else {
-            return
+            encryption = .ephemeral()
         }
         AppLog.storage.notice("Encryption key rotated after complete history erasure")
     }

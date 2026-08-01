@@ -40,7 +40,7 @@ struct ClipboardSettingsView: View {
         .accessibilityIdentifier("clipboard.settings")
     }
 
-    private func closeSettings() {
+    func closeSettings() {
         viewModel.isShowingSettings = false
     }
 }

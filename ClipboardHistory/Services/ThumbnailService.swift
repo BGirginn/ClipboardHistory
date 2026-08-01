@@ -4,13 +4,20 @@ import ImageIO
 import PDFKit
 
 actor ThumbnailService {
+    typealias ImageThumbnailCreator = @Sendable (CGImageSource, Int, CFDictionary?) -> CGImage?
+
     static let shared = ThumbnailService()
 
     private let cache = NSCache<NSString, NSData>()
     private var inFlightRequests: [UUID: Task<Data?, Never>] = [:]
     private var requestTokens: [UUID: UUID] = [:]
+    private let imageThumbnailCreator: ImageThumbnailCreator
 
-    init(cacheMegabytes: Int = 64) {
+    init(
+        cacheMegabytes: Int = 64,
+        imageThumbnailCreator: @escaping ImageThumbnailCreator = CGImageSourceCreateThumbnailAtIndex
+    ) {
+        self.imageThumbnailCreator = imageThumbnailCreator
         cache.totalCostLimit = max(8, cacheMegabytes) * 1_024 * 1_024
         cache.countLimit = 256
     }
@@ -136,7 +143,7 @@ actor ThumbnailService {
             kCGImageSourceThumbnailMaxPixelSize: maximumDimension,
             kCGImageSourceShouldCacheImmediately: false
         ]
-        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+        guard let image = imageThumbnailCreator(source, 0, options as CFDictionary) else {
             return nil
         }
         return NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])

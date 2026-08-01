@@ -45,6 +45,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     let exportImportService: ExportImportService
     let archivePanelSelector: any ArchivePanelSelecting
     let storageRecoveryImporter: any StorageRecoveryImporting
+    let workspaceRevealer: any WorkspaceRevealing
 
     var requestClosePanel: (() -> Void)?
     var requestPreview: ((ClipboardItem) -> Void)?
@@ -94,6 +95,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         exportImportService: ExportImportService = ExportImportService(),
         archivePanelSelector: any ArchivePanelSelecting = SystemArchivePanelSelector(),
         storageRecoveryImporter: any StorageRecoveryImporting = SystemStorageRecoveryImporter(),
+        workspaceRevealer: any WorkspaceRevealing = SystemWorkspaceRevealer(),
         secretDetector: SecretDetectionService = SecretDetectionService(),
         contentAnalyzer: any ClipboardContentAnalyzing = ClipboardContentAnalysisService(),
         metadataExtractor: any ContentMetadataExtracting = ContentMetadataService(),
@@ -114,6 +116,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         self.exportImportService = exportImportService
         self.archivePanelSelector = archivePanelSelector
         self.storageRecoveryImporter = storageRecoveryImporter
+        self.workspaceRevealer = workspaceRevealer
         self.secretDetector = secretDetector
         self.contentAnalyzer = contentAnalyzer
         self.metadataExtractor = metadataExtractor

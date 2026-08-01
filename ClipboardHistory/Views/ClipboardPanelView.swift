@@ -5,7 +5,12 @@ struct ClipboardPanelView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @State private var searchIsFocused = false
+    @State private var searchIsFocused: Bool
+
+    init(viewModel: ClipboardHistoryViewModel, searchIsFocused: Bool = false) {
+        self.viewModel = viewModel
+        _searchIsFocused = State(initialValue: searchIsFocused)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -70,7 +75,7 @@ struct ClipboardPanelView: View {
             isPresented: $viewModel.isShowingClearConfirmation
         ) {
             Button("Clear All History", role: .destructive, action: viewModel.confirmClearHistory)
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel, action: cancelDialog)
         } message: {
             Text("Pinned items and all associated files and thumbnails will also be removed.")
         }
@@ -79,7 +84,7 @@ struct ClipboardPanelView: View {
             isPresented: $viewModel.isShowingAgeCleanupConfirmation
         ) {
             Button("Delete Matching Items", role: .destructive, action: viewModel.confirmAgeCleanup)
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel, action: cancelDialog)
         } message: {
             Text("Pinned items are preserved. This cannot be undone.")
         }
@@ -95,49 +100,39 @@ struct ClipboardPanelView: View {
         .accessibilityIdentifier("clipboard.panel")
     }
 
-    private func updateSearchFocus(_ focused: Bool) {
+    func updateSearchFocus(_ focused: Bool) {
         searchIsFocused = focused
     }
 
     private var itemActions: ClipboardItemActions {
-        ClipboardItemActions(
-            selectAndCopy: { item in
-                if NSEvent.modifierFlags.contains(.command) {
-                    viewModel.toggleSelection(item)
-                } else {
-                    viewModel.selectOnly(item)
-                    viewModel.restore(item)
-                }
-            },
-            copy: viewModel.restore,
-            paste: { item in viewModel.paste(item) },
-            copyAs: { item, representation in
-                viewModel.copy(item, as: representation)
-            },
-            pasteAs: { item, representation in
-                viewModel.paste(item, as: representation)
-            },
-            togglePin: viewModel.togglePin,
-            toggleSnippet: viewModel.toggleSnippet,
-            moveToCollection: viewModel.move,
+        let router = ClipboardPanelItemActionRouter(viewModel: viewModel)
+        return ClipboardItemActions(
+            selectAndCopy: router.selectAndCopy,
+            copy: router.copy,
+            paste: router.paste,
+            copyAs: router.copyAs,
+            pasteAs: router.pasteAs,
+            togglePin: router.togglePin,
+            toggleSnippet: router.toggleSnippet,
+            moveToCollection: router.move,
             collections: viewModel.collections,
-            addToPasteStack: viewModel.addToPasteStack,
-            removeFromPasteStack: viewModel.removeFromPasteStack,
+            addToPasteStack: router.addToPasteStack,
+            removeFromPasteStack: router.removeFromPasteStack,
             pasteStackItemIDs: Set(viewModel.pasteStackItemIDs),
-            dragProvider: { item in
-                viewModel.dragProvider.make(for: item, storage: viewModel.storage)
-            },
-            showDetails: viewModel.showDetails,
-            reveal: viewModel.reveal,
-            exportImage: { item, asJPEG in
-                viewModel.exportImage(item, asJPEG: asJPEG)
-            },
-            delete: viewModel.delete,
-            menuCommandDidRun: viewModel.notifyMenuCommandDidRun
+            dragProvider: router.dragProvider,
+            showDetails: router.showDetails,
+            reveal: router.reveal,
+            exportImage: router.exportImage,
+            delete: router.delete,
+            menuCommandDidRun: router.menuCommandDidRun
         )
     }
 
-    private func handleKeyEvent(_ event: NSEvent) -> Bool {
+    func handleKeyEvent(_ event: NSEvent) -> Bool {
+        handleKeyEvent(event, searchIsFocused: searchIsFocused)
+    }
+
+    func handleKeyEvent(_ event: NSEvent, searchIsFocused: Bool) -> Bool {
         guard !viewModel.isLocked else { return false }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if modifiers == .command, event.charactersIgnoringModifiers?.lowercased() == "f" {
@@ -180,19 +175,13 @@ struct ClipboardPanelView: View {
     private var quickSelectionShortcuts: some View {
         HStack(spacing: 0) {
             ForEach(0..<9, id: \.self) { index in
-                Button {
-                    viewModel.restoreVisibleItem(at: index)
-                } label: {
-                    EmptyView()
-                }
-                .keyboardShortcut(
-                    KeyEquivalent(Character(String(index + 1))),
-                    modifiers: .command
-                )
+                ClipboardQuickSelectionButton(viewModel: viewModel, index: index)
             }
         }
         .frame(width: 0, height: 0)
         .clipped()
         .accessibilityHidden(true)
     }
+
+    func cancelDialog() {}
 }

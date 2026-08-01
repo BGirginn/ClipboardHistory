@@ -109,6 +109,7 @@ final class PrivacySecurityTests: XCTestCase {
         monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyReleased))
         monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyReleased))
         XCTAssertEqual(releases, 1)
+        monitor.handleHotKeyEvent(kind: UInt32.max)
         XCTAssertFalse(monitor.isPressed)
 
         monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyPressed))

@@ -138,11 +138,16 @@ final class MenuBarControllerTests: XCTestCase {
             )
         )
         _ = eventMonitor.fireLocal(event)
+        _ = controller.isStatusItemEvent(event)
         controller.closePopover()
 
         context.settings.panelPresentationMode = .detachable
         controller.showPopover()
         XCTAssertTrue(panel.isVisible)
+        for edge in PanelScreenEdge.allCases {
+            context.settings.panelScreenEdge = edge
+            controller.positionDetachablePanel()
+        }
         controller.togglePopover()
         XCTAssertFalse(panel.isVisible)
 

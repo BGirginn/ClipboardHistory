@@ -110,6 +110,11 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
                 await viewModel.insert(.text(value: "Beta clipboard item", hash: "ui-beta"))
                 await viewModel.insert(.text(value: "Gamma clipboard item", hash: "ui-gamma"))
             }
+            if viewModel.collections.isEmpty {
+                let collection = ClipboardCollection(name: "Coverage Collection")
+                try? await viewModel.storage.upsertCollection(collection)
+                viewModel.collections = [collection]
+            }
             controller.showPopover()
         }
         AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")

@@ -19,15 +19,11 @@ struct ClipboardPasteStackView: View {
                     .lineLimit(1)
                     .accessibilityLabel("Next item: \(next.displayTitle ?? next.contentSubtype.rawValue)")
             }
-            Button("Paste Next", systemImage: "arrow.right.to.line") {
-                viewModel.pasteNextStackItem()
-            }
+            Button("Paste Next", systemImage: "arrow.right.to.line", action: pasteNext)
             .labelStyle(.iconOnly)
             .help("Paste the next stack item to the active app")
             .accessibilityIdentifier("pasteStack.next")
-            Button("Reset Paste Stack", systemImage: "xmark.circle") {
-                viewModel.resetPasteStack()
-            }
+            Button("Reset Paste Stack", systemImage: "xmark.circle", action: reset)
             .labelStyle(.iconOnly)
             .help("Reset Paste Stack")
             .accessibilityIdentifier("pasteStack.reset")
@@ -43,5 +39,13 @@ struct ClipboardPasteStackView: View {
         case .fifo: viewModel.pasteStackItems.first
         case .lifo: viewModel.pasteStackItems.last
         }
+    }
+
+    func pasteNext() {
+        viewModel.pasteNextStackItem()
+    }
+
+    func reset() {
+        viewModel.resetPasteStack()
     }
 }

@@ -10,9 +10,41 @@ protocol ArchivePanelSelecting: AnyObject {
 }
 
 @MainActor
+protocol ArchiveSavePanelPresenting: AnyObject {
+    var canCreateDirectories: Bool { get set }
+    var nameFieldStringValue: String { get set }
+    var allowedContentTypes: [UTType] { get set }
+    var url: URL? { get }
+    func begin() async -> NSApplication.ModalResponse
+}
+
+@MainActor
+protocol ArchiveOpenPanelPresenting: AnyObject {
+    var canChooseDirectories: Bool { get set }
+    var allowsMultipleSelection: Bool { get set }
+    var allowedContentTypes: [UTType] { get set }
+    var url: URL? { get }
+    func begin() async -> NSApplication.ModalResponse
+}
+
+extension NSSavePanel: ArchiveSavePanelPresenting {}
+extension NSOpenPanel: ArchiveOpenPanelPresenting {}
+
+@MainActor
 final class SystemArchivePanelSelector: ArchivePanelSelecting {
+    private let makeSavePanel: @MainActor () -> any ArchiveSavePanelPresenting
+    private let makeOpenPanel: @MainActor () -> any ArchiveOpenPanelPresenting
+
+    init(
+        makeSavePanel: (@MainActor () -> any ArchiveSavePanelPresenting)? = nil,
+        makeOpenPanel: (@MainActor () -> any ArchiveOpenPanelPresenting)? = nil
+    ) {
+        self.makeSavePanel = makeSavePanel ?? NSSavePanel.init
+        self.makeOpenPanel = makeOpenPanel ?? NSOpenPanel.init
+    }
+
     func saveDestination(suggestedName: String, allowedTypes: [UTType]) async -> URL? {
-        let panel = NSSavePanel()
+        let panel = makeSavePanel()
         panel.canCreateDirectories = true
         panel.nameFieldStringValue = suggestedName
         panel.allowedContentTypes = allowedTypes
@@ -21,7 +53,7 @@ final class SystemArchivePanelSelector: ArchivePanelSelecting {
     }
 
     func openSource(allowedTypes: [UTType]) async -> URL? {
-        let panel = NSOpenPanel()
+        let panel = makeOpenPanel()
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = allowedTypes
@@ -39,9 +71,9 @@ protocol StorageRecoveryImporting: Sendable {
 }
 
 struct SystemStorageRecoveryImporter: StorageRecoveryImporting {
-    private let service: StorageRecoveryImportService
+    private let service: any StorageRecoveryImporting
 
-    init(service: StorageRecoveryImportService = StorageRecoveryImportService()) {
+    init(service: any StorageRecoveryImporting = StorageRecoveryImportService()) {
         self.service = service
     }
 
@@ -152,7 +184,12 @@ extension ClipboardHistoryViewModel {
         }
     }
 
-    func jpegData(from pngData: Data) throws -> Data {
+    func jpegData(
+        from pngData: Data,
+        encoder: (NSBitmapImageRep) -> Data? = {
+            $0.representation(using: .jpeg, properties: [.compressionFactor: 0.9])
+        }
+    ) throws -> Data {
         guard let source = NSImage(data: pngData) else {
             throw CocoaError(.fileReadCorruptFile)
         }
@@ -164,7 +201,7 @@ extension ClipboardHistoryViewModel {
         composited.unlockFocus()
         guard let tiff = composited.tiffRepresentation,
               let bitmap = NSBitmapImageRep(data: tiff),
-              let jpeg = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.9]) else {
+              let jpeg = encoder(bitmap) else {
             throw CocoaError(.fileWriteUnknown)
         }
         return jpeg

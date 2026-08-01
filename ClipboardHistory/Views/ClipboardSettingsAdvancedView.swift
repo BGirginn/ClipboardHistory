@@ -4,6 +4,11 @@ struct ClipboardSettingsAdvancedView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @State private var newCollectionName = ""
 
+    init(viewModel: ClipboardHistoryViewModel, newCollectionName: String = "") {
+        self.viewModel = viewModel
+        _newCollectionName = State(initialValue: newCollectionName)
+    }
+
     var body: some View {
         Form {
             Section("Duplicate Detection") {
@@ -61,21 +66,15 @@ struct ClipboardSettingsAdvancedView: View {
             Section("Collections") {
                 HStack {
                     TextField("New collection name", text: $newCollectionName)
-                    Button("Add", systemImage: "plus") {
-                        viewModel.createCollection(named: newCollectionName)
-                        newCollectionName = ""
-                    }
+                        .accessibilityIdentifier("settings.newCollectionName")
+                    Button("Add", systemImage: "plus", action: addCollection)
                     .disabled(newCollectionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 ForEach(viewModel.collections) { collection in
-                    HStack {
-                        Label(collection.name, systemImage: "folder")
-                        Spacer()
-                        Button("Delete \(collection.name)", systemImage: "trash", role: .destructive) {
-                            viewModel.deleteCollection(collection)
-                        }
-                        .labelStyle(.iconOnly)
-                    }
+                    ClipboardCollectionSettingsRow(
+                        viewModel: viewModel,
+                        collection: collection
+                    )
                 }
                 Text("Collection names and item tags are encrypted at rest.")
                     .font(.caption)
@@ -97,9 +96,7 @@ struct ClipboardSettingsAdvancedView: View {
                     value: $viewModel.settings.pasteStackTimeoutMinutes,
                     in: 0...120
                 )
-                Button("Reset Paste Stack", systemImage: "xmark.circle") {
-                    viewModel.resetPasteStack()
-                }
+                Button("Reset Paste Stack", systemImage: "xmark.circle", action: resetPasteStack)
                 .disabled(viewModel.pasteStackItems.isEmpty)
             }
 
@@ -115,5 +112,14 @@ struct ClipboardSettingsAdvancedView: View {
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("settings.advanced")
+    }
+
+    func addCollection() {
+        viewModel.createCollection(named: newCollectionName)
+        newCollectionName = ""
+    }
+
+    func resetPasteStack() {
+        viewModel.resetPasteStack()
     }
 }

@@ -173,7 +173,7 @@ final class ClipboardMonitor {
         }
     }
 
-    private func plainTextFallback(rtfData: Data?, htmlData: Data?) -> String? {
+    func plainTextFallback(rtfData: Data?, htmlData: Data?) -> String? {
         if let rtfData,
            let attributed = try? NSAttributedString(
                data: rtfData,

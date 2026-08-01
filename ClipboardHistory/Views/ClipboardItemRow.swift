@@ -9,12 +9,30 @@ struct ClipboardItemRow: View, @MainActor Equatable {
     let thumbnailService: ThumbnailService
     let actions: ClipboardItemActions
 
-    @State private var isHovering = false
+    @State private var isHovering: Bool
+
+    init(
+        item: ClipboardItem,
+        isSelected: Bool,
+        isCopied: Bool,
+        isLocked: Bool,
+        storage: StorageService,
+        thumbnailService: ThumbnailService,
+        actions: ClipboardItemActions,
+        isHovering: Bool = false
+    ) {
+        self.item = item
+        self.isSelected = isSelected
+        self.isCopied = isCopied
+        self.isLocked = isLocked
+        self.storage = storage
+        self.thumbnailService = thumbnailService
+        self.actions = actions
+        _isHovering = State(initialValue: isHovering)
+    }
 
     var body: some View {
-        Button {
-            actions.selectAndCopy(item)
-        } label: {
+        Button(action: selectAndCopy) {
             HStack(spacing: 0) {
                 ClipboardItemRowContent(
                     item: item,
@@ -45,8 +63,8 @@ struct ClipboardItemRow: View, @MainActor Equatable {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 1.5)
         }
-        .onHover { isHovering = $0 }
-        .onDrag { actions.dragProvider(item) }
+        .onHover(perform: updateHover)
+        .onDrag(dragProvider)
         .contextMenu {
             ClipboardItemContextMenu(item: item, actions: actions)
         }
@@ -86,6 +104,18 @@ struct ClipboardItemRow: View, @MainActor Equatable {
             isCopied ? "copied" : nil,
             item.isEncrypted ? "encrypted" : nil
         ].compactMap { $0 }.joined(separator: ", ")
+    }
+
+    func selectAndCopy() {
+        actions.selectAndCopy(item)
+    }
+
+    func updateHover(_ hovering: Bool) {
+        isHovering = hovering
+    }
+
+    func dragProvider() -> NSItemProvider {
+        actions.dragProvider(item)
     }
 
     static func == (lhs: ClipboardItemRow, rhs: ClipboardItemRow) -> Bool {

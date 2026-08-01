@@ -1,15 +1,31 @@
 import Foundation
 
-actor StorageRecoveryImportService {
+actor StorageRecoveryImportService: StorageRecoveryImporting {
     private let fileSystem: any MigrationFileSystem
     private let exportImportService: ExportImportService
+    private let keyProvider: any MasterKeyProvider
 
     init(
         fileSystem: any MigrationFileSystem = LocalMigrationFileSystem(),
-        exportImportService: ExportImportService = ExportImportService()
+        exportImportService: ExportImportService = ExportImportService(),
+        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active
     ) {
         self.fileSystem = fileSystem
         self.exportImportService = exportImportService
+        self.keyProvider = keyProvider
+    }
+
+    func migrate(
+        encryptedArchive: URL,
+        password: String,
+        to destinationDirectory: URL
+    ) async throws -> StorageRecoveryImportResult {
+        try await migrate(
+            encryptedArchive: encryptedArchive,
+            password: password,
+            to: destinationDirectory,
+            keyProvider: keyProvider
+        )
     }
 
     func migrate(

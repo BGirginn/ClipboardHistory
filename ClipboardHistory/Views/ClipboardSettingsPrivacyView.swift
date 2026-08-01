@@ -34,7 +34,10 @@ struct ClipboardSettingsPrivacyView: View {
 
             Section("Recording") {
                 LabeledContent("Status") {
-                    recordingStatus
+                    ClipboardRecordingStatusView(
+                        isPrivateMode: viewModel.isPrivateMode,
+                        pauseUntil: viewModel.pauseUntil
+                    )
                 }
 
                 Toggle("Private Mode", isOn: privateModeBinding)
@@ -108,21 +111,10 @@ struct ClipboardSettingsPrivacyView: View {
         .accessibilityIdentifier("settings.privacy")
     }
 
-    @ViewBuilder
-    private var recordingStatus: some View {
-        if viewModel.isPrivateMode {
-            Label("Private", systemImage: "eye.slash.fill")
-                .foregroundStyle(.orange)
-        } else if viewModel.pauseUntil.map({ $0 > .now }) == true {
-            Label("Paused", systemImage: "pause.circle.fill")
-                .foregroundStyle(.orange)
-        } else {
-            Label("Recording", systemImage: "record.circle")
-                .foregroundStyle(.secondary)
-        }
-    }
+}
 
-    private var privateModeBinding: Binding<Bool> {
+extension ClipboardSettingsPrivacyView {
+    var privateModeBinding: Binding<Bool> {
         Binding(
             get: { viewModel.isPrivateMode },
             set: { enabled in

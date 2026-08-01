@@ -157,6 +157,62 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         }
     }
 
+    func testSystemPanelSelectorConfiguresInjectedPanelsAndHandlesCancellation() async throws {
+        let destination = URL(fileURLWithPath: "/private/tmp/save.clipboardarchive")
+        let source = URL(fileURLWithPath: "/private/tmp/open.clipboardarchive")
+        let save = ArchiveSavePanelStub(response: .OK, url: destination)
+        let open = ArchiveOpenPanelStub(response: .OK, url: source)
+        let selector = SystemArchivePanelSelector(
+            makeSavePanel: { save },
+            makeOpenPanel: { open }
+        )
+
+        let selectedDestination = await selector.saveDestination(
+            suggestedName: "History",
+            allowedTypes: [.data]
+        )
+        XCTAssertEqual(selectedDestination, destination)
+        XCTAssertTrue(save.canCreateDirectories)
+        XCTAssertEqual(save.nameFieldStringValue, "History")
+        XCTAssertEqual(save.allowedContentTypes, [.data])
+        let selectedSource = await selector.openSource(allowedTypes: [.json])
+        XCTAssertEqual(selectedSource, source)
+        XCTAssertFalse(open.canChooseDirectories)
+        XCTAssertFalse(open.allowsMultipleSelection)
+        XCTAssertEqual(open.allowedContentTypes, [.json])
+
+        save.response = .cancel
+        open.response = .cancel
+        let cancelledDestination = await selector.saveDestination(
+            suggestedName: "Cancelled",
+            allowedTypes: []
+        )
+        let cancelledSource = await selector.openSource(allowedTypes: [])
+        XCTAssertNil(cancelledDestination)
+        XCTAssertNil(cancelledSource)
+
+        _ = SystemArchivePanelSelector(
+            makeSavePanel: NSSavePanel.init,
+            makeOpenPanel: NSOpenPanel.init
+        )
+
+        let forwardingImporter = SystemStorageRecoveryImporter(
+            service: ArchiveRecoveryImporterStub(behavior: .success(2))
+        )
+        let forwarded = try await forwardingImporter.migrate(
+            encryptedArchive: source,
+            password: "password",
+            to: destination
+        )
+        XCTAssertEqual(forwarded.importedItemCount, 2)
+
+        let context = makeContext()
+        XCTAssertThrowsError(
+            try context.viewModel.jpegData(from: try makePNG(), encoder: { _ in nil })
+        )
+        await cleanup(context)
+    }
+
     private struct Context {
         let directory: URL
         let defaultsSuite: String
@@ -213,6 +269,38 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         let bitmap = try XCTUnwrap(NSBitmapImageRep(data: tiff))
         return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
     }
+}
+
+@MainActor
+private final class ArchiveSavePanelStub: ArchiveSavePanelPresenting {
+    var canCreateDirectories = false
+    var nameFieldStringValue = ""
+    var allowedContentTypes: [UTType] = []
+    var response: NSApplication.ModalResponse
+    let url: URL?
+
+    init(response: NSApplication.ModalResponse, url: URL?) {
+        self.response = response
+        self.url = url
+    }
+
+    func begin() async -> NSApplication.ModalResponse { response }
+}
+
+@MainActor
+private final class ArchiveOpenPanelStub: ArchiveOpenPanelPresenting {
+    var canChooseDirectories = true
+    var allowsMultipleSelection = true
+    var allowedContentTypes: [UTType] = []
+    var response: NSApplication.ModalResponse
+    let url: URL?
+
+    init(response: NSApplication.ModalResponse, url: URL?) {
+        self.response = response
+        self.url = url
+    }
+
+    func begin() async -> NSApplication.ModalResponse { response }
 }
 
 @MainActor

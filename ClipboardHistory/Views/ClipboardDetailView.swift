@@ -23,16 +23,14 @@ struct ClipboardDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button("Back", systemImage: "chevron.left") {
-                    viewModel.detailItem = nil
-                }
+                Button("Back", systemImage: "chevron.left", action: goBack)
                 .buttonStyle(.borderless)
                 .accessibilityIdentifier("detail.back")
                 Spacer()
                 Text("Item Details")
                     .font(.headline)
                 Spacer()
-                Button("Copy", systemImage: "doc.on.doc") { viewModel.restore(item) }
+                Button("Copy", systemImage: "doc.on.doc", action: copyItem)
                     .buttonStyle(.borderless)
                     .disabled(viewModel.isLocked)
                     .accessibilityIdentifier("detail.copy")
@@ -64,9 +62,10 @@ struct ClipboardDetailView: View {
                         .accessibilityIdentifier("detail.text")
                     Menu("Transform Text", systemImage: "textformat") {
                         ForEach(TextTransformation.allCases) { transformation in
-                            Button(transformation.title) {
-                                draftText = transformation.apply(to: draftText)
-                            }
+                            ClipboardTextTransformationButton(
+                                transformation: transformation,
+                                text: $draftText
+                            )
                         }
                     }
                     .accessibilityIdentifier("detail.transform")
@@ -82,16 +81,7 @@ struct ClipboardDetailView: View {
                 Toggle("Keep as Snippet", isOn: $isSnippet)
                 HStack {
                     Spacer()
-                    Button("Save Changes", systemImage: "checkmark") {
-                        viewModel.updateItem(
-                            item,
-                            title: draftTitle,
-                            editedText: [.text, .richText].contains(item.type) ? draftText : nil,
-                            tags: draftTags,
-                            collectionID: selectedCollectionID,
-                            isSnippet: isSnippet
-                        )
-                    }
+                    Button("Save Changes", systemImage: "checkmark", action: saveChanges)
                     .accessibilityIdentifier("detail.save")
                 }
             }
@@ -184,5 +174,24 @@ struct ClipboardDetailView: View {
             )?.path
         }
         return nil
+    }
+
+    func goBack() {
+        viewModel.detailItem = nil
+    }
+
+    func copyItem() {
+        viewModel.restore(item)
+    }
+
+    func saveChanges() {
+        viewModel.updateItem(
+            item,
+            title: draftTitle,
+            editedText: [.text, .richText].contains(item.type) ? draftText : nil,
+            tags: draftTags,
+            collectionID: selectedCollectionID,
+            isSnippet: isSnippet
+        )
     }
 }

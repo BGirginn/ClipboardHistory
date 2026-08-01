@@ -18,46 +18,7 @@ struct ClipboardSettingsSecurityView: View {
             }
 
             Section("Application Lock") {
-                if viewModel.isApplicationLockEnabled {
-                    LabeledContent("Status") {
-                        if viewModel.isLocked {
-                            Label("Locked", systemImage: "lock.fill")
-                        } else {
-                            Label("Unlocked", systemImage: "lock.open")
-                        }
-                    }
-                    .foregroundStyle(
-                        viewModel.isLocked
-                            ? AnyShapeStyle(Color.orange)
-                            : AnyShapeStyle(.secondary)
-                    )
-                    Picker(
-                        "Automatic lock",
-                        selection: $viewModel.settings.autoLockOption
-                    ) {
-                        ForEach(AutoLockOption.allCases) { option in
-                            Text(option.title).tag(option)
-                        }
-                    }
-
-                    Toggle(
-                        "Continue recording while locked",
-                        isOn: $viewModel.settings.captureWhileLocked
-                    )
-                    .help("New items remain encrypted. Viewing, copying, and pasting stay blocked until you unlock.")
-                    .accessibilityHint("When enabled, new clipboard items are encrypted and saved while the application is locked.")
-
-                    LabeledContent("Control") {
-                        if viewModel.isLocked {
-                            Button("Authenticate and Unlock", systemImage: "touchid", action: toggleLock)
-                        } else {
-                            Button("Lock Now", systemImage: "lock.fill", action: toggleLock)
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityValue(viewModel.isLocked ? "Locked" : "Unlocked")
-                    .accessibilityIdentifier("settings.lock")
-                }
+                ClipboardApplicationLockControls(viewModel: viewModel)
 
                 Button(
                     viewModel.isApplicationLockEnabled
@@ -69,18 +30,20 @@ struct ClipboardSettingsSecurityView: View {
                 .disabled(viewModel.lockService.isAuthenticating)
                 .accessibilityHint("Uses Touch ID or your Mac login password. Clipboard History does not create a separate password.")
 
-                if let message = viewModel.lockService.errorMessage {
-                    Text(message)
-                        .foregroundStyle(.red)
-                        .accessibilityLabel("Application lock error: \(message)")
-                }
+                ClipboardSettingsMessage(
+                    message: viewModel.lockService.errorMessage,
+                    color: .red
+                )
+                .accessibilityLabel(
+                    viewModel.lockService.errorMessage.map(applicationLockAccessibilityLabel) ?? ""
+                )
             }
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("settings.security")
     }
 
-    private func toggleLock() {
+    func toggleLock() {
         if viewModel.isLocked {
             viewModel.unlock()
         } else {
@@ -88,7 +51,11 @@ struct ClipboardSettingsSecurityView: View {
         }
     }
 
-    private func changeApplicationLockSetting() {
+    func changeApplicationLockSetting() {
         viewModel.setApplicationLockEnabled(!viewModel.isApplicationLockEnabled)
+    }
+
+    func applicationLockAccessibilityLabel(_ message: String) -> String {
+        String(localized: "Application lock error: \(message)")
     }
 }

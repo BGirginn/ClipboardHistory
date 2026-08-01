@@ -61,16 +61,20 @@ struct ClipboardHistoryListView: View {
                     }
                     .onChange(of: selectedItemID) { _, selectedID in
                         guard let selectedID else { return }
-                        if reduceMotion {
-                            proxy.scrollTo(selectedID, anchor: .center)
-                        } else {
-                            withAnimation(.easeOut(duration: 0.12)) {
+                        Self.scrollToSelected(reduceMotion: reduceMotion) {
                                 proxy.scrollTo(selectedID, anchor: .center)
-                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    static func scrollToSelected(reduceMotion: Bool, action: () -> Void) {
+        if reduceMotion {
+            action()
+        } else {
+            withAnimation(.easeOut(duration: 0.12), action)
         }
     }
 }

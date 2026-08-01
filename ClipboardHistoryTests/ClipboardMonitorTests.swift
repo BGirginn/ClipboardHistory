@@ -219,6 +219,10 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
             from: NSRange(location: 0, length: attributed.length),
             documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
         )
+        XCTAssertEqual(
+            monitor.plainTextFallback(rtfData: rtf, htmlData: nil),
+            "RTF fallback"
+        )
         pasteboard.clearContents()
         pasteboard.setData(rtf, forType: .rtf)
         await monitor.pollNowAndWait()

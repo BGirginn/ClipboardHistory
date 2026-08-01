@@ -45,11 +45,10 @@ final class StorageRecoveryImportTests: XCTestCase {
         await sourceStorage.close()
 
         let keyProvider = FixedMasterKeyProvider(key: Data(repeating: 0x47, count: 32))
-        let result = try await StorageRecoveryImportService().migrate(
+        let result = try await StorageRecoveryImportService(keyProvider: keyProvider).migrate(
             encryptedArchive: archiveURL,
             password: "migration-password",
-            to: destination,
-            keyProvider: keyProvider
+            to: destination
         )
 
         let backup = try XCTUnwrap(result.rollbackBackupURL)

@@ -20,11 +20,11 @@ struct ClipboardSettingsGeneralView: View {
                 )
                 .accessibilityIdentifier("settings.globalShortcut")
 
-                if let shortcutError = viewModel.globalShortcutError {
-                    Label(shortcutError, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
+                ClipboardSettingsMessage(
+                    message: viewModel.globalShortcutError,
+                    color: .orange,
+                    usesLabel: true
+                )
 
                 Toggle(
                     "Close panel after copying",
@@ -88,18 +88,18 @@ struct ClipboardSettingsGeneralView: View {
                 Toggle("Launch at login", isOn: launchAtLoginBinding)
                     .accessibilityIdentifier("settings.launchAtLogin")
 
-                if let error = launchAtLoginService.errorMessage {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
+                ClipboardSettingsMessage(
+                    message: launchAtLoginService.errorMessage,
+                    color: .red,
+                    usesLabel: true
+                )
             }
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("settings.general")
     }
 
-    private var launchAtLoginBinding: Binding<Bool> {
+    var launchAtLoginBinding: Binding<Bool> {
         Binding(
             get: { launchAtLoginService.isEnabled },
             set: { enabled in

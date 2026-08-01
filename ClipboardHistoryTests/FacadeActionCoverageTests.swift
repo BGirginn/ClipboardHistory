@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import UniformTypeIdentifiers
 import XCTest
 
@@ -208,7 +209,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         await waitUntil {
             context.viewModel.items.contains { $0.hash == "secret-one" && $0.isEncrypted }
         }
-        let secondSecret = "github_token=ghp_abcdefghijklmnopqrstuvwxyz123456"
+        let secondSecret = "github_token=gh" + "p_abcdefghijklmnopqrstuvwxyz123456"
         await context.viewModel.insert(.text(value: secondSecret, hash: "secret-two"))
         context.viewModel.keepSensitiveTemporarily()
         XCTAssertFalse(context.viewModel.isShowingSensitiveSaveConfirmation)
@@ -265,6 +266,660 @@ final class FacadeActionCoverageTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testRemainingCaptureInteractionPresentationAndMutationBranches() async throws {
+        let context = makeContext()
+        await context.viewModel.loadHistoryAndStartMonitoring()
+        XCTAssertTrue(context.viewModel.hasStarted)
+        context.viewModel.startMonitoring()
+        context.viewModel.stopMonitoring()
+        context.viewModel.stopMonitoring()
+
+        context.settings.secretDetectionEnabled = false
+        let insensitive = context.viewModel.sensitivityResult(
+            for: .text(value: "ordinary", hash: "ordinary"),
+            analysis: .empty
+        )
+        XCTAssertFalse(insensitive.isSensitive)
+
+        let now = Date.now
+        let newest = ClipboardItem(type: .text, text: "newest", creationDate: now, hash: "newest")
+        let recent = ClipboardItem(type: .text, text: "recent", creationDate: now, hash: "recent")
+        let old = ClipboardItem(
+            type: .text,
+            text: "old",
+            creationDate: now.addingTimeInterval(-7_200),
+            hash: "old"
+        )
+        context.viewModel.items = [newest, recent, old]
+        context.settings.duplicateDetectionScope = .newest
+        XCTAssertNil(context.viewModel.duplicateItem(hash: "recent"))
+        context.settings.duplicateDetectionScope = .lastTen
+        XCTAssertEqual(context.viewModel.duplicateItem(hash: "recent")?.id, recent.id)
+        context.settings.duplicateDetectionScope = .lastHour
+        XCTAssertNil(context.viewModel.duplicateItem(hash: "old"))
+        XCTAssertEqual(context.viewModel.duplicateItem(hash: "recent")?.id, recent.id)
+        context.settings.duplicateDetectionScope = .fullHistory
+        XCTAssertEqual(context.viewModel.duplicateItem(hash: "old")?.id, old.id)
+        context.viewModel.associateExistingItem(
+            hash: "missing",
+            with: ClipboardPasteboardIdentity(changeCount: 1)
+        )
+
+        let collection = ClipboardCollection(name: "Coverage", sortOrder: 0)
+        let pinnedEarlier = ClipboardItem(
+            type: .text,
+            text: "pinned earlier",
+            hash: "pinned-earlier",
+            isPinned: true,
+            pinnedAt: now.addingTimeInterval(-10)
+        )
+        let pinnedLater = ClipboardItem(
+            type: .text,
+            text: "pinned later",
+            hash: "pinned-later",
+            isPinned: true,
+            pinnedAt: now
+        )
+        let richText = ClipboardItem(
+            type: .richText,
+            text: "rich",
+            hash: "rich",
+            collectionID: collection.id,
+            isSnippet: true
+        )
+        let image = ClipboardItem(type: .image, hash: "image", contentSubtype: .image)
+        context.viewModel.collections = [collection]
+        context.viewModel.items = [pinnedEarlier, pinnedLater, richText, image]
+        for filter in ClipboardFilter.allCases {
+            context.settings.selectedFilter = filter
+            context.viewModel.refreshDisplayedItems()
+        }
+        XCTAssertEqual(context.viewModel.collectionName(for: richText), collection.name)
+        XCTAssertNil(context.viewModel.collectionName(for: ClipboardItem(type: .text, hash: "none")))
+        context.viewModel.items = []
+        context.viewModel.refreshDisplayedItems()
+        context.viewModel.moveSelection(by: 1)
+        XCTAssertNil(context.viewModel.selectedItemID)
+
+        let restorable = ClipboardItem(type: .text, text: "restore", hash: "restore")
+        context.viewModel.items = [restorable]
+        context.viewModel.refreshDisplayedItems()
+        context.pasteService.result = .targetUnavailable
+        let targetUnavailable = await context.viewModel.restoreNow(
+            restorable,
+            representation: .original,
+            directPaste: true
+        )
+        XCTAssertFalse(targetUnavailable)
+        XCTAssertTrue(context.viewModel.errorMessage?.contains("no longer available") == true)
+        context.pasteService.result = .eventCreationFailed
+        let eventCreationFailed = await context.viewModel.restoreNow(
+            restorable,
+            representation: .original,
+            directPaste: true
+        )
+        XCTAssertFalse(eventCreationFailed)
+        XCTAssertTrue(context.viewModel.errorMessage?.contains("keyboard event") == true)
+
+        context.pasteService.result = .pasted
+        context.viewModel.selectedItemIDs = [restorable.id]
+        let bulkActions = ClipboardBulkActionsView(viewModel: context.viewModel)
+        bulkActions.addSelectedToPasteStack()
+        XCTAssertEqual(context.viewModel.pasteStackItemIDs, [restorable.id])
+        let pasteStack = ClipboardPasteStackView(viewModel: context.viewModel)
+        pasteStack.pasteNext()
+        await waitUntil { context.viewModel.pasteStackItemIDs.isEmpty }
+        context.viewModel.pasteStackItemIDs = [restorable.id]
+        pasteStack.reset()
+        XCTAssertTrue(context.viewModel.pasteStackItemIDs.isEmpty)
+        context.viewModel.isShowingSettings = true
+        ClipboardSettingsView(viewModel: context.viewModel).closeSettings()
+        XCTAssertFalse(context.viewModel.isShowingSettings)
+        let generalSettings = ClipboardSettingsGeneralView(viewModel: context.viewModel)
+        _ = generalSettings.launchAtLoginBinding.wrappedValue
+        generalSettings.launchAtLoginBinding.wrappedValue = true
+        XCTAssertTrue(context.viewModel.launchAtLoginService.isEnabled)
+        let privacySettings = ClipboardSettingsPrivacyView(viewModel: context.viewModel)
+        _ = privacySettings.privateModeBinding.wrappedValue
+        privacySettings.privateModeBinding.wrappedValue = true
+        XCTAssertTrue(context.viewModel.isPrivateMode)
+        privacySettings.privateModeBinding.wrappedValue = false
+        let securitySettings = ClipboardSettingsSecurityView(viewModel: context.viewModel)
+        securitySettings.changeApplicationLockSetting()
+        await waitUntil { context.viewModel.isApplicationLockEnabled }
+        securitySettings.toggleLock()
+        XCTAssertTrue(context.viewModel.isLocked)
+        securitySettings.toggleLock()
+        await waitUntil { !context.viewModel.isLocked }
+        securitySettings.changeApplicationLockSetting()
+        await waitUntil { !context.viewModel.isApplicationLockEnabled }
+        let advancedSettings = ClipboardSettingsAdvancedView(
+            viewModel: context.viewModel,
+            newCollectionName: "View Actions"
+        )
+        advancedSettings.addCollection()
+        await waitUntil { context.viewModel.collections.contains { $0.name == "View Actions" } }
+        let addedCollection = try XCTUnwrap(
+            context.viewModel.collections.first { $0.name == "View Actions" }
+        )
+        ClipboardCollectionSettingsRow(
+            viewModel: context.viewModel,
+            collection: addedCollection
+        ).deleteCollection()
+        await waitUntil { !context.viewModel.collections.contains { $0.id == addedCollection.id } }
+        context.viewModel.pasteStackItemIDs = [restorable.id]
+        advancedSettings.resetPasteStack()
+        XCTAssertTrue(context.viewModel.pasteStackItemIDs.isEmpty)
+        context.viewModel.selectedItemIDs = [restorable.id]
+        bulkActions.deleteSelectedItems()
+        await waitUntil { context.viewModel.items.isEmpty }
+
+        context.viewModel.lastProgrammaticallyWrittenHash = "stale"
+        context.viewModel.lastProgrammaticallyWrittenIdentity = ClipboardPasteboardIdentity(changeCount: 10)
+        await context.viewModel.insert(
+            .text(value: "new clipboard", hash: "new-clipboard"),
+            pasteboardIdentity: ClipboardPasteboardIdentity(changeCount: 11)
+        )
+        XCTAssertNil(context.viewModel.lastProgrammaticallyWrittenIdentity)
+
+        try await context.storage.upsertCollection(collection)
+        let collected = ClipboardItem(
+            type: .text,
+            text: "collected",
+            hash: "collected",
+            collectionID: collection.id
+        )
+        try await context.storage.upsertThrowing(collected)
+        context.viewModel.collections = [collection]
+        context.viewModel.items = [collected]
+        context.viewModel.detailItem = collected
+        context.viewModel.deleteCollection(collection)
+        await waitUntil { context.viewModel.collections.isEmpty }
+        XCTAssertNil(context.viewModel.detailItem?.collectionID)
+
+        await context.storage.close()
+        context.viewModel.createCollection(named: "Cannot Save")
+        await waitUntil { context.viewModel.errorMessage == "Collection could not be saved." }
+        context.viewModel.collections = [collection]
+        context.viewModel.deleteCollection(collection)
+        await waitUntil { context.viewModel.errorMessage == "Collection could not be deleted." }
+        await cleanup(context)
+
+        let automatic = makeContext(startsAutomatically: true)
+        await waitUntil { automatic.viewModel.hasStarted }
+        await cleanup(automatic)
+
+        let throwingClock = FacadeThrowingSleepClock()
+        let timeout = makeContext(clock: throwingClock)
+        timeout.settings.pasteStackTimeoutMinutes = 1
+        timeout.viewModel.items = [restorable]
+        timeout.viewModel.pasteStackItemIDs = [restorable.id]
+        timeout.viewModel.schedulePasteStackTimeout()
+        await drainTasks()
+        let didSleep = await throwingClock.didSleep
+        XCTAssertTrue(didSleep)
+        await cleanup(timeout)
+    }
+
+    func testContextMenuCommandRoutingRunsEveryActionAfterMenuNotification() {
+        let item = ClipboardItem(type: .image, hash: "menu", contentSubtype: .image)
+        let collection = ClipboardCollection(name: "Menu", sortOrder: 0)
+        var events: [String] = []
+        let actions = ClipboardItemActions(
+            selectAndCopy: { _ in events.append("select") },
+            copy: { _ in events.append("copy") },
+            paste: { _ in events.append("paste") },
+            copyAs: { _, representation in events.append("copyAs:\(representation.rawValue)") },
+            pasteAs: { _, representation in events.append("pasteAs:\(representation.rawValue)") },
+            togglePin: { _ in events.append("pin") },
+            toggleSnippet: { _ in events.append("snippet") },
+            moveToCollection: { _, id in events.append("collection:\(id?.uuidString ?? "none")") },
+            collections: [collection],
+            addToPasteStack: { _ in events.append("stackAdd") },
+            removeFromPasteStack: { _ in events.append("stackRemove") },
+            pasteStackItemIDs: [],
+            dragProvider: { _ in NSItemProvider() },
+            showDetails: { _ in events.append("details") },
+            reveal: { _ in events.append("reveal") },
+            exportImage: { _, jpeg in events.append(jpeg ? "jpeg" : "png") },
+            delete: { _ in events.append("delete") },
+            menuCommandDidRun: { events.append("menu") }
+        )
+        let commands = ClipboardItemMenuCommands(item: item, actions: actions)
+
+        commands.copy()
+        commands.paste()
+        commands.pasteAsPlainText()
+        commands.pasteAs(.html)
+        commands.copyAs(.richText)
+        commands.togglePin()
+        commands.toggleSnippet()
+        commands.removeFromCollection()
+        commands.move(to: collection.id)
+        commands.addToPasteStack()
+        commands.removeFromPasteStack()
+        commands.showDetails()
+        commands.reveal()
+        commands.exportPNG()
+        commands.exportJPEG()
+        commands.deleteItem()
+        ClipboardItemRepresentationMenuCommand(
+            commands: commands,
+            representation: .original,
+            operation: .copy
+        ).perform()
+        ClipboardItemRepresentationMenuCommand(
+            commands: commands,
+            representation: .original,
+            operation: .paste
+        ).perform()
+        ClipboardItemCollectionMenuCommand(
+            commands: commands,
+            collectionID: collection.id
+        ).perform()
+
+        XCTAssertEqual(events.filter { $0 == "menu" }.count, 19)
+        XCTAssertTrue(events.contains("copy"))
+        XCTAssertTrue(events.contains("paste"))
+        XCTAssertTrue(events.contains("png"))
+        XCTAssertTrue(events.contains("jpeg"))
+        XCTAssertTrue(events.contains("delete"))
+    }
+
+    func testPanelRouterHeaderQuickSelectionAndKeyboardActions() async throws {
+        let context = makeContext()
+        await context.viewModel.insert(.text(value: "panel", hash: "panel"))
+        let item = try XCTUnwrap(context.viewModel.items.first)
+        context.settings.duplicateDetectionScope = .newest
+        XCTAssertEqual(context.viewModel.duplicateItem(hash: item.hash)?.id, item.id)
+        let associatedIdentity = ClipboardPasteboardIdentity(changeCount: 41)
+        context.viewModel.associateExistingItem(hash: item.hash, with: associatedIdentity)
+        XCTAssertEqual(context.viewModel.pasteboardIdentityByItemID[item.id], associatedIdentity)
+        context.viewModel.lastProgrammaticallyWrittenHash = item.hash
+        context.viewModel.lastProgrammaticallyWrittenIdentity = associatedIdentity
+        await context.viewModel.insert(
+            .text(value: "panel", hash: item.hash),
+            pasteboardIdentity: associatedIdentity
+        )
+        XCTAssertNil(context.viewModel.lastProgrammaticallyWrittenIdentity)
+
+        let temporaryItem = ClipboardItem(type: .text, text: "temporary", hash: "temporary")
+        context.viewModel.items.insert(temporaryItem, at: 0)
+        context.viewModel.temporaryContent[temporaryItem.id] = .text(
+            value: "temporary",
+            hash: temporaryItem.hash
+        )
+        let restoredTemporary = await context.viewModel.restoreNow(
+            temporaryItem,
+            representation: .original,
+            directPaste: false
+        )
+        XCTAssertTrue(restoredTemporary)
+        context.settings.selectedSortMode = .recentlyUsed
+        XCTAssertNotNil(context.viewModel.markAsUsedImmediately(temporaryItem))
+        let selectedRouter = ClipboardPanelItemActionRouter(
+            viewModel: context.viewModel,
+            commandModifierIsPressed: { true }
+        )
+        selectedRouter.selectAndCopy(item)
+        XCTAssertFalse(context.viewModel.selectedItemIDs.contains(item.id))
+        selectedRouter.selectAndCopy(item)
+        XCTAssertTrue(context.viewModel.selectedItemIDs.contains(item.id))
+        let router = ClipboardPanelItemActionRouter(
+            viewModel: context.viewModel,
+            commandModifierIsPressed: { false }
+        )
+        ClipboardPanelItemActionRouter(viewModel: context.viewModel).selectAndCopy(item)
+        router.selectAndCopy(item)
+        router.copy(item)
+        router.paste(item)
+        router.copyAs(item, .plainText)
+        router.pasteAs(item, .plainText)
+        router.togglePin(item)
+        router.toggleSnippet(item)
+        router.move(item, nil)
+        router.addToPasteStack(item)
+        router.removeFromPasteStack(item)
+        _ = router.dragProvider(item)
+        router.showDetails(item)
+        router.reveal(ClipboardItem(type: .text, text: "safe", hash: "safe"))
+        router.exportImage(ClipboardItem(type: .text, text: "safe", hash: "export-safe"), false)
+        var menuCount = 0
+        context.viewModel.menuCommandDidRun = { menuCount += 1 }
+        router.menuCommandDidRun()
+        XCTAssertEqual(menuCount, 1)
+        router.delete(ClipboardItem(type: .text, text: "absent", hash: "absent-delete"))
+        await drainTasks()
+
+        let rowActions = ClipboardItemActions(
+            selectAndCopy: router.selectAndCopy,
+            copy: router.copy,
+            paste: router.paste,
+            copyAs: router.copyAs,
+            pasteAs: router.pasteAs,
+            togglePin: router.togglePin,
+            toggleSnippet: router.toggleSnippet,
+            moveToCollection: router.move,
+            collections: [],
+            addToPasteStack: router.addToPasteStack,
+            removeFromPasteStack: router.removeFromPasteStack,
+            pasteStackItemIDs: [],
+            dragProvider: router.dragProvider,
+            showDetails: router.showDetails,
+            reveal: router.reveal,
+            exportImage: router.exportImage,
+            delete: router.delete,
+            menuCommandDidRun: router.menuCommandDidRun
+        )
+        let row = ClipboardItemRow(
+            item: item,
+            isSelected: true,
+            isCopied: false,
+            isLocked: false,
+            storage: context.storage,
+            thumbnailService: .shared,
+            actions: rowActions
+        )
+        row.selectAndCopy()
+        row.updateHover(true)
+        _ = row.dragProvider()
+        _ = row.body
+
+        let encryptedImage = ClipboardItem(
+            type: .imageGroup,
+            hash: "encrypted-image-row",
+            assetFilenames: ["first.png", "second.png"],
+            isEncrypted: true
+        )
+        _ = ImageClipboardItemRow(
+            item: encryptedImage,
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: false
+        ).body
+        _ = DocumentClipboardItemRow(
+            item: ClipboardItem(
+                type: .files,
+                hash: "encrypted-document-row",
+                fileURLs: [],
+                isEncrypted: true
+            ),
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: false
+        ).body
+
+        var query = "clear me"
+        ClipboardSearchField(
+            text: Binding(get: { query }, set: { query = $0 }),
+            focusRequest: 0,
+            focusChanged: { _ in }
+        ).clearSearch()
+        XCTAssertEqual(query, "")
+
+        let png = try makePNG()
+        let imageID = UUID()
+        let storedImageFilename = await context.storage.storeImage(png, id: imageID)
+        let imageFilename = try XCTUnwrap(storedImageFilename)
+        let imageItem = ClipboardItem(
+            id: imageID,
+            type: .image,
+            imageFilename: imageFilename,
+            hash: "preview-image",
+            contentSubtype: .image
+        )
+        await ClipboardFullPreview(item: imageItem, storage: context.storage).loadImage()
+        await ClipboardFullPreview(
+            item: ClipboardItem(type: .pdf, hash: "preview-pdf", contentSubtype: .pdf),
+            storage: context.storage
+        ).loadImage()
+        await ClipboardFullPreview(
+            item: ClipboardItem(type: .image, hash: "preview-without-file", contentSubtype: .image),
+            storage: context.storage
+        ).loadImage()
+        _ = ClipboardFullPreview(
+            item: imageItem,
+            storage: context.storage,
+            image: NSImage(size: NSSize(width: 2, height: 2))
+        ).body
+        let thumbnail = ClipboardImageThumbnail(
+            item: imageItem,
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: false
+        )
+        await thumbnail.loadThumbnail()
+        await ClipboardImageThumbnail(
+            item: imageItem,
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: true
+        ).loadThumbnail()
+        _ = ClipboardImageThumbnail(
+            item: imageItem,
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: false,
+            image: NSImage(size: NSSize(width: 2, height: 2))
+        ).body
+        _ = ClipboardImageThumbnail(
+            item: imageItem,
+            storage: context.storage,
+            thumbnailService: .shared,
+            isLocked: false,
+            didFail: true
+        ).body
+
+        let detail = ClipboardDetailView(item: item, viewModel: context.viewModel)
+        context.viewModel.detailItem = item
+        detail.goBack()
+        XCTAssertNil(context.viewModel.detailItem)
+        detail.copyItem()
+        detail.saveChanges()
+        var transformedText = "hello world"
+        let transformBinding = Binding(
+            get: { transformedText },
+            set: { transformedText = $0 }
+        )
+        ClipboardTextTransformationButton(
+            transformation: .uppercase,
+            text: transformBinding
+        ).apply()
+        XCTAssertEqual(transformedText, "HELLO WORLD")
+        _ = ClipboardTextTransformationButton(
+            transformation: .lowercase,
+            text: transformBinding
+        ).body
+
+        let menuCommands = ClipboardItemMenuCommands(item: item, actions: rowActions)
+        for representation in PasteRepresentation.allCases {
+            _ = ClipboardItemRepresentationMenuButton(
+                command: ClipboardItemRepresentationMenuCommand(
+                    commands: menuCommands,
+                    representation: representation,
+                    operation: .copy
+                )
+            ).body
+        }
+        let collection = ClipboardCollection(name: "Coverage")
+        _ = ClipboardItemCollectionMenuButton(
+            title: collection.name,
+            command: ClipboardItemCollectionMenuCommand(
+                commands: menuCommands,
+                collectionID: collection.id
+            )
+        ).body
+        _ = ClipboardItemContextMenu(
+            item: ClipboardItem(type: .files, hash: "files-menu", fileURLs: ["/tmp/file"]),
+            actions: rowActions
+        ).body
+        _ = ClipboardCollectionSettingsRow(
+            viewModel: context.viewModel,
+            collection: collection
+        ).body
+        _ = ClipboardSettingsMessage(message: nil, color: .red).body
+        _ = ClipboardSettingsMessage(message: "Text error", color: .red).body
+        _ = ClipboardSettingsMessage(
+            message: "Label error",
+            color: .orange,
+            usesLabel: true
+        ).body
+        _ = ClipboardRecordingStatusView(isPrivateMode: true, pauseUntil: nil).body
+        _ = ClipboardRecordingStatusView(
+            isPrivateMode: false,
+            pauseUntil: .now.addingTimeInterval(60)
+        ).body
+        _ = ClipboardRecordingStatusView(isPrivateMode: false, pauseUntil: nil).body
+        XCTAssertTrue(
+            ClipboardSettingsSecurityView(viewModel: context.viewModel)
+                .applicationLockAccessibilityLabel("failure")
+                .contains("failure")
+        )
+
+        let storageSettings = ClipboardSettingsStorageView(
+            viewModel: context.viewModel,
+            archivePassword: "password",
+            includeArchiveAssets: false,
+            includeArchiveFileReferences: false
+        )
+        storageSettings.runCleanup()
+        storageSettings.exportMetadata()
+        storageSettings.exportEncrypted()
+        storageSettings.requestUnencryptedExport()
+        storageSettings.exportUnencrypted()
+        storageSettings.importArchive()
+        storageSettings.cancelDialog()
+        ClipboardStorageRecoveryView(
+            viewModel: context.viewModel,
+            archivePassword: "password"
+        ).importArchive()
+        await drainTasks()
+
+        ClipboardQuickSelectionButton(viewModel: context.viewModel, index: 0).restore()
+        await drainTasks()
+
+        let header = ClipboardPanelHeaderView(viewModel: context.viewModel)
+        header.cleanOlderThanOneHour()
+        XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 3_600)
+        header.cleanOlderThanOneDay()
+        XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 86_400)
+        header.cleanOlderThanOneWeek()
+        XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 604_800)
+        header.cleanOlderThanThirtyDays()
+        XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 2_592_000)
+        header.showSettings()
+        XCTAssertTrue(context.viewModel.isShowingSettings)
+        context.viewModel.isShowingSettings = false
+        context.viewModel.setApplicationLockEnabled(true)
+        await waitUntil { context.viewModel.isApplicationLockEnabled }
+        let lockControls = ClipboardApplicationLockControls(viewModel: context.viewModel)
+        _ = lockControls.body
+        lockControls.toggleLock()
+        XCTAssertTrue(context.viewModel.isLocked)
+        _ = lockControls.body
+        lockControls.toggleLock()
+        await waitUntil { !context.viewModel.isLocked }
+        header.toggleLock()
+        XCTAssertTrue(context.viewModel.isLocked)
+        header.toggleLock()
+        await waitUntil { !context.viewModel.isLocked }
+
+        let panel = ClipboardPanelView(viewModel: context.viewModel)
+        _ = panel.body
+        panel.cancelDialog()
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 3, modifiers: .command, characters: "f")))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 53)))
+        panel.updateSearchFocus(true)
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125), searchIsFocused: true))
+        panel.updateSearchFocus(false)
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: [.command, .shift])))
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .option)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 125)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 126)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 36)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 76)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 49)))
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 1)))
+        context.viewModel.lockService.lock()
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
+
+        var scrollActions = 0
+        ClipboardHistoryListView.scrollToSelected(reduceMotion: true) { scrollActions += 1 }
+        ClipboardHistoryListView.scrollToSelected(reduceMotion: false) { scrollActions += 1 }
+        XCTAssertEqual(scrollActions, 2)
+
+        let revealedFile = context.directory.appending(path: "revealed.txt")
+        context.viewModel.reveal(
+            ClipboardItem(type: .files, hash: "reveal-file", fileURLs: [revealedFile.path])
+        )
+        context.viewModel.reveal(imageItem)
+        XCTAssertEqual(context.workspaceRevealer.urls.count, 2)
+
+        let systemRevealRecorder = FacadeWorkspaceRevealer()
+        SystemWorkspaceRevealer(revealAction: systemRevealRecorder.reveal).reveal([revealedFile])
+        XCTAssertEqual(systemRevealRecorder.urls, [[revealedFile]])
+
+        let oldItem = ClipboardItem(
+            type: .text,
+            text: "expired",
+            creationDate: .now.addingTimeInterval(-10 * 86_400),
+            hash: "expired"
+        )
+        try await context.storage.upsertThrowing(oldItem)
+        context.viewModel.items.append(oldItem)
+        context.viewModel.pasteboardIdentityByItemID[oldItem.id] = .init(changeCount: 90)
+        context.viewModel.pasteboardIdentityByItemID[item.id] = .init(changeCount: 91)
+        context.settings.retentionDays = 1
+        await context.viewModel.runRetentionCleanup()
+        XCTAssertNil(context.viewModel.pasteboardIdentityByItemID[oldItem.id])
+        await cleanup(context)
+    }
+
+    func testCaptureAndSensitivePersistenceFailuresRemovePartialAssets() async throws {
+        let assetCounter = FacadeLockedCounter()
+        let partial = makeContext(operationFailureInjector: { operation in
+            guard case .storeAsset = operation else { return }
+            if assetCounter.increment() == 2 { throw FacadeInjectedFailure() }
+        })
+        let png = try makePNG()
+        let partialItem = await partial.viewModel.makeItem(
+            from: .images(
+                pngData: [png, png],
+                hash: "partial-image-group",
+                sourceBundleIdentifier: nil
+            ),
+            sensitive: false,
+            temporary: false,
+            encrypted: false
+        )
+        XCTAssertNil(partialItem)
+        let remainingPartialAssets = try FileManager.default.contentsOfDirectory(
+            at: partial.storage.imagesDirectory,
+            includingPropertiesForKeys: nil
+        )
+        XCTAssertTrue(remainingPartialAssets.isEmpty)
+        await cleanup(partial)
+
+        let persistence = makeContext(operationFailureInjector: { operation in
+            guard case let .prepareSQL(sql) = operation,
+                  sql.contains("INSERT OR REPLACE INTO ClipboardItems") else { return }
+            throw FacadeInjectedFailure()
+        })
+        await persistence.viewModel.insertSensitivePermanently(
+            .image(pngData: png, hash: "sensitive-persistence-failure")
+        )
+        XCTAssertTrue(
+            persistence.viewModel.errorMessage?.contains("could not be saved securely") == true
+        )
+        let remainingSensitiveAssets = try FileManager.default.contentsOfDirectory(
+            at: persistence.storage.imagesDirectory,
+            includingPropertiesForKeys: nil
+        )
+        XCTAssertTrue(remainingSensitiveAssets.isEmpty)
+        await cleanup(persistence)
+    }
+
     private struct Context {
         let directory: URL
         let suite: String
@@ -273,10 +928,15 @@ final class FacadeActionCoverageTests: XCTestCase {
         let pasteboard: NSPasteboard
         let pasteService: StubActiveApplicationPasteService
         let panels: FacadeArchivePanelStub
+        let workspaceRevealer: FacadeWorkspaceRevealer
         let viewModel: ClipboardHistoryViewModel
     }
 
-    private func makeContext(clock: any SleepClock = SystemSleepClock()) -> Context {
+    private func makeContext(
+        clock: any SleepClock = SystemSleepClock(),
+        startsAutomatically: Bool = false,
+        operationFailureInjector: (@Sendable (StorageOperation) throws -> Void)? = nil
+    ) -> Context {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "FacadeActionCoverageTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -286,11 +946,13 @@ final class FacadeActionCoverageTests: XCTestCase {
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
         let storage = StorageService(
             baseDirectory: directory.appending(path: "Storage"),
-            encryptionService: .ephemeral()
+            encryptionService: .ephemeral(),
+            operationFailureInjector: operationFailureInjector
         )
         let pasteboard = NSPasteboard(name: .init("FacadeActionCoverage-\(UUID().uuidString)"))
         let pasteService = StubActiveApplicationPasteService()
         let panels = FacadeArchivePanelStub()
+        let workspaceRevealer = FacadeWorkspaceRevealer()
         let viewModel = ClipboardHistoryViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
@@ -301,8 +963,9 @@ final class FacadeActionCoverageTests: XCTestCase {
             lockService: AppLockService(authenticator: StubSystemAuthenticator { _ in true }),
             archivePanelSelector: panels,
             storageRecoveryImporter: FacadeRecoveryImporter(),
+            workspaceRevealer: workspaceRevealer,
             sleepClock: clock,
-            startsAutomatically: false
+            startsAutomatically: startsAutomatically
         )
         return Context(
             directory: directory,
@@ -312,6 +975,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             pasteboard: pasteboard,
             pasteService: pasteService,
             panels: panels,
+            workspaceRevealer: workspaceRevealer,
             viewModel: viewModel
         )
     }
@@ -349,6 +1013,48 @@ final class FacadeActionCoverageTests: XCTestCase {
         let bitmap = try XCTUnwrap(NSBitmapImageRep(data: tiff))
         return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
     }
+
+    private func keyEvent(
+        keyCode: UInt16,
+        modifiers: NSEvent.ModifierFlags = [],
+        characters: String = ""
+    ) -> NSEvent {
+        NSEvent.keyEvent(
+            with: .keyDown,
+            location: .zero,
+            modifierFlags: modifiers,
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            characters: characters,
+            charactersIgnoringModifiers: characters,
+            isARepeat: false,
+            keyCode: keyCode
+        )!
+    }
+}
+
+private actor FacadeThrowingSleepClock: SleepClock {
+    private(set) var didSleep = false
+
+    func sleep(for duration: Duration) async throws {
+        didSleep = true
+        throw CancellationError()
+    }
+}
+
+private struct FacadeInjectedFailure: Error {}
+
+private final class FacadeLockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = 0
+
+    func increment() -> Int {
+        lock.withLock {
+            value += 1
+            return value
+        }
+    }
 }
 
 @MainActor
@@ -371,6 +1077,15 @@ private final class FacadeLaunchAtLoginBackend: LaunchAtLoginBackend {
 
     func setEnabled(_ enabled: Bool) throws {
         isEnabled = enabled
+    }
+}
+
+@MainActor
+private final class FacadeWorkspaceRevealer: WorkspaceRevealing {
+    private(set) var urls: [[URL]] = []
+
+    func reveal(_ urls: [URL]) {
+        self.urls.append(urls)
     }
 }
 

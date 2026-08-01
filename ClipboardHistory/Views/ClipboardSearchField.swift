@@ -33,7 +33,7 @@ struct ClipboardSearchField: View {
         .task(id: isFocused) { focusChanged(isFocused) }
     }
 
-    private func clearSearch() {
+    func clearSearch() {
         text = ""
     }
 }

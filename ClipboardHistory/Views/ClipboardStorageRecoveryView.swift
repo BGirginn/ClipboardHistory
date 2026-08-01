@@ -4,6 +4,11 @@ struct ClipboardStorageRecoveryView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @State private var archivePassword = ""
 
+    init(viewModel: ClipboardHistoryViewModel, archivePassword: String = "") {
+        self.viewModel = viewModel
+        _archivePassword = State(initialValue: archivePassword)
+    }
+
     var body: some View {
         VStack(spacing: 14) {
             Image(systemName: "lock.trianglebadge.exclamationmark")
@@ -22,9 +27,11 @@ struct ClipboardStorageRecoveryView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     SecureField("Archive password", text: $archivePassword)
-                    Button("Import Recovery Archive…", systemImage: "lock.rotation") {
-                        viewModel.importStorageRecoveryArchive(password: archivePassword)
-                    }
+                    Button(
+                        "Import Recovery Archive…",
+                        systemImage: "lock.rotation",
+                        action: importArchive
+                    )
                     .disabled(archivePassword.isEmpty)
                 }
                 .padding(6)
@@ -38,5 +45,9 @@ struct ClipboardStorageRecoveryView: View {
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("storage.recovery")
+    }
+
+    func importArchive() {
+        viewModel.importStorageRecoveryArchive(password: archivePassword)
     }
 }

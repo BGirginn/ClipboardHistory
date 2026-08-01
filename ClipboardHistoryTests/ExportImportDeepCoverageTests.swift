@@ -319,6 +319,46 @@ final class ExportImportDeepCoverageTests: XCTestCase {
                 encryptionMode: .off
             )
         }
+
+        let mismatchedCounts = ClipboardArchive(
+            version: ClipboardArchive.currentVersion,
+            createdAt: archive.createdAt,
+            mode: archive.mode,
+            items: archive.items,
+            assets: archive.assets,
+            collections: archive.collections,
+            itemHashes: [:],
+            assetHashes: archive.assetHashes,
+            collectionHashes: archive.collectionHashes
+        )
+        let mismatchedURL = root.appending(path: "mismatched-counts.clipboardarchive")
+        try encodeArchive(mismatchedCounts).write(to: mismatchedURL)
+        await assertThrowsAsync {
+            _ = try await service.importArchive(
+                from: mismatchedURL,
+                storage: storage,
+                existingItems: [],
+                encryptionMode: .off
+            )
+        }
+
+        let unsupported = ClipboardArchive(
+            version: ClipboardArchive.currentVersion + 1,
+            createdAt: .now,
+            mode: .fullUnencrypted,
+            items: [],
+            assets: [:]
+        )
+        let unsupportedURL = root.appending(path: "unsupported-version.clipboardarchive")
+        try encodeArchive(unsupported).write(to: unsupportedURL)
+        await assertThrowsAsync {
+            _ = try await service.importArchive(
+                from: unsupportedURL,
+                storage: storage,
+                existingItems: [],
+                encryptionMode: .off
+            )
+        }
         await storage.close()
     }
 

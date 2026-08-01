@@ -2,6 +2,8 @@ import Foundation
 import SQLite3
 
 actor StorageService {
+    typealias SQLiteTextBinder = @Sendable (OpaquePointer, Int32, String) -> Int32
+
     static let maximumHistoryCount = 100
     static let schemaVersion = 3
 
@@ -17,6 +19,9 @@ actor StorageService {
     let fileManager: FileManager
     let migrationFailureInjector: (@Sendable () throws -> Void)?
     let operationFailureInjector: (@Sendable (StorageOperation) throws -> Void)?
+    let databaseIntegrityCheckOverride: (@Sendable () throws -> Bool)?
+    let databaseCorruptionStateOverride: Bool?
+    let sqliteTextBinder: SQLiteTextBinder
     var encryption: EncryptionService?
     let keyProvider: (any MasterKeyProvider)?
     nonisolated(unsafe) var database: OpaquePointer?
@@ -29,7 +34,12 @@ actor StorageService {
         encryptionService: EncryptionService? = nil,
         keyProvider: (any MasterKeyProvider)? = nil,
         migrationFailureInjector: (@Sendable () throws -> Void)? = nil,
-        operationFailureInjector: (@Sendable (StorageOperation) throws -> Void)? = nil
+        operationFailureInjector: (@Sendable (StorageOperation) throws -> Void)? = nil,
+        databaseIntegrityCheckOverride: (@Sendable () throws -> Bool)? = nil,
+        databaseCorruptionStateOverride: Bool? = nil,
+        sqliteTextBinder: @escaping SQLiteTextBinder = { statement, index, value in
+            sqlite3_bind_text(statement, index, value, -1, sqliteTransient)
+        }
     ) {
         self.baseDirectory = baseDirectory
         imagesDirectory = baseDirectory.appending(path: "Images", directoryHint: .isDirectory)
@@ -42,6 +52,9 @@ actor StorageService {
         self.fileManager = fileManager
         self.migrationFailureInjector = migrationFailureInjector
         self.operationFailureInjector = operationFailureInjector
+        self.databaseIntegrityCheckOverride = databaseIntegrityCheckOverride
+        self.databaseCorruptionStateOverride = databaseCorruptionStateOverride
+        self.sqliteTextBinder = sqliteTextBinder
         if let encryptionService {
             encryption = encryptionService
             self.keyProvider = nil
@@ -374,11 +387,9 @@ actor StorageService {
     }
 
     nonisolated static func defaultBaseDirectory() -> URL {
-        let applicationSupport = FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first ?? FileManager.default.homeDirectoryForCurrentUser
-            .appending(path: "Library/Application Support", directoryHint: .isDirectory)
-        return applicationSupport.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        URL.applicationSupportDirectory.appending(
+            path: "ClipboardHistory",
+            directoryHint: .isDirectory
+        )
     }
 }

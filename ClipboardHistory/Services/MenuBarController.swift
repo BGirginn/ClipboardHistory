@@ -8,7 +8,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
     private let popover: NSPopover
     private let dependencies: MenuBarControllerDependencies
-    private let popoverAnchor: () -> NSView?
+    private let popoverAnchor: (() -> NSView?)?
     private lazy var detachablePanel = dependencies.makePanel(viewModel)
     private let viewModel: ClipboardHistoryViewModel
     private let quickLookService: any QuickLookPresenting
@@ -29,7 +29,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         dependencies: MenuBarControllerDependencies = .live,
         panelEventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
         shortcutBackend: any GlobalShortcutBackend = SystemGlobalShortcutBackend(),
-        popoverAnchor: @escaping () -> NSView? = { nil }
+        popoverAnchor: (() -> NSView?)? = nil
     ) {
         self.viewModel = viewModel
         self.dependencies = dependencies
@@ -64,9 +64,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             isPanelEvent: { [weak self] event in
                 event.window === self?.popover.contentViewController?.view.window
             },
-            isStatusItemEvent: { [weak self] event in
-                event.window === self?.statusItem.button?.window
-            },
+            isStatusItemEvent: { [weak self] event in self?.isStatusItemEvent(event) == true },
             closePanel: { [weak self] in self?.closePopover() }
         )
         viewModel.requestClosePanel = { [weak self] in self?.closePopover() }
@@ -130,7 +128,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             showDetachablePanel()
             return
         }
-        guard let anchor = popoverAnchor() ?? statusItem.button else { return }
+        guard let anchor = popoverAnchor?() ?? statusItem.button else { return }
         viewModel.capturePasteTargetApplication()
         NSApp.activate()
         popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
@@ -186,7 +184,11 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         viewModel.lockService.recordActivity()
     }
 
-    private func positionDetachablePanel() {
+    func isStatusItemEvent(_ event: NSEvent) -> Bool {
+        event.window === statusItem.button?.window
+    }
+
+    func positionDetachablePanel() {
         guard detachablePanel.isVisible || viewModel.settings.panelPresentationMode == .detachable,
               let screen = statusItem.button?.window?.screen ?? NSScreen.main else { return }
         let visible = screen.visibleFrame

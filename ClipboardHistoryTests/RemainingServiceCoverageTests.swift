@@ -137,7 +137,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
         if let global { monitor.removeMonitor(global) }
     }
 
-    func testSecretEmptyInputAndTextThumbnailHaveNoOutput() async {
+    func testSecretEmptyInputAndTextThumbnailHaveNoOutput() async throws {
         let detection = SecretDetectionService().detect(in: "", sourceBundleIdentifier: nil)
         XCTAssertFalse(detection.isSensitive)
         XCTAssertEqual(detection.confidence, 0)
@@ -150,7 +150,37 @@ final class RemainingServiceCoverageTests: XCTestCase {
         let text = ClipboardItem(type: .text, text: "text", hash: "text-thumbnail")
         let thumbnail = await service.thumbnailData(for: text, storage: storage)
         XCTAssertNil(thumbnail)
+
+        let png = try makeCoveragePNG()
+        let imageID = UUID()
+        let filename = await storage.storeImage(png, id: imageID)
+        let failingCreator = ThumbnailService(imageThumbnailCreator: { _, _, _ in nil })
+        let failedThumbnail = await failingCreator.thumbnailData(
+            for: ClipboardItem(
+                id: imageID,
+                type: .image,
+                imageFilename: filename,
+                hash: "forced-thumbnail-failure"
+            ),
+            storage: storage
+        )
+        XCTAssertNil(failedThumbnail)
         await storage.close()
+    }
+
+    func testAccessibilityTrustChecksUseInjectedEvaluatorsWithoutSystemPrompts() {
+        var promptedOptions: CFDictionary?
+        let trusted = SystemAccessibilityPasteBackend(
+            promptedTrustEvaluator: { options in
+                promptedOptions = options
+                return true
+            },
+            trustEvaluator: { false }
+        )
+
+        XCTAssertTrue(trusted.isTrusted(prompt: true))
+        XCTAssertNotNil(promptedOptions)
+        XCTAssertFalse(trusted.isTrusted(prompt: false))
     }
 
     func testLoggerSubsystemIsAvailable() {

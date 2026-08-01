@@ -7,6 +7,20 @@ struct ClipboardSettingsStorageView: View {
     @State private var includeArchiveFileReferences = true
     @State private var confirmUnencryptedExport = false
 
+    init(
+        viewModel: ClipboardHistoryViewModel,
+        archivePassword: String = "",
+        includeArchiveAssets: Bool = true,
+        includeArchiveFileReferences: Bool = true,
+        confirmUnencryptedExport: Bool = false
+    ) {
+        self.viewModel = viewModel
+        _archivePassword = State(initialValue: archivePassword)
+        _includeArchiveAssets = State(initialValue: includeArchiveAssets)
+        _includeArchiveFileReferences = State(initialValue: includeArchiveFileReferences)
+        _confirmUnencryptedExport = State(initialValue: confirmUnencryptedExport)
+    }
+
     var body: some View {
         Form {
             Section("Retention") {
@@ -119,11 +133,10 @@ struct ClipboardSettingsStorageView: View {
                 }
                 .buttonStyle(.bordered)
 
-                if let status = viewModel.archiveStatusMessage {
-                    Text(status)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                ClipboardSettingsMessage(
+                    message: viewModel.archiveStatusMessage,
+                    color: .secondary
+                )
             }
         }
         .formStyle(.grouped)
@@ -132,7 +145,7 @@ struct ClipboardSettingsStorageView: View {
             isPresented: $confirmUnencryptedExport
         ) {
             Button("Export Unencrypted", action: exportUnencrypted)
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel, action: cancelDialog)
         } message: {
             Text("The export can contain clipboard text and document data in readable form.")
         }
@@ -144,14 +157,14 @@ struct ClipboardSettingsStorageView: View {
             .monospacedDigit()
     }
 
-    private func runCleanup() {
+    func runCleanup() {
         Task {
             await viewModel.runRetentionCleanup()
             await viewModel.refreshStorageInformation()
         }
     }
 
-    private func exportMetadata() {
+    func exportMetadata() {
         viewModel.exportArchive(
             mode: .metadataOnly,
             includeImagesAndDocuments: false,
@@ -159,7 +172,7 @@ struct ClipboardSettingsStorageView: View {
         )
     }
 
-    private func exportEncrypted() {
+    func exportEncrypted() {
         viewModel.exportArchive(
             mode: .encrypted,
             includeImagesAndDocuments: includeArchiveAssets,
@@ -168,11 +181,11 @@ struct ClipboardSettingsStorageView: View {
         )
     }
 
-    private func requestUnencryptedExport() {
+    func requestUnencryptedExport() {
         confirmUnencryptedExport = true
     }
 
-    private func exportUnencrypted() {
+    func exportUnencrypted() {
         viewModel.exportArchive(
             mode: .fullUnencrypted,
             includeImagesAndDocuments: includeArchiveAssets,
@@ -180,9 +193,11 @@ struct ClipboardSettingsStorageView: View {
         )
     }
 
-    private func importArchive() {
+    func importArchive() {
         viewModel.importArchive(
             password: archivePassword.isEmpty ? nil : archivePassword
         )
     }
+
+    func cancelDialog() {}
 }

@@ -63,18 +63,10 @@ struct ClipboardPanelHeaderView: View {
                 )
 
                 Menu("Clean History by Age", systemImage: "calendar.badge.minus") {
-                    Button("Older Than 1 Hour") {
-                        viewModel.requestAgeCleanup(olderThan: 3_600)
-                    }
-                    Button("Older Than 1 Day") {
-                        viewModel.requestAgeCleanup(olderThan: 86_400)
-                    }
-                    Button("Older Than 1 Week") {
-                        viewModel.requestAgeCleanup(olderThan: 604_800)
-                    }
-                    Button("Older Than 30 Days") {
-                        viewModel.requestAgeCleanup(olderThan: 2_592_000)
-                    }
+                    Button("Older Than 1 Hour", action: cleanOlderThanOneHour)
+                    Button("Older Than 1 Day", action: cleanOlderThanOneDay)
+                    Button("Older Than 1 Week", action: cleanOlderThanOneWeek)
+                    Button("Older Than 30 Days", action: cleanOlderThanThirtyDays)
                 }
                 .labelStyle(.iconOnly)
                 .menuStyle(.borderlessButton)
@@ -101,7 +93,7 @@ struct ClipboardPanelHeaderView: View {
         .padding(.vertical, 10)
     }
 
-    private func toggleLock() {
+    func toggleLock() {
         if viewModel.isLocked {
             viewModel.unlock()
         } else {
@@ -109,7 +101,23 @@ struct ClipboardPanelHeaderView: View {
         }
     }
 
-    private func showSettings() {
+    func showSettings() {
         viewModel.isShowingSettings = true
+    }
+
+    func cleanOlderThanOneHour() {
+        viewModel.requestAgeCleanup(olderThan: 3_600)
+    }
+
+    func cleanOlderThanOneDay() {
+        viewModel.requestAgeCleanup(olderThan: 86_400)
+    }
+
+    func cleanOlderThanOneWeek() {
+        viewModel.requestAgeCleanup(olderThan: 604_800)
+    }
+
+    func cleanOlderThanThirtyDays() {
+        viewModel.requestAgeCleanup(olderThan: 2_592_000)
     }
 }

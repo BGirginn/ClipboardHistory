@@ -4,6 +4,17 @@ import Foundation
 
 @MainActor
 final class SystemAccessibilityPasteBackend: AccessibilityPasteBackend {
+    private let promptedTrustEvaluator: (CFDictionary) -> Bool
+    private let trustEvaluator: () -> Bool
+
+    init(
+        promptedTrustEvaluator: @escaping (CFDictionary) -> Bool = AXIsProcessTrustedWithOptions,
+        trustEvaluator: @escaping () -> Bool = AXIsProcessTrusted
+    ) {
+        self.promptedTrustEvaluator = promptedTrustEvaluator
+        self.trustEvaluator = trustEvaluator
+    }
+
     var frontmostProcessIdentifier: pid_t? {
         NSWorkspace.shared.frontmostApplication?.processIdentifier
     }
@@ -11,9 +22,9 @@ final class SystemAccessibilityPasteBackend: AccessibilityPasteBackend {
     func isTrusted(prompt: Bool) -> Bool {
         if prompt {
             let options = ["AXTrustedCheckOptionPrompt": true]
-            return AXIsProcessTrustedWithOptions(options as CFDictionary)
+            return promptedTrustEvaluator(options as CFDictionary)
         }
-        return AXIsProcessTrusted()
+        return trustEvaluator()
     }
 
     func isProcessAvailable(_ processIdentifier: pid_t) -> Bool {

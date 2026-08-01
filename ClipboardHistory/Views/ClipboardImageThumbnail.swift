@@ -10,6 +10,22 @@ struct ClipboardImageThumbnail: View {
     @State private var image: NSImage?
     @State private var didFail = false
 
+    init(
+        item: ClipboardItem,
+        storage: StorageService,
+        thumbnailService: ThumbnailService,
+        isLocked: Bool,
+        image: NSImage? = nil,
+        didFail: Bool = false
+    ) {
+        self.item = item
+        self.storage = storage
+        self.thumbnailService = thumbnailService
+        self.isLocked = isLocked
+        _image = State(initialValue: image)
+        _didFail = State(initialValue: didFail)
+    }
+
     var body: some View {
         Group {
             if isLocked || item.isSensitive {
@@ -38,7 +54,7 @@ struct ClipboardImageThumbnail: View {
         }
     }
 
-    private func loadThumbnail() async {
+    func loadThumbnail() async {
         image = nil
         didFail = false
         guard !isLocked, !item.isSensitive else { return }

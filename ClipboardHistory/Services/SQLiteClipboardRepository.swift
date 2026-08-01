@@ -198,6 +198,9 @@ extension StorageService {
     }
 
     func databaseIntegrityIsValid() throws -> Bool {
+        if let databaseIntegrityCheckOverride {
+            return try databaseIntegrityCheckOverride()
+        }
         let statement = try prepare("PRAGMA quick_check")
         defer { sqlite3_finalize(statement) }
         guard sqlite3_step(statement) == SQLITE_ROW else { return false }
@@ -235,6 +238,7 @@ extension StorageService {
     }
 
     var isCorruptionState: Bool {
+        if let databaseCorruptionStateOverride { return databaseCorruptionStateOverride }
         guard let database else { return false }
         let code = sqlite3_errcode(database)
         return code == SQLITE_CORRUPT || code == SQLITE_NOTADB
@@ -286,7 +290,7 @@ extension StorageService {
             sqlite3_bind_null(statement, index)
             return
         }
-        guard sqlite3_bind_text(statement, index, value, -1, sqliteTransient) == SQLITE_OK else {
+        guard sqliteTextBinder(statement, index, value) == SQLITE_OK else {
             throw DatabaseError.bindingFailed
         }
     }
