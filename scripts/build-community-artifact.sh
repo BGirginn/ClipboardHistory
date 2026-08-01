@@ -51,6 +51,12 @@ architectures=$(lipo -archs "$artifact_app/Contents/MacOS/ClipboardHistory")
   print -u2 "artifact build: arm64-only verification failed: $architectures"
   exit 1
 }
+minimum_os=$(otool -l "$artifact_app/Contents/MacOS/ClipboardHistory" \
+  | awk '$1 == "minos" { print $2; exit }')
+[[ "$minimum_os" == "14.0" ]] || {
+  print -u2 "artifact build: minimum macOS mismatch: $minimum_os"
+  exit 1
+}
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$artifact_app/Contents/Info.plist")
 build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$artifact_app/Contents/Info.plist")
 beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifact_app/Contents/Info.plist")
