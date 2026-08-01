@@ -40,7 +40,8 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 | TSan | 200 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
 | Deterministic fuzz | 10,000 hostile validation inputs plus 512 malformed media corpus cases passed |
 | Critical mutation set | 7 killed, 0 survived |
-| Optimized performance | Warm-up plus 10-repeat 5,000-item p95 assertions passed |
+| Optimized performance | Warm-up plus 20-repeat 5,000-item p95 assertions passed |
+| Idle resource smoke | CommunityRelease after 30-second warm-up: 10/10 CPU samples at 0.0%, maximum RSS 44,400 KB, SQLite `integrity_check=ok` |
 | Localization/static/source structure | Passed |
 | Accountless signing | Stable `ClipboardHistory Community Beta` identity installed; SHA-256 `13:19:E8:8B:23:2F:B0:F1:70:A5:DE:8B:A8:32:D3:58:72:E1:C9:5C:D0:3D:A9:59:90:23:47:62:3D:ED:46:CC` |
 | Signed CommunityRelease | `1.0.0 (10001)`, beta label `1.0.0-beta.1`, exact arm64, empty final entitlements, hardened runtime, designated requirement verified; launched and quit cleanly |
@@ -51,7 +52,7 @@ The merged coverage result is retained locally as `Combined.xccovreport` alongsi
 
 1. The seven isolated UI tests cover the automated action matrix, but the self-signed Debug app did not complete Xcode's `XCUIApplication.launch()` handshake. The final self-signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state flows still require a clean-user manual run.
 2. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
-3. Idle CPU, RSS, actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak remain incomplete.
+3. Actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak/growth run remain incomplete. The short idle CPU/RSS and SQLite integrity smoke passes.
 4. Only macOS 26.5 arm64 executed locally. macOS 14/15/26 evidence from the exact clean release commit remains required.
 5. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
 6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. The required clean-user/VM Open Anyway test, checksum comparison, public-repository transition, tag, GitHub Release, and Homebrew Cask audit/install lifecycle remain absent.

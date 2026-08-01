@@ -9,7 +9,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private let popover: NSPopover
     private let dependencies: MenuBarControllerDependencies
     private let popoverAnchor: (() -> NSView?)?
-    private lazy var detachablePanel = dependencies.makePanel(viewModel)
+    private var detachablePanel: NSPanel?
     private let viewModel: ClipboardHistoryViewModel
     private let quickLookService: any QuickLookPresenting
     private let shortcutBackend: any GlobalShortcutBackend
@@ -54,10 +54,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         popover.animates = true
         popover.delegate = self
         popover.contentSize = NSSize(width: 380, height: 500)
-        popover.contentViewController = NSHostingController(
-            rootView: ClipboardPanelView(viewModel: viewModel)
-        )
-
         panelCloseCoordinator = PanelCloseCoordinator(
             eventMonitor: panelEventMonitor,
             isPanelShown: { [weak self] in self?.popover.isShown == true },
@@ -112,7 +108,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     var isPopoverShown: Bool {
-        popover.isShown || detachablePanel.isVisible
+        popover.isShown || detachablePanel?.isVisible == true
     }
 
     var shortcutRegistrationError: String? {
@@ -129,6 +125,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             return
         }
         guard let anchor = popoverAnchor?() ?? statusItem.button else { return }
+        ensurePopoverContent()
         viewModel.capturePasteTargetApplication()
         NSApp.activate()
         popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
@@ -139,7 +136,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         shortcutMonitor.cancelHeldShortcut()
         quickLookService.close()
         popover.performClose(nil)
-        detachablePanel.orderOut(nil)
+        detachablePanel?.orderOut(nil)
     }
 
     func stop() {
@@ -148,7 +145,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         shortcutMonitor.unregister()
         quickLookService.close()
         popover.close()
-        detachablePanel.close()
+        detachablePanel?.close()
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 
@@ -177,10 +174,11 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     private func showDetachablePanel() {
+        let panel = ensureDetachablePanel()
         viewModel.capturePasteTargetApplication()
         NSApp.activate()
         positionDetachablePanel()
-        detachablePanel.makeKeyAndOrderFront(nil)
+        panel.makeKeyAndOrderFront(nil)
         viewModel.lockService.recordActivity()
     }
 
@@ -189,7 +187,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func positionDetachablePanel() {
-        guard detachablePanel.isVisible || viewModel.settings.panelPresentationMode == .detachable,
+        guard let detachablePanel,
+              detachablePanel.isVisible || viewModel.settings.panelPresentationMode == .detachable,
               let screen = statusItem.button?.window?.screen ?? NSScreen.main else { return }
         let visible = screen.visibleFrame
         let size = detachablePanel.frame.size
@@ -206,6 +205,20 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             origin = NSPoint(x: visible.midX - size.width / 2, y: visible.minY + margin)
         }
         detachablePanel.setFrameOrigin(origin)
+    }
+
+    private func ensurePopoverContent() {
+        guard popover.contentViewController == nil else { return }
+        popover.contentViewController = NSHostingController(
+            rootView: ClipboardPanelView(viewModel: viewModel)
+        )
+    }
+
+    private func ensureDetachablePanel() -> NSPanel {
+        if let detachablePanel { return detachablePanel }
+        let panel = dependencies.makePanel(viewModel)
+        detachablePanel = panel
+        return panel
     }
 
     private func updateStatusIcon() {

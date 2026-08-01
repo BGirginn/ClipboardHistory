@@ -6,7 +6,9 @@ The release thresholds are measured in optimized Release after warm-up, at least
 
 On 2026-08-01, `scripts/verify-performance.sh` passed the optimized arm64 Release benchmark after warm-up. The final gate uses twenty repetitions so p95 is not equivalent to the single slowest sample, while retaining the published 5,000-item write/read, ViewModel-load, filtering, and panel-layout thresholds.
 
-This closes the automated numeric benchmark gate. Actual panel-visible latency, idle CPU, RSS, long-scroll frame pacing, large-payload stress, Instruments traces, and the eight-hour soak remain required external evidence.
+This closes the automated numeric benchmark gate. Actual panel-visible latency, long-scroll frame pacing, large-payload stress, Instruments traces, and the eight-hour soak remain required external evidence.
+
+The exact optimized CommunityRelease executable was also sampled ten times after a 30-second warm-up with an isolated application-support directory. Median idle CPU was 0.0%, maximum RSS was 44,400 KB, and the temporary SQLite database returned `integrity_check=ok`. This closes the short idle CPU/RSS smoke gate; it does not replace Instruments or the eight-hour growth/soak evidence.
 
 ## Earlier provisional observation
 
