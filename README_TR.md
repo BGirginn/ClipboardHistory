@@ -29,8 +29,11 @@ Homebrew ile kurulum:
 
 ```sh
 brew tap BGirginn/tap
+brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
+
+Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask kullanılmadan önce `/Applications/ClipboardHistory.app` elle kurulmuşsa ClipboardHistory'yi kapatıp mevcut uygulama paketini önce `/Applications` dışına taşıyın. Pano geçmişi Application Support altında ayrı saklandığı için bu geçişte silinmez.
 
 Daha sonra güncellemek veya kaldırmak için:
 

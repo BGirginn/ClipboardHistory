@@ -6,8 +6,11 @@ The first public Community beta of ClipboardHistory is available for Apple silic
 
 ```sh
 brew tap BGirginn/tap
+brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
+
+Homebrew 6 requires the explicit trust command for third-party taps. If ClipboardHistory was previously copied into `/Applications` manually, quit it and move that existing app bundle out of `/Applications` before running the Cask install. Existing clipboard history remains under Application Support.
 
 The ZIP and DMG are also attached to this release. `SHA256SUMS`, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are published alongside them.
 

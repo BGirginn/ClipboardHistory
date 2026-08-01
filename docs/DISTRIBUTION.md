@@ -44,8 +44,11 @@ The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`:
 
 ```sh
 brew tap BGirginn/tap
+brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
+
+Homebrew 6 requires explicit trust for this third-party tap. A manually installed `/Applications/ClipboardHistory.app` must be quit and moved aside before the first Cask install; Homebrew intentionally refuses to overwrite an unmanaged application bundle. This does not remove the separately stored clipboard database or preferences.
 
 `Casks/clipboardhistory.rb` uses the GitHub Release ZIP and its exact SHA-256 with:
 

@@ -29,8 +29,11 @@ Install with Homebrew:
 
 ```sh
 brew tap BGirginn/tap
+brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
+
+Homebrew 6 requires explicit trust for third-party taps. If `/Applications/ClipboardHistory.app` was installed manually before using the Cask, quit ClipboardHistory and move that existing app bundle out of `/Applications` first. Clipboard history is stored separately under Application Support and is not removed by this migration.
 
 To update or uninstall later:
 
