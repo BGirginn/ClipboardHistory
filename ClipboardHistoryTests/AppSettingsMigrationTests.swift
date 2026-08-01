@@ -66,6 +66,60 @@ final class AppSettingsMigrationTests: XCTestCase {
         }
     }
 
+    func testEveryPreferencePersistsAndDerivedSetsNormalizeInput() {
+        withDefaults { defaults in
+            defaults.set(1, forKey: "closePanelAfterCopyingMigrationVersion")
+            defaults.set(1, forKey: "applicationLockMigrationVersion")
+            let settings = AppSettings(defaults: defaults)
+            settings.globalShortcutEnabled = false
+            settings.thumbnailCacheMegabytes = 96
+            settings.allowedBundleIdentifiersText = " COM.Example.Allowed;com.example.second "
+            settings.imageRetentionDays = 21
+            settings.maximumStorageMegabytes = 512
+            settings.privateModeDefaultEnabled = true
+            settings.captureRichText = false
+            settings.capturePDFs = false
+            settings.captureFiles = false
+            settings.imageTextRecognitionEnabled = false
+            settings.ignoreUniversalClipboard = true
+            settings.ignoredPasteboardTypesText = " COM.Example.Custom,com.example.other "
+            settings.pasteStackRemovesUsedItems = false
+            settings.globalShortcutPresetID = "command-option-v"
+            settings.shortcutActivationMode = .hold
+            settings.panelPresentationMode = .detachable
+            settings.panelScreenEdge = .left
+
+            XCTAssertEqual(
+                settings.allowedBundleIdentifiers,
+                ["com.example.allowed", "com.example.second"]
+            )
+            XCTAssertEqual(
+                settings.ignoredPasteboardTypes,
+                [
+                    "com.example.custom",
+                    "com.example.other",
+                    "com.apple.is-remote-clipboard"
+                ]
+            )
+            XCTAssertEqual(settings.globalShortcut.id, "command-option-v")
+            settings.globalShortcutPresetID = "unknown"
+            XCTAssertEqual(settings.globalShortcut, GlobalShortcut.defaultShortcut)
+
+            let reopened = AppSettings(defaults: defaults)
+            XCTAssertFalse(reopened.globalShortcutEnabled)
+            XCTAssertEqual(reopened.thumbnailCacheMegabytes, 96)
+            XCTAssertTrue(reopened.privateModeDefaultEnabled)
+            XCTAssertFalse(reopened.captureRichText)
+            XCTAssertFalse(reopened.capturePDFs)
+            XCTAssertFalse(reopened.captureFiles)
+            XCTAssertFalse(reopened.imageTextRecognitionEnabled)
+            XCTAssertFalse(reopened.pasteStackRemovesUsedItems)
+            XCTAssertEqual(reopened.shortcutActivationMode, .hold)
+            XCTAssertEqual(reopened.panelPresentationMode, .detachable)
+            XCTAssertEqual(reopened.panelScreenEdge, .left)
+        }
+    }
+
     private func withDefaults(_ body: (UserDefaults) -> Void) {
         let suite = "AppSettingsMigrationTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!

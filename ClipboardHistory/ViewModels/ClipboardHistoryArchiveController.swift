@@ -3,6 +3,61 @@ import Combine
 import Foundation
 import UniformTypeIdentifiers
 
+@MainActor
+protocol ArchivePanelSelecting: AnyObject {
+    func saveDestination(suggestedName: String, allowedTypes: [UTType]) async -> URL?
+    func openSource(allowedTypes: [UTType]) async -> URL?
+}
+
+@MainActor
+final class SystemArchivePanelSelector: ArchivePanelSelecting {
+    func saveDestination(suggestedName: String, allowedTypes: [UTType]) async -> URL? {
+        let panel = NSSavePanel()
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = suggestedName
+        panel.allowedContentTypes = allowedTypes
+        guard await panel.begin() == .OK else { return nil }
+        return panel.url
+    }
+
+    func openSource(allowedTypes: [UTType]) async -> URL? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = allowedTypes
+        guard await panel.begin() == .OK else { return nil }
+        return panel.url
+    }
+}
+
+protocol StorageRecoveryImporting: Sendable {
+    func migrate(
+        encryptedArchive: URL,
+        password: String,
+        to destinationDirectory: URL
+    ) async throws -> StorageRecoveryImportResult
+}
+
+struct SystemStorageRecoveryImporter: StorageRecoveryImporting {
+    private let service: StorageRecoveryImportService
+
+    init(service: StorageRecoveryImportService = StorageRecoveryImportService()) {
+        self.service = service
+    }
+
+    func migrate(
+        encryptedArchive: URL,
+        password: String,
+        to destinationDirectory: URL
+    ) async throws -> StorageRecoveryImportResult {
+        try await service.migrate(
+            encryptedArchive: encryptedArchive,
+            password: password,
+            to: destinationDirectory
+        )
+    }
+}
+
 extension ClipboardHistoryViewModel {
     func performImageExport(_ item: ClipboardItem, asJPEG: Bool) async {
         guard let filename = item.imageFilename ?? item.assetFilenames.first,
@@ -10,11 +65,10 @@ extension ClipboardHistoryViewModel {
                   filename: filename,
                   isEncrypted: item.isEncrypted
               ) else { return }
-        let panel = NSSavePanel()
-        panel.canCreateDirectories = true
-        panel.nameFieldStringValue = asJPEG ? "Clipboard Image.jpg" : "Clipboard Image.png"
-        panel.allowedContentTypes = asJPEG ? [.jpeg] : [.png]
-        guard await panel.begin() == .OK, let destination = panel.url else { return }
+        guard let destination = await archivePanelSelector.saveDestination(
+            suggestedName: asJPEG ? "Clipboard Image.jpg" : "Clipboard Image.png",
+            allowedTypes: asJPEG ? [.jpeg] : [.png]
+        ) else { return }
         do {
             let output = asJPEG ? try jpegData(from: pngData) : pngData
             try output.write(to: destination, options: .atomic)
@@ -29,13 +83,12 @@ extension ClipboardHistoryViewModel {
         includeFileReferences: Bool,
         password: String?
     ) async {
-        let panel = NSSavePanel()
-        panel.canCreateDirectories = true
-        panel.nameFieldStringValue = mode == .encrypted
-            ? "ClipboardHistory-Encrypted.clipboardarchive"
-            : "ClipboardHistory.clipboardarchive"
-        panel.allowedContentTypes = [.data]
-        guard await panel.begin() == .OK, let destination = panel.url else { return }
+        guard let destination = await archivePanelSelector.saveDestination(
+            suggestedName: mode == .encrypted
+                ? "ClipboardHistory-Encrypted.clipboardarchive"
+                : "ClipboardHistory.clipboardarchive",
+            allowedTypes: [.data]
+        ) else { return }
         do {
             try await exportImportService.exportArchive(
                 items: items,
@@ -54,11 +107,9 @@ extension ClipboardHistoryViewModel {
     }
 
     func performArchiveImport(password: String?) async {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = false
-        panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.data]
-        guard await panel.begin() == .OK, let source = panel.url else { return }
+        guard let source = await archivePanelSelector.openSource(
+            allowedTypes: [.data]
+        ) else { return }
         do {
             let report = try await exportImportService.importArchive(
                 from: source,
@@ -81,16 +132,14 @@ extension ClipboardHistoryViewModel {
             archiveStatusMessage = String(localized: "The recovery archive password is required.")
             return
         }
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = false
-        panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.data]
-        guard await panel.begin() == .OK, let source = panel.url else { return }
+        guard let source = await archivePanelSelector.openSource(
+            allowedTypes: [.data]
+        ) else { return }
         stopMonitoring()
         await cancelAndAwaitAllPendingWrites()
         await storage.close()
         do {
-            let result = try await StorageRecoveryImportService().migrate(
+            let result = try await storageRecoveryImporter.migrate(
                 encryptedArchive: source,
                 password: password,
                 to: StorageService.defaultBaseDirectory()

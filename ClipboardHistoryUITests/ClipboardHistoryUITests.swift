@@ -37,7 +37,15 @@ final class ClipboardHistoryUITests: XCTestCase {
         defer { application.terminate() }
         let firstRow = rows(in: application).element(boundBy: 0)
         firstRow.rightClick()
-        application.menuItems["Add to Paste Stack"].click()
+        let addToPasteStack = application.menuItems["Add to Paste Stack"]
+        XCTAssertTrue(addToPasteStack.waitForExistence(timeout: 2))
+        // SwiftUI context-menu items are exposed with a valid frame but as
+        // non-hittable on macOS 26. Click the center of that exposed frame so
+        // the test still exercises the real context-menu action.
+        addToPasteStack.hover()
+        addToPasteStack.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
+        ).click()
 
         XCTAssertTrue(application.staticTexts["Paste Stack: 1"].waitForExistence(timeout: 2))
         let reset = application.buttons["Reset Paste Stack"]

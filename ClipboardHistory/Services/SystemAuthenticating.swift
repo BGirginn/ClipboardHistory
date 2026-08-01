@@ -6,6 +6,17 @@ protocol SystemAuthenticating: AnyObject {
     func authenticate(reason: String) async throws -> Bool
 }
 
+@MainActor
+protocol DeviceOwnerAuthenticationContext: AnyObject {
+    func canEvaluatePolicy(
+        _ policy: LAPolicy,
+        error: AutoreleasingUnsafeMutablePointer<NSError?>?
+    ) -> Bool
+    func evaluatePolicy(_ policy: LAPolicy, localizedReason: String) async throws -> Bool
+}
+
+extension LAContext: DeviceOwnerAuthenticationContext {}
+
 enum SystemAuthenticationError: LocalizedError {
     case unavailable(String)
 
@@ -18,8 +29,20 @@ enum SystemAuthenticationError: LocalizedError {
 
 @MainActor
 final class LocalSystemAuthenticator: SystemAuthenticating {
+    private let contextProvider: @MainActor () -> any DeviceOwnerAuthenticationContext
+
+    static func liveContext() -> any DeviceOwnerAuthenticationContext {
+        LAContext()
+    }
+
+    init(
+        contextProvider: @escaping @MainActor () -> any DeviceOwnerAuthenticationContext = liveContext
+    ) {
+        self.contextProvider = contextProvider
+    }
+
     func authenticate(reason: String) async throws -> Bool {
-        let context = LAContext()
+        let context = contextProvider()
         var evaluationError: NSError?
         guard context.canEvaluatePolicy(
             .deviceOwnerAuthentication,

@@ -4,6 +4,19 @@ import XCTest
 
 @MainActor
 final class AccessibilityPasteServiceTests: XCTestCase {
+    func testSystemBackendSafeRuntimeBoundaries() async {
+        let backend = SystemAccessibilityPasteBackend()
+        _ = backend.frontmostProcessIdentifier
+        _ = backend.isTrusted(prompt: false)
+        let currentProcess = ProcessInfo.processInfo.processIdentifier
+        XCTAssertTrue(backend.isProcessAvailable(currentProcess))
+        XCTAssertFalse(backend.isProcessAvailable(999_999))
+        backend.activate(999_999)
+        backend.activate(currentProcess)
+        await backend.waitBeforePosting()
+        XCTAssertTrue(backend.postCommandV(to: 999_999))
+    }
+
     func testPermissionRequestIsDeferredUntilPaste() async {
         let backend = StubAccessibilityPasteBackend()
         backend.frontmostProcessIdentifier = 42

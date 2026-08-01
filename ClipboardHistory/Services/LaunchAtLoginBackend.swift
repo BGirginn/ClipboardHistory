@@ -8,14 +8,29 @@ protocol LaunchAtLoginBackend: AnyObject {
 }
 
 @MainActor
+protocol ServiceManagementAppService: AnyObject {
+    var status: SMAppService.Status { get }
+    func register() throws
+    func unregister() throws
+}
+
+extension SMAppService: ServiceManagementAppService {}
+
+@MainActor
 final class ServiceManagementLaunchAtLoginBackend: LaunchAtLoginBackend {
-    var isEnabled: Bool { SMAppService.mainApp.status == .enabled }
+    private let service: any ServiceManagementAppService
+
+    init(service: any ServiceManagementAppService = SMAppService.mainApp) {
+        self.service = service
+    }
+
+    var isEnabled: Bool { service.status == .enabled }
 
     func setEnabled(_ enabled: Bool) throws {
         if enabled {
-            try SMAppService.mainApp.register()
+            try service.register()
         } else {
-            try SMAppService.mainApp.unregister()
+            try service.unregister()
         }
     }
 }

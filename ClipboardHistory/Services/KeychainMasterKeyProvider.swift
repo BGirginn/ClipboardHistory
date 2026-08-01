@@ -2,12 +2,17 @@ import Foundation
 
 struct KeychainMasterKeyProvider: MasterKeyProvider {
     static let active = KeychainMasterKeyProvider()
+    private let service: KeychainService
+
+    init(service: KeychainService = .live) {
+        self.service = service
+    }
 
     func loadOrCreateKey() throws -> Data {
-        try KeychainService.loadOrCreateKey()
+        try service.loadOrCreateKey()
     }
 
     func replaceKey(with newKey: Data) throws {
-        try KeychainService.rotateKey(with: newKey)
+        try service.rotateKey(with: newKey)
     }
 }

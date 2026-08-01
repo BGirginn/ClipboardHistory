@@ -1,11 +1,29 @@
 import Foundation
 import Security
 
-enum KeychainService {
+protocol KeychainSecurityClient {
+    func copyMatching(_ query: [String: Any]) -> (status: OSStatus, data: Data?)
+    func add(_ query: [String: Any]) -> OSStatus
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus
+    func randomData(count: Int) -> (status: OSStatus, data: Data)
+}
+
+struct KeychainService: @unchecked Sendable {
     static let service = "com.brgirgin.ClipboardHistory.encryption"
     static let account = "history-master-key-v1"
+    static let live = KeychainService(client: SystemKeychainSecurityClient())
+
+    private let client: any KeychainSecurityClient
+
+    init(client: any KeychainSecurityClient) {
+        self.client = client
+    }
 
     static func loadOrCreateKey() throws -> Data {
+        try live.loadOrCreateKey()
+    }
+
+    func loadOrCreateKey() throws -> Data {
         if let existing = try loadKey() {
             return existing
         }
@@ -14,11 +32,11 @@ enum KeychainService {
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
+            kSecAttrService as String: Self.service,
+            kSecAttrAccount as String: Self.account,
             kSecValueData as String: bytes
         ]
-        let addStatus = SecItemAdd(query as CFDictionary, nil)
+        let addStatus = client.add(query)
         if addStatus == errSecDuplicateItem, let existing = try loadKey() {
             return existing
         }
@@ -28,49 +46,51 @@ enum KeychainService {
         return bytes
     }
 
-    static func rotateKey(with newKey: Data) throws {
+    func rotateKey(with newKey: Data) throws {
         guard newKey.count == 32 else { throw EncryptionServiceError.invalidKey }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account
+            kSecAttrService as String: Self.service,
+            kSecAttrAccount as String: Self.account
         ]
         let attributes: [String: Any] = [kSecValueData as String: newKey]
-        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        let status = client.update(query, attributes: attributes)
         guard status == errSecSuccess else {
             throw EncryptionServiceError.keychain(status)
         }
     }
 
     static func generateRandomKey() throws -> Data {
-        var bytes = Data(count: 32)
-        let status = bytes.withUnsafeMutableBytes { buffer in
-            guard let baseAddress = buffer.baseAddress else { return errSecAllocate }
-            return SecRandomCopyBytes(kSecRandomDefault, 32, baseAddress)
-        }
-        guard status == errSecSuccess else {
-            throw EncryptionServiceError.keychain(status)
-        }
-        return bytes
+        try live.generateRandomKey()
     }
 
-    private static func loadKey() throws -> Data? {
+    func generateRandomKey() throws -> Data {
+        let result = client.randomData(count: 32)
+        guard result.status == errSecSuccess else {
+            throw EncryptionServiceError.keychain(result.status)
+        }
+        guard result.data.count == 32 else {
+            throw EncryptionServiceError.invalidKey
+        }
+        return result.data
+    }
+
+    private func loadKey() throws -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
+            kSecAttrService as String: Self.service,
+            kSecAttrAccount as String: Self.account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
-        var result: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecItemNotFound {
+        let result = client.copyMatching(query)
+        if result.status == errSecItemNotFound {
             return nil
         }
-        guard status == errSecSuccess else {
-            throw EncryptionServiceError.keychain(status)
+        guard result.status == errSecSuccess else {
+            throw EncryptionServiceError.keychain(result.status)
         }
-        guard let data = result as? Data, data.count == 32 else {
+        guard let data = result.data, data.count == 32 else {
             throw EncryptionServiceError.invalidKey
         }
         return data

@@ -1,12 +1,20 @@
 import AppKit
 
 @MainActor
+protocol PanelEventMonitoring: AnyObject {
+    func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any?
+    func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any?
+    func removeMonitor(_ monitor: Any)
+}
+
+@MainActor
 final class PanelCloseCoordinator {
     private let notificationCenter: NotificationCenter
     private let isPanelShown: () -> Bool
     private let isPanelEvent: (NSEvent) -> Bool
     private let isStatusItemEvent: (NSEvent) -> Bool
     private let closePanel: () -> Void
+    private let eventMonitor: any PanelEventMonitoring
 
     private var globalEventMonitor: Any?
     private var localEventMonitor: Any?
@@ -18,12 +26,14 @@ final class PanelCloseCoordinator {
 
     init(
         notificationCenter: NotificationCenter = .default,
+        eventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
         isPanelShown: @escaping () -> Bool,
         isPanelEvent: @escaping (NSEvent) -> Bool = { _ in false },
         isStatusItemEvent: @escaping (NSEvent) -> Bool = { _ in false },
         closePanel: @escaping () -> Void
     ) {
         self.notificationCenter = notificationCenter
+        self.eventMonitor = eventMonitor
         self.isPanelShown = isPanelShown
         self.isPanelEvent = isPanelEvent
         self.isStatusItemEvent = isStatusItemEvent
@@ -53,16 +63,12 @@ final class PanelCloseCoordinator {
             object: nil
         )
 
-        globalEventMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
-        ) { [weak self] _ in
+        globalEventMonitor = eventMonitor.addGlobalMonitor { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.requestCloseForOutsideInteraction()
             }
         }
-        localEventMonitor = NSEvent.addLocalMonitorForEvents(
-            matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
-        ) { [weak self] event in
+        localEventMonitor = eventMonitor.addLocalMonitor { [weak self] event in
             let shouldRequestClose: Bool = MainActor.assumeIsolated {
                 guard let self,
                       !self.isPanelEvent(event),
@@ -85,10 +91,10 @@ final class PanelCloseCoordinator {
         isStarted = false
         notificationCenter.removeObserver(self)
         if let globalEventMonitor {
-            NSEvent.removeMonitor(globalEventMonitor)
+            eventMonitor.removeMonitor(globalEventMonitor)
         }
         if let localEventMonitor {
-            NSEvent.removeMonitor(localEventMonitor)
+            eventMonitor.removeMonitor(localEventMonitor)
         }
         globalEventMonitor = nil
         localEventMonitor = nil

@@ -43,6 +43,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
     let lockService: AppLockService
     let thumbnailService: ThumbnailService
     let exportImportService: ExportImportService
+    let archivePanelSelector: any ArchivePanelSelecting
+    let storageRecoveryImporter: any StorageRecoveryImporting
 
     var requestClosePanel: (() -> Void)?
     var requestPreview: ((ClipboardItem) -> Void)?
@@ -90,6 +92,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
         lockService: AppLockService = AppLockService(),
         thumbnailService: ThumbnailService = .shared,
         exportImportService: ExportImportService = ExportImportService(),
+        archivePanelSelector: any ArchivePanelSelecting = SystemArchivePanelSelector(),
+        storageRecoveryImporter: any StorageRecoveryImporting = SystemStorageRecoveryImporter(),
         secretDetector: SecretDetectionService = SecretDetectionService(),
         contentAnalyzer: any ClipboardContentAnalyzing = ClipboardContentAnalysisService(),
         metadataExtractor: any ContentMetadataExtracting = ContentMetadataService(),
@@ -108,6 +112,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
         self.lockService = lockService
         self.thumbnailService = thumbnailService
         self.exportImportService = exportImportService
+        self.archivePanelSelector = archivePanelSelector
+        self.storageRecoveryImporter = storageRecoveryImporter
         self.secretDetector = secretDetector
         self.contentAnalyzer = contentAnalyzer
         self.metadataExtractor = metadataExtractor

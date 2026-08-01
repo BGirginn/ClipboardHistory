@@ -8,6 +8,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
     private let popover: NSPopover
     private let dependencies: MenuBarControllerDependencies
+    private let popoverAnchor: () -> NSView?
     private lazy var detachablePanel = dependencies.makePanel(viewModel)
     private let viewModel: ClipboardHistoryViewModel
     private let quickLookService: any QuickLookPresenting
@@ -23,10 +24,13 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
 
     init(
         viewModel: ClipboardHistoryViewModel,
-        dependencies: MenuBarControllerDependencies = .live
+        dependencies: MenuBarControllerDependencies = .live,
+        panelEventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
+        popoverAnchor: @escaping () -> NSView? = { nil }
     ) {
         self.viewModel = viewModel
         self.dependencies = dependencies
+        self.popoverAnchor = popoverAnchor
         statusItem = dependencies.makeStatusItem()
         popover = dependencies.makePopover()
         quickLookService = dependencies.quickLookPresenter
@@ -51,6 +55,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         )
 
         panelCloseCoordinator = PanelCloseCoordinator(
+            eventMonitor: panelEventMonitor,
             isPanelShown: { [weak self] in self?.popover.isShown == true },
             isPanelEvent: { [weak self] event in
                 event.window === self?.popover.contentViewController?.view.window
@@ -121,10 +126,10 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             showDetachablePanel()
             return
         }
-        guard let button = statusItem.button else { return }
+        guard let anchor = popoverAnchor() ?? statusItem.button else { return }
         viewModel.capturePasteTargetApplication()
         NSApp.activate()
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
         viewModel.lockService.recordActivity()
     }
 
@@ -200,10 +205,10 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private func updateStatusIcon() {
         let symbol = viewModel.isPrivateMode || viewModel.isPaused ? "eye.slash.fill" : "clipboard"
         let accessibilityDescription: String
-        if viewModel.isPaused {
-            accessibilityDescription = "Clipboard History recording paused"
-        } else if viewModel.isPrivateMode {
+        if viewModel.isPrivateMode {
             accessibilityDescription = "Clipboard History Private Mode enabled"
+        } else if viewModel.isPaused {
+            accessibilityDescription = "Clipboard History recording paused"
         } else {
             accessibilityDescription = "Clipboard History"
         }

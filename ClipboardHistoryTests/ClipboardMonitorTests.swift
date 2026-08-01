@@ -162,6 +162,127 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         XCTAssertEqual(value, "captured next")
     }
 
+    func testStartStopAndPollWrapperUseInjectedScheduler() async {
+        let pasteboard = NSPasteboard(name: .init("ClipboardMonitorScheduler-\(UUID().uuidString)"))
+        let scheduler = MonitorTimerSchedulerSpy()
+        let monitor = ClipboardMonitor(pasteboard: pasteboard, timerScheduler: scheduler)
+        monitor.delegate = self
+
+        monitor.start()
+        monitor.start()
+        XCTAssertEqual(scheduler.scheduleCount, 1)
+        XCTAssertEqual(scheduler.interval, ClipboardMonitor.pollingInterval)
+        XCTAssertEqual(scheduler.tolerance, 0.1)
+        pasteboard.clearContents()
+        pasteboard.setString("wrapper poll", forType: .string)
+        scheduler.fire()
+        for _ in 0..<100 where receivedContent == nil { await Task.yield() }
+        guard case let .text(value, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected scheduled poll content")
+        }
+        XCTAssertEqual(value, "wrapper poll")
+
+        monitor.stop()
+        monitor.stop()
+        XCTAssertEqual(scheduler.token.cancelCount, 1)
+    }
+
+    func testPDFFileRTFAndHTMLFallbackRepresentations() async throws {
+        prepareMonitor()
+        let pdf = Data("%PDF-1.7\nmonitor".utf8)
+        pasteboard.clearContents()
+        pasteboard.setData(pdf, forType: .pdf)
+        await monitor.pollNowAndWait()
+        guard case let .pdf(data, hash, _) = receivedContent else {
+            return XCTFail("Expected PDF")
+        }
+        XCTAssertEqual(data, pdf)
+        XCTAssertEqual(hash, HashUtility.sha256(data: pdf))
+
+        prepareMonitor()
+        let file = FileManager.default.temporaryDirectory.appending(
+            path: "ClipboardMonitor-\(UUID().uuidString).txt"
+        )
+        try Data("file".utf8).write(to: file)
+        defer { try? FileManager.default.removeItem(at: file) }
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.writeObjects([file as NSURL]))
+        await monitor.pollNowAndWait()
+        guard case let .files(urls, _, _, _) = receivedContent else {
+            return XCTFail("Expected files")
+        }
+        XCTAssertEqual(urls, [file])
+
+        prepareMonitor()
+        let attributed = NSAttributedString(string: "RTF fallback")
+        let rtf = try attributed.data(
+            from: NSRange(location: 0, length: attributed.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
+        )
+        pasteboard.clearContents()
+        pasteboard.setData(rtf, forType: .rtf)
+        await monitor.pollNowAndWait()
+        guard case let .text(rtfText, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected RTF fallback")
+        }
+        XCTAssertEqual(rtfText, "RTF fallback")
+
+        prepareMonitor()
+        pasteboard.clearContents()
+        pasteboard.setData(Data("<p>HTML fallback</p>".utf8), forType: .html)
+        await monitor.pollNowAndWait()
+        guard case let .text(htmlText, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected HTML fallback")
+        }
+        XCTAssertEqual(htmlText, "HTML fallback")
+    }
+
+    func testNoChangeExcludedUnsupportedAndViewModelDelegatePaths() async throws {
+        prepareMonitor()
+        await monitor.pollNowAndWait()
+        XCTAssertNil(receivedContent)
+
+        monitor.shouldCaptureFromApplication = { _ in false }
+        pasteboard.clearContents()
+        pasteboard.setString("excluded", forType: .string)
+        await monitor.pollNowAndWait()
+        XCTAssertNil(receivedContent)
+
+        prepareMonitor()
+        pasteboard.declareTypes([.init("com.example.unsupported")], owner: nil)
+        pasteboard.setData(Data("unsupported".utf8), forType: .init("com.example.unsupported"))
+        await monitor.pollNowAndWait()
+        XCTAssertNil(receivedContent)
+
+        let directory = FileManager.default.temporaryDirectory.appending(
+            path: "ClipboardMonitorDelegate-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let suite = "ClipboardMonitorDelegateDefaults-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        let delegatePasteboard = NSPasteboard(name: .init("ClipboardMonitorDelegate-\(UUID().uuidString)"))
+        let delegateMonitor = ClipboardMonitor(pasteboard: delegatePasteboard)
+        let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
+        let viewModel = ClipboardHistoryViewModel(
+            storage: storage,
+            monitor: delegateMonitor,
+            restorePasteboard: delegatePasteboard,
+            settings: AppSettings(defaults: defaults),
+            startsAutomatically: false
+        )
+        delegatePasteboard.clearContents()
+        delegatePasteboard.setString("delegate insertion", forType: .string)
+        await delegateMonitor.pollNowAndWait()
+        for _ in 0..<100 where viewModel.items.isEmpty {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        XCTAssertEqual(viewModel.items.first?.text, "delegate insertion")
+        viewModel.prepareForShutdown()
+        await storage.close()
+        defaults.removePersistentDomain(forName: suite)
+        try? FileManager.default.removeItem(at: directory)
+    }
+
     func clipboardMonitor(
         _ monitor: ClipboardMonitor,
         didReceive content: ClipboardContent,
@@ -191,5 +312,38 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
             y: 0
         )
         return bitmap.representation(using: .png, properties: [:])
+    }
+}
+
+@MainActor
+private final class MonitorTimerSchedulerSpy: RepeatingTimerScheduling {
+    let token = MonitorTimerTokenSpy()
+    private(set) var scheduleCount = 0
+    private(set) var interval: TimeInterval?
+    private(set) var tolerance: TimeInterval?
+    private var action: (@MainActor () -> Void)?
+
+    func schedule(
+        interval: TimeInterval,
+        tolerance: TimeInterval,
+        action: @escaping @MainActor () -> Void
+    ) -> any RepeatingTimerToken {
+        scheduleCount += 1
+        self.interval = interval
+        self.tolerance = tolerance
+        self.action = action
+        return token
+    }
+
+    func fire() {
+        action?()
+    }
+}
+
+private final class MonitorTimerTokenSpy: RepeatingTimerToken, @unchecked Sendable {
+    private(set) var cancelCount = 0
+
+    func cancel() {
+        cancelCount += 1
     }
 }

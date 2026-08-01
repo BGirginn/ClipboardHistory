@@ -68,6 +68,7 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         init() {
             coordinator = PanelCloseCoordinator(
                 notificationCenter: notificationCenter,
+                eventMonitor: IntegrationPanelEventMonitorStub(),
                 isPanelShown: { [weak self] in self?.isPanelShown == true },
                 closePanel: { [weak self] in
                     self?.isPanelShown = false
@@ -84,4 +85,11 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
             coordinator.stop()
         }
     }
+}
+
+@MainActor
+private final class IntegrationPanelEventMonitorStub: PanelEventMonitoring {
+    func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? { nil }
+    func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? { nil }
+    func removeMonitor(_ monitor: Any) {}
 }

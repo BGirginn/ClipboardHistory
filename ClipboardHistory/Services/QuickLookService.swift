@@ -3,27 +3,74 @@ import Foundation
 import QuickLookUI
 
 @MainActor
+protocol QuickLookPanelControlling: AnyObject {
+    func present(
+        dataSource: any QLPreviewPanelDataSource,
+        delegate: any QLPreviewPanelDelegate
+    )
+    func orderOut()
+}
+
+@MainActor
+final class SystemQuickLookPanelController: QuickLookPanelControlling {
+    private let panel: QLPreviewPanel
+
+    init(panel: QLPreviewPanel) {
+        self.panel = panel
+    }
+
+    func present(
+        dataSource: any QLPreviewPanelDataSource,
+        delegate: any QLPreviewPanelDelegate
+    ) {
+        panel.dataSource = dataSource
+        panel.delegate = delegate
+        panel.currentPreviewItemIndex = 0
+        panel.makeKeyAndOrderFront(nil)
+        panel.reloadData()
+    }
+
+    func orderOut() {
+        panel.orderOut(nil)
+        panel.dataSource = nil
+        panel.delegate = nil
+    }
+}
+
+@MainActor
 final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPreviewPanelDataSource, @MainActor QLPreviewPanelDelegate {
     private var previewURLs: [URL] = []
     private var temporaryDirectory: URL?
+    private let panelProvider: () -> (any QuickLookPanelControlling)?
+    private let temporaryDirectoryProvider: () -> URL
+
+    init(
+        panelProvider: @escaping () -> (any QuickLookPanelControlling)? = {
+            guard let panel = QLPreviewPanel.shared() else { return nil }
+            return SystemQuickLookPanelController(panel: panel)
+        },
+        temporaryDirectoryProvider: @escaping () -> URL = {
+            FileManager.default.temporaryDirectory
+        }
+    ) {
+        self.panelProvider = panelProvider
+        self.temporaryDirectoryProvider = temporaryDirectoryProvider
+    }
 
     func show(item: ClipboardItem, storage: StorageService) {
         Task { [weak self] in
             guard let self else { return }
+            cleanupTemporaryFiles()
             let urls = await materializePreviewURLs(for: item, storage: storage)
             guard !urls.isEmpty else { return }
             previewURLs = urls
-            guard let panel = QLPreviewPanel.shared() else { return }
-            panel.dataSource = self
-            panel.delegate = self
-            panel.currentPreviewItemIndex = 0
-            panel.makeKeyAndOrderFront(nil)
-            panel.reloadData()
+            guard let panel = panelProvider() else { return }
+            panel.present(dataSource: self, delegate: self)
         }
     }
 
     func close() {
-        QLPreviewPanel.shared()?.orderOut(nil)
+        panelProvider()?.orderOut()
         cleanupTemporaryFiles()
     }
 
@@ -73,7 +120,7 @@ final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPrevie
         }
         guard !payloads.isEmpty else { return [] }
 
-        let directory = FileManager.default.temporaryDirectory.appending(
+        let directory = temporaryDirectoryProvider().appending(
             path: "ClipboardHistoryPreview-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )

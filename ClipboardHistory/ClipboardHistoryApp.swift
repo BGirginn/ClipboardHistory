@@ -21,6 +21,9 @@ enum ClipboardHistoryMain {
 final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     private var viewModel: ClipboardHistoryViewModel?
     private var menuBarController: MenuBarController?
+    #if DEBUG
+    private var uiTestAnchorWindow: NSWindow?
+    #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
@@ -70,7 +73,11 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             startsAutomatically: false
         )
         self.viewModel = viewModel
-        let controller = MenuBarController(viewModel: viewModel)
+        let anchorWindow = makeUITestAnchorWindow()
+        uiTestAnchorWindow = anchorWindow
+        let controller = MenuBarController(viewModel: viewModel) { [weak anchorWindow] in
+            anchorWindow?.contentView
+        }
         menuBarController = controller
         Task {
             await viewModel.loadHistory()
@@ -83,12 +90,40 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         }
         AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
     }
+
+    private func makeUITestAnchorWindow() -> NSWindow {
+        let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: 1, y: 1)) }
+            ?? NSScreen.main
+        let visibleFrame = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1, height: 1)
+        let window = NSWindow(
+            contentRect: NSRect(
+                x: visibleFrame.midX,
+                y: visibleFrame.maxY - 1,
+                width: 1,
+                height: 1
+            ),
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false
+        )
+        window.level = .statusBar
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.alphaValue = 0.01
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.orderFrontRegardless()
+        return window
+    }
     #endif
 
     func applicationWillTerminate(_ notification: Notification) {
         viewModel?.prepareForShutdown()
         menuBarController?.stop()
         menuBarController = nil
+        #if DEBUG
+        uiTestAnchorWindow?.close()
+        uiTestAnchorWindow = nil
+        #endif
         viewModel = nil
     }
 }
