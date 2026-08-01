@@ -4,7 +4,7 @@ ClipboardHistory, Swift 6 ve SwiftUI/AppKit ile yazılmış yerel bir macOS pano
 
 ## Durum
 
-Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 kanıtı 201 unit/integration/benchmark ve 7 yalıtılmış UI testini kapsar. Her üretim Swift dosyası ve uygulama toplamı `%100` satır kapsamındadır (11.714/11.714); Debug, Release ve CommunityRelease minimum macOS 14 isteyen yalnız arm64 yapılardır; ASan ve TSan 200 uygun testi ayrı ayrı geçirir; optimize p95 eşiği geçer ve 7 kritik mutasyonun tamamı öldürülür. Sabit self-signed Community kimliğiyle üretilen entitlement'sız `1.0.0 (10001)` artifact Apple hesabı/profile olmadan imza, designated requirement, mimari, checksum, DMG ve SPDX kontrollerini geçer. Xcode UI otomasyonu Debug uygulaması self-signed olduğunda başlatma el sıkışmasını tamamlayamadığı için temiz kullanıcıda manuel UI/Gatekeeper kanıtı; erişilebilirlik/görsel matris, sekiz saatlik soak/Instruments, macOS 14/15/26 ve şifreli imza anahtarı yedeği hâlâ zorunludur. Beta etiketi, GitHub Release'i ve Homebrew Cask yayımlanmamıştır.
+Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 kanıtı 202 unit/integration/benchmark ve 7 yalıtılmış UI testini kapsar. Her üretim Swift dosyası ve uygulama toplamı `%100` satır kapsamındadır (11.850/11.850); Debug, Release ve CommunityRelease minimum macOS 14 isteyen yalnız arm64 yapılardır; ASan ve TSan 201 uygun testi ayrı ayrı geçirir; optimize p95 eşiği geçer ve 7 kritik mutasyonun tamamı öldürülür. Sabit self-signed Community kimliğiyle üretilen entitlement'sız `1.0.0 (10001)` artifact Apple hesabı/profile olmadan imza, designated requirement, mimari, checksum, DMG ve SPDX kontrollerini geçer. Xcode UI otomasyonu Debug uygulaması self-signed olduğunda başlatma el sıkışmasını tamamlayamadığı için temiz kullanıcıda manuel UI/Gatekeeper kanıtı; erişilebilirlik/görsel matris, sekiz saatlik soak/Instruments, macOS 14/15/26 ve şifreli imza anahtarı yedeği hâlâ zorunludur. Beta etiketi, GitHub Release'i ve Homebrew Cask yayımlanmamıştır.
 
 ## Başlıca özellikler
 
@@ -15,7 +15,7 @@ Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 
 - FIFO/LIFO geçici Yapıştırma Yığını, çoklu seçim, toplu silme ve yaşa göre temizlik
 - Kaynak uygulama, tür, tarih, koleksiyon, etiket ve tanınan metin alanlarında arama
 - Geçici/gizli/otomatik UTI'ları ve isteğe bağlı Universal Clipboard/özel UTI'ları yok sayma
-- Özelleştirilebilir global kısayol, menü popover'ı ve ayrılabilir kenar paneli
+- Sistem/Açık/Koyu görünüm, özelleştirilebilir global kısayol, menü popover'ı ve ayrılabilir kenar paneli
 - AES-GCM, Keychain anahtarı, varsayılan kapalı sistem kimlik doğrulamalı uygulama kilidi ve parola korumalı arşiv
 - İngilizce ve Türkçe String Catalog
 

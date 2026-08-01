@@ -5,6 +5,7 @@ import Foundation
 final class AppSettings: ObservableObject {
     @Published var globalShortcutEnabled: Bool { didSet { save() } }
     @Published var closePanelAfterCopying: Bool { didSet { save() } }
+    @Published var appearance: AppAppearance { didSet { save() } }
     @Published var historyLimit: Int { didSet { save() } }
     @Published var thumbnailCacheMegabytes: Int { didSet { save() } }
     @Published var selectedFilter: ClipboardFilter { didSet { save() } }
@@ -54,6 +55,9 @@ final class AppSettings: ObservableObject {
         } else {
             closePanelAfterCopying = defaults.object(forKey: Key.closePanelAfterCopying) as? Bool ?? false
         }
+        appearance = AppAppearance(
+            rawValue: defaults.string(forKey: Key.appearance) ?? ""
+        ) ?? .system
         historyLimit = max(10, defaults.integer(forKey: Key.historyLimit).nonzero(or: 100))
         thumbnailCacheMegabytes = max(
             8,
@@ -188,6 +192,7 @@ final class AppSettings: ObservableObject {
     private func save() {
         defaults.set(globalShortcutEnabled, forKey: Key.globalShortcutEnabled)
         defaults.set(closePanelAfterCopying, forKey: Key.closePanelAfterCopying)
+        defaults.set(appearance.rawValue, forKey: Key.appearance)
         defaults.set(historyLimit, forKey: Key.historyLimit)
         defaults.set(thumbnailCacheMegabytes, forKey: Key.thumbnailCacheMegabytes)
         defaults.set(selectedFilter.rawValue, forKey: Key.selectedFilter)
@@ -237,6 +242,7 @@ final class AppSettings: ObservableObject {
         static let globalShortcutEnabled = "globalShortcutEnabled"
         static let closePanelAfterCopying = "closePanelAfterCopying"
         static let closePanelAfterCopyingMigrationVersion = "closePanelAfterCopyingMigrationVersion"
+        static let appearance = "appearance"
         static let historyLimit = "historyLimit"
         static let thumbnailCacheMegabytes = "thumbnailCacheMegabytes"
         static let selectedFilter = "selectedFilter"

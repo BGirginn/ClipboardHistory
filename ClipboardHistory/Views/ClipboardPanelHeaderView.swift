@@ -45,10 +45,12 @@ struct ClipboardPanelHeaderView: View {
 
                 ClipboardHeaderActionButton(
                     title: "Ignore Next Copy",
-                    systemImage: "eye.slash",
+                    systemImage: "arrow.right.to.line.compact",
                     helpText: "Ignore only the next clipboard change",
                     accessibilityIdentifier: "header.ignoreNext",
-                    accessibilityValue: "Available",
+                    accessibilityValue: viewModel.isIgnoringNextCopy ? "Armed" : "Available",
+                    isActive: viewModel.isIgnoringNextCopy,
+                    tint: .orange,
                     action: viewModel.ignoreNextCopy
                 )
 

@@ -15,6 +15,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private let shortcutBackend: any GlobalShortcutBackend
     private var shortcutCancellable: AnyCancellable?
     private var shortcutPresetCancellable: AnyCancellable?
+    private var appearanceCancellable: AnyCancellable?
     private var panelEdgeCancellable: AnyCancellable?
     private var shortcutErrorCancellable: AnyCancellable?
     private var panelCloseCoordinator: PanelCloseCoordinator!
@@ -101,6 +102,9 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             .sink { [weak viewModel] message in
                 viewModel?.setGlobalShortcutError(message)
             }
+        appearanceCancellable = viewModel.settings.$appearance
+            .removeDuplicates()
+            .sink { [weak self] appearance in self?.applyAppearance(appearance) }
         panelEdgeCancellable = viewModel.settings.$panelScreenEdge
             .removeDuplicates()
             .sink { [weak self] _ in self?.positionDetachablePanel() }
@@ -120,6 +124,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func showPopover() {
+        viewModel.prepareForPanelPresentation()
         if viewModel.settings.panelPresentationMode == .detachable {
             showDetachablePanel()
             return
@@ -218,7 +223,20 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         if let detachablePanel { return detachablePanel }
         let panel = dependencies.makePanel(viewModel)
         detachablePanel = panel
+        applyAppearance(viewModel.settings.appearance)
         return panel
+    }
+
+    private func applyAppearance(_ appearance: AppAppearance) {
+        let name: NSAppearance.Name?
+        switch appearance {
+        case .system: name = nil
+        case .light: name = .aqua
+        case .dark: name = .darkAqua
+        }
+        let resolvedAppearance = name.flatMap { NSAppearance(named: $0) }
+        popover.appearance = resolvedAppearance
+        detachablePanel?.appearance = resolvedAppearance
     }
 
     private func updateStatusIcon() {

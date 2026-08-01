@@ -51,6 +51,13 @@ final class MenuBarControllerTests: XCTestCase {
         popover.animates = false
         panel.animationBehavior = .none
 
+        context.settings.appearance = .light
+        XCTAssertEqual(popover.appearance?.name, .aqua)
+        context.settings.appearance = .dark
+        XCTAssertEqual(popover.appearance?.name, .darkAqua)
+        context.settings.appearance = .system
+        XCTAssertNil(popover.appearance)
+
         XCTAssertFalse(controller.isPopoverShown)
         XCTAssertNil(controller.shortcutRegistrationError)
         controller.popoverWillShow(Notification(name: NSPopover.willShowNotification))
@@ -112,8 +119,14 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(shortcutBackend.registerCount, 1)
 
         context.settings.shortcutActivationMode = .toggle
+        context.viewModel.isShowingSettings = true
+        context.viewModel.detailItem = context.viewModel.items.first
+        context.viewModel.searchText = "stale presentation"
         shortcutBackend.fire(UInt32(kEventHotKeyPressed))
         XCTAssertTrue(popover.isShown)
+        XCTAssertFalse(context.viewModel.isShowingSettings)
+        XCTAssertNil(context.viewModel.detailItem)
+        XCTAssertEqual(context.viewModel.searchText, "")
         shortcutBackend.fire(UInt32(kEventHotKeyReleased))
         shortcutBackend.fire(UInt32(kEventHotKeyPressed))
         XCTAssertFalse(popover.isShown)

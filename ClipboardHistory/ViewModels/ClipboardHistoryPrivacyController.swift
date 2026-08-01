@@ -77,6 +77,7 @@ extension ClipboardHistoryViewModel {
 
     func ignoreNextCopy() {
         monitor.ignoreNextCopy()
+        isIgnoringNextCopy = true
     }
 
     func togglePrivateMode() {

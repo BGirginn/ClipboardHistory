@@ -10,16 +10,12 @@ struct ClipboardPanelStatusView: View {
             }
 
             if viewModel.isPrivateMode {
-                Label {
-                    HStack(spacing: 4) {
-                        Text("Private Mode")
-                        if let expiration = viewModel.privateModeUntil {
-                            Text(expiration, style: .timer)
-                                .monospacedDigit()
-                        }
+                HStack(spacing: 4) {
+                    Text("Private Mode")
+                    if let expiration = viewModel.privateModeUntil {
+                        Text(expiration, style: .timer)
+                            .monospacedDigit()
                     }
-                } icon: {
-                    Image(systemName: "eye.slash.fill")
                 }
             } else if let expiration = viewModel.pauseUntil, expiration > .now {
                 Label {

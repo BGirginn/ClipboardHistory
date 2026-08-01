@@ -146,11 +146,14 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
 
     func testIgnoreNextCopyConsumesExactlyOneChange() async {
         prepareMonitor()
+        var ignoredChangeCount = 0
+        monitor.didIgnoreNextChange = { ignoredChangeCount += 1 }
         monitor.ignoreNextCopy()
         pasteboard.clearContents()
         pasteboard.setString("ignored once", forType: .string)
         await monitor.pollNowAndWait()
         XCTAssertNil(receivedContent)
+        XCTAssertEqual(ignoredChangeCount, 1)
 
         pasteboard.clearContents()
         pasteboard.setString("captured next", forType: .string)

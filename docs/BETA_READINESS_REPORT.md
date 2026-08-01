@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 Candidate: `v1.0.0-beta.1`
 
-Decision: **blocked; do not tag, publish, or create the Cask**
+Decision: **release artifacts blocked; source publication does not authorize a tag, GitHub Release, or Cask**
 
 This report records local evidence for the clean `beta/arm64-opt-in-lock` branch tip. It is not signed-distribution or external OS-matrix evidence and becomes stale after any source change.
 
@@ -24,20 +24,21 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 - Debug, Release, and CommunityRelease now share one classic login-Keychain service and one empty source entitlement file. Apple Development Team, Data Protection Keychain, keychain access groups, and provisioning profiles were removed. The existing master-key service name was retained and its 32-byte value was confirmed readable through the classic login-Keychain query without logging the key.
 - `ClipboardHistoryViewModel` is a 223-line main-actor façade and `StorageService` a 384-line actor façade. Extracted controller/repository, asset, migration, maintenance, recovery, and rotation facets are all below 500 lines. Static checks enforce 500 lines and one top-level type per production Swift file.
 - English and Turkish String Catalog entries cover the new lock states, actions, explanations, and errors.
-- CI is arm64-only on GitHub's macOS 14, 15, and 26 runners. Separate sanitizer, performance, mutation, coverage, architecture, analyzer, and protected signed-UI jobs exist.
+- Settings now offer persistent System/Light/Dark appearance. Reopening the menu-bar panel always returns to the main history instead of stale settings/detail/search state, and the one-shot ignore action is visually distinct from Private Mode with armed-state feedback.
+- The checked-in CI workflow is arm64-only on GitHub's macOS 14, 15, and 26 runners, but repository GitHub Actions are disabled by owner request. Equivalent architecture, sanitizer, performance, mutation, coverage, and UI gates run locally.
 - Artifact tooling requires exact arm64 output and names ZIP/DMG/SBOM files `ClipboardHistory-1.0.0-beta.1-arm64.*`. The documented Cask requires Sonoma and arm64.
 
 ## Current local evidence
 
 | Check | Result |
 |---|---|
-| Unit/integration/benchmark suite | 201 current tests covered by the unit/integration and optimized benchmark gates, 0 failed |
+| Unit/integration/benchmark suite | 202 current tests covered by the unit/integration and optimized benchmark gates, 0 failed |
 | UI suite | 7 passed, 0 failed with isolated ad-hoc production entitlements |
-| Merged production line coverage | 100%, 11,714/11,714 executable lines |
+| Merged production line coverage | 100%, 11,850/11,850 executable lines |
 | Per-file 100% coverage gate | Passed for every production Swift file; no production source exclusion |
 | Debug/Release/CommunityRelease | Passed; exact `arm64`; minimum macOS 14 |
-| ASan | 200 eligible tests passed; no compiler/linker/sanitizer diagnostic |
-| TSan | 200 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
+| ASan | 201 eligible tests passed; no compiler/linker/sanitizer diagnostic |
+| TSan | 201 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
 | Deterministic fuzz | 10,000 hostile validation inputs plus 512 malformed media corpus cases passed |
 | Critical mutation set | 7 killed, 0 survived |
 | Optimized performance | Warm-up plus 20-repeat 5,000-item p95 assertions passed |
@@ -53,8 +54,8 @@ The merged coverage result is retained locally as `Combined.xccovreport` alongsi
 1. The seven isolated UI tests cover the automated action matrix, but the self-signed Debug app did not complete Xcode's `XCUIApplication.launch()` handshake. The final self-signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state flows still require a clean-user manual run.
 2. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
 3. Actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak/growth run remain incomplete. The short idle CPU/RSS and SQLite integrity smoke passes.
-4. Only macOS 26.5 arm64 executed locally. macOS 14/15/26 evidence from the exact clean release commit remains required.
+4. Only macOS 26.5 arm64 executed locally. Repository Actions are disabled, so macOS 14/15/26 evidence from the exact clean release commit requires an explicitly authorized external run.
 5. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
-6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. The required clean-user/VM Open Anyway test, checksum comparison, public-repository transition, tag, GitHub Release, and Homebrew Cask audit/install lifecycle remain absent.
+6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. The required clean-user/VM Open Anyway test, checksum comparison, tag, GitHub Release, and Homebrew Cask audit/install lifecycle remain absent.
 
-Because these gates are mandatory, the repository was not made public and no tag, GitHub Release, tap repository, or Cask was created. Local candidate ZIP/DMG/SBOM artifacts exist only as verification inputs and are not a published release.
+Source-code visibility is independent from binary-release readiness. The source repository may be public, but no tag, GitHub Release, tap repository, or Cask is created until the remaining artifact gates pass. Local candidate ZIP/DMG/SBOM artifacts exist only as verification inputs and are not a published release.

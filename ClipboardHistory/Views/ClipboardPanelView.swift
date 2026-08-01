@@ -3,12 +3,14 @@ import SwiftUI
 
 struct ClipboardPanelView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
+    @ObservedObject private var settings: AppSettings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var searchIsFocused: Bool
 
     init(viewModel: ClipboardHistoryViewModel, searchIsFocused: Bool = false) {
         self.viewModel = viewModel
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
         _searchIsFocused = State(initialValue: searchIsFocused)
     }
 
@@ -70,6 +72,7 @@ struct ClipboardPanelView: View {
         )
         .background(KeyboardEventMonitorView(handler: handleKeyEvent))
         .background(quickSelectionShortcuts)
+        .preferredColorScheme(settings.appearance.colorScheme)
         .confirmationDialog(
             "Clear all clipboard history?",
             isPresented: $viewModel.isShowingClearConfirmation

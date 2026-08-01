@@ -12,6 +12,20 @@ final class AppSettingsMigrationTests: XCTestCase {
         }
     }
 
+    func testAppearanceDefaultsToSystemAndMapsEveryOption() {
+        withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+
+            XCTAssertEqual(settings.appearance, .system)
+            XCTAssertNil(AppAppearance.system.colorScheme)
+            XCTAssertEqual(AppAppearance.light.colorScheme, .light)
+            XCTAssertEqual(AppAppearance.dark.colorScheme, .dark)
+            XCTAssertEqual(AppAppearance.system.title, String(localized: "System"))
+            XCTAssertEqual(AppAppearance.light.title, String(localized: "Light"))
+            XCTAssertEqual(AppAppearance.dark.title, String(localized: "Dark"))
+        }
+    }
+
     func testMigrationDisablesExistingEnabledValueOnce() {
         withDefaults { defaults in
             defaults.set(true, forKey: "closePanelAfterCopying")
@@ -86,6 +100,7 @@ final class AppSettingsMigrationTests: XCTestCase {
             settings.pasteStackRemovesUsedItems = false
             settings.globalShortcutPresetID = "command-option-v"
             settings.shortcutActivationMode = .hold
+            settings.appearance = .dark
             settings.panelPresentationMode = .detachable
             settings.panelScreenEdge = .left
 
@@ -115,6 +130,7 @@ final class AppSettingsMigrationTests: XCTestCase {
             XCTAssertFalse(reopened.imageTextRecognitionEnabled)
             XCTAssertFalse(reopened.pasteStackRemovesUsedItems)
             XCTAssertEqual(reopened.shortcutActivationMode, .hold)
+            XCTAssertEqual(reopened.appearance, .dark)
             XCTAssertEqual(reopened.panelPresentationMode, .detachable)
             XCTAssertEqual(reopened.panelScreenEdge, .left)
         }

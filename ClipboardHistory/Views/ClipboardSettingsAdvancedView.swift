@@ -55,7 +55,7 @@ struct ClipboardSettingsAdvancedView: View {
                 .lineLimit(2...5)
                 Button(
                     "Ignore Next Copy",
-                    systemImage: "eye.slash",
+                    systemImage: "arrow.right.to.line.compact",
                     action: viewModel.ignoreNextCopy
                 )
                 Text("Transient, concealed, and auto-generated pasteboard types are always ignored.")

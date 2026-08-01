@@ -17,6 +17,7 @@ final class ClipboardMonitor {
 
     weak var delegate: ClipboardMonitorDelegate?
     var shouldCaptureFromApplication: ((String?) -> Bool)?
+    var didIgnoreNextChange: (() -> Void)?
 
     private let pasteboard: any ClipboardPasteboard
     private let processingService: any ClipboardContentProcessing
@@ -67,6 +68,7 @@ final class ClipboardMonitor {
 
         if ignoresNextChange {
             ignoresNextChange = false
+            didIgnoreNextChange?()
             AppLog.clipboard.notice("Clipboard change ignored once by user request")
             return
         }

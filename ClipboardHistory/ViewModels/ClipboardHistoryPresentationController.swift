@@ -4,6 +4,14 @@ import Foundation
 import UniformTypeIdentifiers
 
 extension ClipboardHistoryViewModel {
+    func prepareForPanelPresentation() {
+        isShowingSettings = false
+        detailItem = nil
+        if !searchText.isEmpty {
+            searchText = ""
+        }
+    }
+
     func enforceUnpinnedHistoryLimit() async {
         let unpinned = items.filter { !$0.isPinned && temporaryContent[$0.id] == nil }
             .sorted { $0.creationDate > $1.creationDate }

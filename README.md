@@ -1,10 +1,10 @@
 # ClipboardHistory
 
-ClipboardHistory is a private, native macOS menu bar clipboard manager written in Swift 6 with SwiftUI, AppKit, CryptoKit, SQLite, PDFKit, Quick Look, LocalAuthentication, Security, and ServiceManagement. It captures clipboard content only through `NSPasteboard`; it never watches the Desktop or any other folder.
+ClipboardHistory is a privacy-focused, native macOS menu bar clipboard manager written in Swift 6 with SwiftUI, AppKit, CryptoKit, SQLite, PDFKit, Quick Look, LocalAuthentication, Security, and ServiceManagement. It captures clipboard content only through `NSPasteboard`; it never watches the Desktop or any other folder.
 
 The app has no networking, telemetry, analytics, cloud service, account system, or third-party dependency.
 
-> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 evidence covers 201 unit/integration/benchmark tests and 7 isolated UI tests. Every production Swift file and the app aggregate are at 100% line coverage (11,714/11,714), all three build configurations are arm64-only with a macOS 14 minimum, ASan/TSan pass 200 eligible tests each, the optimized p95 benchmark passes, and all 7 critical mutations are killed. A stable self-signed Community identity is installed, and an entitlement-free `1.0.0 (10001)` artifact passes signature, designated-requirement, architecture, checksum, DMG, and SPDX checks without an Apple account or profile. Xcode UI automation cannot complete its launch handshake when the Debug app is self-signed, so clean-user manual UI/Gatekeeper evidence remains mandatory alongside the accessibility/visual matrix, eight-hour soak/Instruments, macOS 14/15/26 runs, and encrypted signing-key backup. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
+> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 evidence covers 202 unit/integration/benchmark tests and 7 isolated UI tests. Every production Swift file and the app aggregate are at 100% line coverage (11,850/11,850), all three build configurations are arm64-only with a macOS 14 minimum, ASan/TSan pass 201 eligible tests each, the optimized p95 benchmark passes, and all 7 critical mutations are killed. A stable self-signed Community identity is installed, and an entitlement-free `1.0.0 (10001)` artifact passes signature, designated-requirement, architecture, checksum, DMG, and SPDX checks without an Apple account or profile. Xcode UI automation cannot complete its launch handshake when the Debug app is self-signed, so clean-user manual UI/Gatekeeper evidence remains mandatory alongside the accessibility/visual matrix, eight-hour soak/Instruments, macOS 14/15/26 runs, and encrypted signing-key backup. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
 
 [Türkçe README](README_TR.md)
 
@@ -21,7 +21,7 @@ The app has no networking, telemetry, analytics, cloud service, account system, 
 - Encrypted titles, tags and collections; editable text, local text transformations, and reusable pinned snippets
 - FIFO/LIFO temporary Paste Stack, multiple selection, drag providers, bulk deletion, age cleanup, and Command-1…9 selection
 - Always-ignore transient/concealed/auto-generated pasteboard types, optional Universal Clipboard/custom UTI exclusion, and Ignore Next Copy
-- Configurable shortcut activation and a detachable keyboard-oriented panel at a selected screen edge
+- Configurable System/Light/Dark appearance, shortcut activation, and a detachable keyboard-oriented panel at a selected screen edge
 - Compact menu-bar controls with optional application lock plus explicit Private/Paused status, and sectioned General, Privacy, Security, Storage, and Advanced settings
 - Command-Shift-V global panel shortcut, launch at login, private mode, temporary pause, and per-application exclusion rules
 - Local secret detection, temporary sensitive-item retention, AES-GCM encryption, Keychain-backed keys, and an opt-in LocalAuthentication application lock

@@ -18,6 +18,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published var copiedItemID: UUID?
     @Published var detailItem: ClipboardItem?
     @Published var isPrivateMode: Bool
+    @Published var isIgnoringNextCopy = false
     @Published var privateModeUntil: Date?
     @Published var pauseUntil: Date?
     @Published var cleanupMessage: String?
@@ -126,6 +127,9 @@ final class ClipboardHistoryViewModel: ObservableObject {
         monitor.delegate = self
         monitor.shouldCaptureFromApplication = { [weak self] bundleIdentifier in
             self?.shouldCapture(from: bundleIdentifier) ?? false
+        }
+        monitor.didIgnoreNextChange = { [weak self] in
+            self?.isIgnoringNextCopy = false
         }
         updateIgnoredPasteboardTypes()
         lockService.configure(

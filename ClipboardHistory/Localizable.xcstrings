@@ -291,6 +291,16 @@
         }
       }
     },
+    "Appearance": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünüm"
+          }
+        }
+      }
+    },
     "Archive password": {
       "localizations": {
         "tr": {
@@ -707,6 +717,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Özel UTI tanımlayıcıları"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu"
           }
         }
       }
@@ -1377,6 +1397,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sol"
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık"
           }
         }
       }
@@ -2307,6 +2337,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Depolama"
+          }
+        }
+      }
+    },
+    "System": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem"
           }
         }
       }

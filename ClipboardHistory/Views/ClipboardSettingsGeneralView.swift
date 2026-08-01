@@ -60,6 +60,13 @@ struct ClipboardSettingsGeneralView: View {
             }
 
             Section("Presentation") {
+                Picker("Appearance", selection: $viewModel.settings.appearance) {
+                    ForEach(AppAppearance.allCases) { appearance in
+                        Text(appearance.title).tag(appearance)
+                    }
+                }
+                .accessibilityIdentifier("settings.appearance")
+
                 Picker("Panel style", selection: $viewModel.settings.panelPresentationMode) {
                     ForEach(PanelPresentationMode.allCases) { mode in
                         Text(mode.title).tag(mode)
