@@ -1,38 +1,127 @@
-# ClipboardHistory
+<p align="center">
+  <img src="ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="ClipboardHistory uygulama ikonu">
+</p>
 
-ClipboardHistory, Swift 6 ve SwiftUI/AppKit ile yazılmış yerel bir macOS pano yöneticisidir. Ağ bağlantısı, telemetri, hesap, bulut eşitleme veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
+<h1 align="center">ClipboardHistory</h1>
 
-## Durum
+<p align="center">
+  macOS menü çubuğu için özel ve yerel bir pano yöneticisi.
+</p>
 
-Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 kanıtı 204 unit/integration/benchmark ve 7 yalıtılmış UI testini kapsar. Her üretim Swift dosyası ve uygulama toplamı `%100` satır kapsamındadır (11.880/11.880); Debug, Release ve CommunityRelease minimum macOS 14 isteyen yalnız arm64 yapılardır; ASan ve TSan 203 uygun testi ayrı ayrı geçirir; optimize p95 eşiği geçer ve 7 kritik mutasyonun tamamı öldürülür. Sabit self-signed Community kimliğiyle üretilen entitlement'sız `1.0.0 (10001)` artifact Apple hesabı/profile olmadan imza, designated requirement, mimari, checksum, DMG ve SPDX kontrollerini geçer. Xcode UI otomasyonu Debug uygulaması self-signed olduğunda başlatma el sıkışmasını tamamlayamadığı için temiz kullanıcıda manuel UI/Gatekeeper kanıtı; erişilebilirlik/görsel matris, sekiz saatlik soak/Instruments, macOS 14/15/26 ve şifreli imza anahtarı yedeği hâlâ zorunludur. Beta etiketi, GitHub Release'i ve Homebrew Cask yayımlanmamıştır.
+<p align="center">
+  <a href="README.md">English</a>
+</p>
 
-## Başlıca özellikler
+ClipboardHistory, aranabilir pano geçmişini yalnızca Mac'inizde tutar. Swift 6, SwiftUI ve AppKit ile yazılmıştır; ağ bağlantısı, telemetri, hesap sistemi, bulut servisi veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
 
-- Metin, RTF, temizlenmiş HTML, görsel grubu, PDF ve dosya/klasör geçmişi
-- Panoya kopyalama, etkin uygulamaya doğrudan yapıştırma ve düz metin/RTF/temiz HTML olarak yapıştırma
-- Renk algılama, cihaz üzerinde Vision OCR ve QR kod çözme
-- Şifreli görünen adlar, etiketler, koleksiyonlar ve sabit parçacıklar
-- FIFO/LIFO geçici Yapıştırma Yığını, çoklu seçim, toplu silme ve yaşa göre temizlik
-- Kaynak uygulama, tür, tarih, koleksiyon, etiket ve tanınan metin alanlarında arama
-- Geçici/gizli/otomatik UTI'ları ve isteğe bağlı Universal Clipboard/özel UTI'ları yok sayma
-- Sistem/Açık/Koyu görünüm, özelleştirilebilir global kısayol, menü popover'ı ve ayrılabilir kenar paneli
-- AES-GCM, Keychain anahtarı, varsayılan kapalı sistem kimlik doğrulamalı uygulama kilidi ve parola korumalı arşiv
-- İngilizce ve Türkçe String Catalog
+## Güncel durum
+
+- Güncel beta adayı: `1.0.0-beta.1` (`1.0.0`, build `10001`)
+- Desteklenen platform: macOS 14 Sonoma veya sonrası kullanan Apple silicon (`arm64`) Mac
+- `main` dalındaki kaynak kod public ve günceldir
+- GitHub Release ve Homebrew Cask **henüz yayımlanmadı**
+- Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
+
+Bu nedenle Homebrew kurulumu henüz kullanılamaz. İlk sürüm yayımlanana kadar uygulama aşağıdaki adımlarla kaynak koddan derlenebilir.
+
+## Özellikler
+
+- Metin, URL, e-posta, kaynak kod, zengin metin, görsel, PDF ve dosya/klasör geçmişi
+- Arama, tür/tarih/kaynak filtreleri, sıralama, koleksiyonlar, etiketler, sabitlenen öğeler ve parçacıklar
+- Kopyalama, geri yükleme, etkin uygulamaya yapıştırma, farklı biçimde yapıştırma, Quick Look, sürükle-bırak ve toplu işlemler
+- FIFO/LIFO Yapıştırma Yığını ve klavye odaklı gezinme
+- Sistem, Açık ve Koyu görünüm seçenekleri
+- Private Mode, geçici kayıt duraklatma, uygulama hariç tutma ve Sonraki Kopyalamayı Yoksay seçimi
+- Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
+- Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
+- Keychain anahtarlı AES-GCM geçmiş şifrelemesi ve plaintext'e düşmeyen hata davranışı
+- Parola korumalı yerel arşiv dışa/içe aktarma
+- Cihaz üzerinde Vision OCR, QR tanıma ve renk analizi
+- İngilizce ve Türkçe yerelleştirme
+
+## Gizlilik modeli
+
+ClipboardHistory yalnızca `NSPasteboard` üzerinden sunulan pano değişikliklerini okur. Masaüstünü veya başka klasörleri izlemez ve pano içeriğini ağ üzerinden göndermez.
+
+Geçmiş yerel SQLite veritabanında saklanır. Şifreleme anahtarları macOS login Keychain'de tutulur; Keychain hatalarında işlem kapalı ve güvenli biçimde başarısız olur. İsteğe bağlı uygulama kilidi görüntüleme/etkileşim gizlilik katmanıdır ve varsayılan olarak kapalıdır.
+
+Tam sınırlar için [Gizlilik ve Tehdit Modeli](docs/PRIVACY_AND_THREAT_MODEL.md) ile [Bilinen Sınırlar](docs/KNOWN_LIMITATIONS.md) belgelerine bakın.
+
+## Kaynak koddan derleme
+
+Gereksinimler:
+
+- Apple silicon Mac
+- macOS 14 veya sonrası
+- Swift 6 destekli Xcode
+
+Depoyu klonlayıp yerel self-signed Community kimliğini oluşturun. Bunun için ücretli Apple Developer hesabı gerekmez:
+
+```sh
+git clone https://github.com/BGirginn/ClipboardHistory.git
+cd ClipboardHistory
+scripts/create-community-signing-identity.sh
+scripts/verify-community-signing.sh
+```
+
+Community yapılandırmasını derleyip açın:
+
+```sh
+xcodebuild \
+  -project ClipboardHistory.xcodeproj \
+  -scheme ClipboardHistory \
+  -configuration CommunityRelease \
+  -destination 'generic/platform=macOS' \
+  -derivedDataPath .build/LocalRelease \
+  ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
+  build
+
+open .build/LocalRelease/Build/Products/CommunityRelease/ClipboardHistory.app
+```
+
+Sertifikanın private key'i kullanıcının login Keychain'inde kalır ve repoya kesinlikle eklenmemelidir.
+
+## Kullanım
+
+ClipboardHistory menü çubuğu uygulaması olarak çalışır ve Dock'ta görünmez. Paneli açmak için pano ikonuna tıklayın veya `Command-Shift-V` tuşlarına basın.
+
+Pano geçmişi ve yönetilen dosyalar şu konumda saklanır:
+
+```text
+~/Library/Application Support/ClipboardHistory/
+```
+
+Etkin uygulamaya doğrudan yapıştırma işlemi macOS Erişilebilirlik izni ister. Pano kaydı, paneli açma ve global kısayol bu izni gerektirmez.
 
 ## Geliştirme
 
-Yalnız Apple silicon arm64 ve macOS 14+ hedeflenir; Xcode 26.6 ile Swift 6 strict concurrency doğrulanır. İmzasız komut satırı derlemesi:
+İmzasız derleme kontrolü:
 
 ```sh
-xcodebuild -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
-  -configuration Debug -destination 'platform=macOS,arch=arm64' \
-  CODE_SIGNING_ALLOWED=NO build
+xcodebuild \
+  -project ClipboardHistory.xcodeproj \
+  -scheme ClipboardHistory \
+  -configuration Debug \
+  -destination 'platform=macOS,arch=arm64' \
+  CODE_SIGNING_ALLOWED=NO \
+  build
 ```
 
-Statik ve yerelleştirme kapısı:
+Proje belgeleri:
 
-```sh
-scripts/verify-static-quality.sh
-```
+- [Mimari](docs/ARCHITECTURE.md)
+- [Testler](docs/TESTING.md)
+- [Performans](docs/PERFORMANCE.md)
+- [Dağıtım](docs/DISTRIBUTION.md)
+- [Güvenlik Politikası](SECURITY.md)
+- [Katkıda Bulunma](CONTRIBUTING.md)
 
-Test ve yayın ölçütleri için [beta hazırlık raporu](docs/BETA_READINESS_REPORT.md), [İngilizce README](README.md), [test matrisi](docs/TESTING.md), [gizlilik ve tehdit modeli](docs/PRIVACY_AND_THREAT_MODEL.md) ve [bilinen sınırlar](docs/KNOWN_LIMITATIONS.md) belgelerine bakın.
+## Dağıtım
+
+Depo şu anda kaynak kodu ve yeniden üretilebilir Community paketleme scriptlerini içerir. İlk değişmez GitHub Release ve `BGirginn/homebrew-tap` Cask'i ayrıca hazırlanacaktır. Bu public kaynaklar oluşmadan bir `brew install` komutu kullanılmamalı veya duyurulmamalıdır.
+
+## Lisans
+
+ClipboardHistory [MIT Lisansı](LICENSE) ile sunulur.
