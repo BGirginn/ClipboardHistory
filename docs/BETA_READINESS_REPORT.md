@@ -57,6 +57,15 @@ The merged coverage result is retained locally as `Combined.xccovreport` alongsi
 3. Actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak/growth run remain incomplete. The short idle CPU/RSS and SQLite integrity smoke passes.
 4. Only macOS 26.5 arm64 executed locally. Repository Actions are disabled, so macOS 14/15/26 evidence from the exact clean release commit requires an explicitly authorized external run.
 5. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
-6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. A separate clean-user/VM Open Anyway run remains unrecorded; publication-time checksum and Homebrew lifecycle checks are required for the public prerelease.
+6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. A separate clean-user/VM Open Anyway run remains unrecorded; the publication-time checksum and Homebrew lifecycle checks are recorded below.
 
 The owner explicitly authorized a public beta release with these gaps disclosed. This decision does not convert the Community build into a notarized production release and does not waive the missing external matrix for a later stable release.
+
+## Publication evidence
+
+- Annotated tag `v1.0.0-beta.1` points to clean release commit `fad51547ceec3f68ba82734dbd699645bcfa985e`.
+- The public GitHub prerelease contains the signed arm64 ZIP and DMG, SPDX SBOM, checksum manifest, designated requirement, and signing-certificate fingerprint.
+- The public `BGirginn/homebrew-tap` repository publishes `Casks/clipboardhistory.rb` with exact ZIP SHA-256 `8d2bf2a7312e3eec6a915c92507110d2e4a0bceb6b2e1cb0108d2dffcdd0576f`, `depends_on arch: :arm64`, and `depends_on macos: :sonoma`.
+- Homebrew style and strict Cask audit passed. The central `homebrew/cask` new-cask eligibility audit remains intentionally inapplicable because this is a self-signed GitHub prerelease in a personal tap and does not meet official notability/notarization rules.
+- Homebrew fetched the public ZIP with the published checksum, retained quarantine, installed into an isolated app directory, and launched the exact `1.0.0 (10001)` arm64 app. Normal uninstall removed the staged app while preserving Application Support and SQLite `integrity_check=ok`.
+- GitHub Actions are disabled at repository level for both `BGirginn/ClipboardHistory` and `BGirginn/homebrew-tap` by owner instruction.
