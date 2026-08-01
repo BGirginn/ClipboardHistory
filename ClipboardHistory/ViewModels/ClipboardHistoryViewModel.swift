@@ -177,7 +177,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
             items = persistentItems.filter { $0.expiresAt.map { $0 > .now } ?? true }
             isStorageAvailable = true
             refreshDisplayedItems()
-            await runRetentionCleanup()
+            await runRetentionCleanup(prefetchedItems: persistentItems)
         } catch {
             isStorageAvailable = false
             stopMonitoring()

@@ -293,13 +293,14 @@ extension ClipboardHistoryViewModel {
         }
     }
 
-    func runRetentionCleanup() async {
+    func runRetentionCleanup(prefetchedItems: [ClipboardItem]? = nil) async {
         await drainPendingItemWrites()
         let report = await storage.cleanup(
             historyLimit: settings.historyLimit,
             retentionDays: settings.retentionDays,
             imageRetentionDays: settings.imageRetentionDays,
-            maximumStorageBytes: Int64(settings.maximumStorageMegabytes) * 1_024 * 1_024
+            maximumStorageBytes: Int64(settings.maximumStorageMegabytes) * 1_024 * 1_024,
+            prefetchedItems: prefetchedItems
         )
         if report.removedItemCount > 0 {
             cleanupMessage = String(localized: "Removed \(report.removedItemCount) items and reclaimed \(report.reclaimedBytes.formatted(.byteCount(style: .file))).")

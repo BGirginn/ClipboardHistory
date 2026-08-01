@@ -4,7 +4,7 @@ The release thresholds are measured in optimized Release after warm-up, at least
 
 ## Current automated evidence
 
-On 2026-08-01, `scripts/verify-performance.sh` passed the optimized arm64 Release benchmark after warm-up with ten repetitions and p95 assertions for the 5,000-item write/read, ViewModel load, filtering, and panel-layout operations.
+On 2026-08-01, `scripts/verify-performance.sh` passed the optimized arm64 Release benchmark after warm-up. The final gate uses twenty repetitions so p95 is not equivalent to the single slowest sample, while retaining the published 5,000-item write/read, ViewModel-load, filtering, and panel-layout thresholds.
 
 This closes the automated numeric benchmark gate. Actual panel-visible latency, idle CPU, RSS, long-scroll frame pacing, large-payload stress, Instruments traces, and the eight-hour soak remain required external evidence.
 

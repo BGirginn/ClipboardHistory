@@ -191,8 +191,11 @@ actor StorageService {
             try execute("BEGIN IMMEDIATE TRANSACTION")
             do {
                 try execute("DELETE FROM ClipboardItems")
+                let statement = try prepareItemUpsertStatement()
+                defer { sqlite3_finalize(statement) }
+                let encoder = JSONEncoder()
                 for item in items where !item.isSensitive || item.isEncrypted {
-                    try insertOrReplace(item)
+                    try insertOrReplace(item, using: statement, encoder: encoder)
                 }
                 try execute("COMMIT")
             } catch {
@@ -239,8 +242,11 @@ actor StorageService {
         try ensureInitialized()
         try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
+            let statement = try prepareItemUpsertStatement()
+            defer { sqlite3_finalize(statement) }
+            let encoder = JSONEncoder()
             for item in items {
-                try insertOrReplace(item)
+                try insertOrReplace(item, using: statement, encoder: encoder)
             }
             try execute("COMMIT")
         } catch {
@@ -262,8 +268,11 @@ actor StorageService {
             for collection in collections {
                 try insertOrReplaceCollection(collection)
             }
+            let statement = try prepareItemUpsertStatement()
+            defer { sqlite3_finalize(statement) }
+            let encoder = JSONEncoder()
             for item in items {
-                try insertOrReplace(item)
+                try insertOrReplace(item, using: statement, encoder: encoder)
             }
             try execute("COMMIT")
         } catch {

@@ -33,11 +33,17 @@ extension StorageService {
         historyLimit: Int,
         retentionDays: Int,
         imageRetentionDays: Int,
-        maximumStorageBytes: Int64
+        maximumStorageBytes: Int64,
+        prefetchedItems: [ClipboardItem]? = nil
     ) -> CleanupReport {
         do {
             try ensureInitialized()
-            let allItems = try fetchAllItems()
+            let allItems: [ClipboardItem]
+            if let prefetchedItems {
+                allItems = prefetchedItems
+            } else {
+                allItems = try fetchAllItems()
+            }
             let before = storageMetrics().totalBytes
             let now = Date.now
             let generalCutoff = now.addingTimeInterval(-Double(retentionDays) * 86_400)

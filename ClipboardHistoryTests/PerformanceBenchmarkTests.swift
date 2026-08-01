@@ -52,8 +52,9 @@ final class PerformanceBenchmarkTests: XCTestCase {
         var loadMilliseconds: [Double] = []
         var filterMilliseconds: [Double] = []
         var panelMilliseconds: [Double] = []
+        let repetitionCount = 20
 
-        for iteration in 0..<10 {
+        for iteration in 0..<repetitionCount {
             let writeStart = clock.now
             await storage.saveHistory(items)
             writeMilliseconds.append(milliseconds(writeStart.duration(to: clock.now)))
@@ -105,7 +106,7 @@ final class PerformanceBenchmarkTests: XCTestCase {
         XCTAssertLessThanOrEqual(filterP95, 50 * instrumentationAllowance)
         XCTAssertLessThanOrEqual(panelP95, 120 * instrumentationAllowance)
         AppLog.performance.notice(
-            "benchmark items=5000 repetitions=10 writeP95Ms=\(writeP95) readP95Ms=\(readP95) viewModelLoadP95Ms=\(loadP95) filterP95Ms=\(filterP95) panelP95Ms=\(panelP95)"
+            "benchmark items=5000 repetitions=\(repetitionCount) writeP95Ms=\(writeP95) readP95Ms=\(readP95) viewModelLoadP95Ms=\(loadP95) filterP95Ms=\(filterP95) panelP95Ms=\(panelP95)"
         )
 
         viewModel.prepareForShutdown()

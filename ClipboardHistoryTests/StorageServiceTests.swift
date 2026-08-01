@@ -27,7 +27,7 @@ final class StorageServiceTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testHistoryRoundTrip() async {
+    func testHistoryRoundTrip() async throws {
         let item = ClipboardItem(type: .text, text: "saved", hash: "hash")
         await storage.saveHistory([item])
 
@@ -41,6 +41,7 @@ final class StorageServiceTests: XCTestCase {
             item.creationDate.timeIntervalSince1970,
             accuracy: 0.000_001
         )
+        XCTAssertEqual(try readOptimizedNullColumnCount(), 5)
     }
 
     func testImageRoundTripAndClear() async throws {
@@ -178,5 +179,43 @@ final class StorageServiceTests: XCTestCase {
             throw CocoaError(.fileReadCorruptFile)
         }
         return Data(bytes: bytes, count: count)
+    }
+
+    private func readOptimizedNullColumnCount() throws -> Int {
+        var database: OpaquePointer?
+        XCTAssertEqual(
+            sqlite3_open_v2(
+                storage.databaseFile.path,
+                &database,
+                SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX,
+                nil
+            ),
+            SQLITE_OK
+        )
+        guard let database else { throw CocoaError(.fileReadUnknown) }
+        defer { sqlite3_close(database) }
+
+        var statement: OpaquePointer?
+        XCTAssertEqual(
+            sqlite3_prepare_v2(
+                database,
+                """
+                SELECT (assetFilenames IS NULL) + (fileURLs IS NULL) +
+                       (fileBookmarks IS NULL) + (protectedMetadata IS NULL) +
+                       (pasteboardTypes IS NULL)
+                FROM ClipboardItems LIMIT 1
+                """,
+                -1,
+                &statement,
+                nil
+            ),
+            SQLITE_OK
+        )
+        guard let statement else { throw CocoaError(.fileReadUnknown) }
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_step(statement) == SQLITE_ROW else {
+            throw CocoaError(.fileReadUnknown)
+        }
+        return Int(sqlite3_column_int(statement, 0))
     }
 }

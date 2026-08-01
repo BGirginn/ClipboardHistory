@@ -3,7 +3,13 @@ import SQLite3
 
 extension StorageService {
     func insertOrReplace(_ item: ClipboardItem) throws {
-        let sql = """
+        let statement = try prepareItemUpsertStatement()
+        defer { sqlite3_finalize(statement) }
+        try insertOrReplace(item, using: statement, encoder: JSONEncoder())
+    }
+
+    func prepareItemUpsertStatement() throws -> OpaquePointer {
+        try prepare("""
             INSERT OR REPLACE INTO ClipboardItems (
                 id, type, textContent, imageFilename, thumbnailFilename, contentHash,
                 createdAt, lastUsedAt, pinnedAt, isPinned, useCount, contentSubtype,
@@ -12,10 +18,16 @@ extension StorageService {
                 imageWidth, imageHeight, pageCount, fileSize, isEncrypted,
                 protectedMetadata, collectionID, isSnippet, pasteboardTypes
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-        let statement = try prepare(sql)
-        defer { sqlite3_finalize(statement) }
+            """)
+    }
 
+    func insertOrReplace(
+        _ item: ClipboardItem,
+        using statement: OpaquePointer,
+        encoder: JSONEncoder
+    ) throws {
+        _ = sqlite3_reset(statement)
+        _ = sqlite3_clear_bindings(statement)
         try bind(item.id.uuidString, at: 1, to: statement)
         try bind(item.type.rawValue, at: 2, to: statement)
         if let text = item.text {
@@ -42,9 +54,9 @@ extension StorageService {
         sqlite3_bind_int64(statement, 16, sqlite3_int64(item.storageVersion))
         sqlite3_bind_null(statement, 17)
         try bind(item.payloadFilename, at: 18, to: statement)
-        try bind(try JSONEncoder().encode(item.assetFilenames), at: 19, to: statement)
-        try bind(try JSONEncoder().encode(item.fileURLs), at: 20, to: statement)
-        try bind(try JSONEncoder().encode(item.fileBookmarks), at: 21, to: statement)
+        try bindEncodedCollection(item.assetFilenames, at: 19, to: statement, encoder: encoder)
+        try bindEncodedCollection(item.fileURLs, at: 20, to: statement, encoder: encoder)
+        try bindEncodedCollection(item.fileBookmarks, at: 21, to: statement, encoder: encoder)
         bind(item.imageWidth, at: 22, to: statement)
         bind(item.imageHeight, at: 23, to: statement)
         bind(item.pageCount, at: 24, to: statement)
@@ -52,11 +64,15 @@ extension StorageService {
         sqlite3_bind_int(statement, 26, item.isEncrypted ? 1 : 0)
         var metadata = item.protectedMetadata
         metadata.displayTitle = item.displayTitle
-        let protectedMetadata = try encryptionService().encrypt(try JSONEncoder().encode(metadata))
-        try bind(protectedMetadata, at: 27, to: statement)
+        if metadata == ClipboardProtectedMetadata() {
+            sqlite3_bind_null(statement, 27)
+        } else {
+            let protectedMetadata = try encryptionService().encrypt(try encoder.encode(metadata))
+            try bind(protectedMetadata, at: 27, to: statement)
+        }
         try bind(item.collectionID?.uuidString, at: 28, to: statement)
         sqlite3_bind_int(statement, 29, item.isSnippet ? 1 : 0)
-        try bind(try JSONEncoder().encode(item.pasteboardTypes), at: 30, to: statement)
+        try bindEncodedCollection(item.pasteboardTypes, at: 30, to: statement, encoder: encoder)
 
         guard sqlite3_step(statement) == SQLITE_DONE else {
             throw DatabaseError.executionFailed(databaseMessage())
@@ -76,6 +92,7 @@ extension StorageService {
             """)
         defer { sqlite3_finalize(statement) }
         var items: [ClipboardItem] = []
+        let decoder = JSONDecoder()
         while sqlite3_step(statement) == SQLITE_ROW {
             guard let idString = textColumn(0, statement),
                   let id = UUID(uuidString: idString),
@@ -87,7 +104,7 @@ extension StorageService {
             let protectedMetadata: ClipboardProtectedMetadata
             if let encryptedMetadata = dataColumn(26, statement) {
                 let metadataData = try encryptionService().decrypt(encryptedMetadata)
-                protectedMetadata = try JSONDecoder().decode(
+                protectedMetadata = try decoder.decode(
                     ClipboardProtectedMetadata.self,
                     from: metadataData
                 )
@@ -126,9 +143,21 @@ extension StorageService {
                     sourceApplicationBundleID: textColumn(14, statement),
                     storageVersion: Int(sqlite3_column_int64(statement, 15)),
                     payloadFilename: textColumn(17, statement),
-                    assetFilenames: decodeArray([String].self, from: dataColumn(18, statement)) ?? [],
-                    fileURLs: decodeArray([String].self, from: dataColumn(19, statement)) ?? [],
-                    fileBookmarks: decodeArray([Data].self, from: dataColumn(20, statement)) ?? [],
+                    assetFilenames: decodeArray(
+                        [String].self,
+                        from: dataColumn(18, statement),
+                        using: decoder
+                    ) ?? [],
+                    fileURLs: decodeArray(
+                        [String].self,
+                        from: dataColumn(19, statement),
+                        using: decoder
+                    ) ?? [],
+                    fileBookmarks: decodeArray(
+                        [Data].self,
+                        from: dataColumn(20, statement),
+                        using: decoder
+                    ) ?? [],
                     imageWidth: optionalIntColumn(21, statement),
                     imageHeight: optionalIntColumn(22, statement),
                     pageCount: optionalIntColumn(23, statement),
@@ -139,7 +168,8 @@ extension StorageService {
                     isSnippet: sqlite3_column_int(statement, 28) != 0,
                     pasteboardTypes: decodeArray(
                         [String].self,
-                        from: dataColumn(29, statement)
+                        from: dataColumn(29, statement),
+                        using: decoder
                     ) ?? []
                 )
             )
@@ -302,6 +332,19 @@ extension StorageService {
         guard result == SQLITE_OK else { throw DatabaseError.bindingFailed }
     }
 
+    func bindEncodedCollection<T: Collection & Encodable>(
+        _ value: T,
+        at index: Int32,
+        to statement: OpaquePointer,
+        encoder: JSONEncoder
+    ) throws {
+        if value.isEmpty {
+            sqlite3_bind_null(statement, index)
+        } else {
+            try bind(try encoder.encode(value), at: index, to: statement)
+        }
+    }
+
     func bind(_ date: Date?, at index: Int32, to statement: OpaquePointer) {
         if let date {
             sqlite3_bind_double(statement, index, date.timeIntervalSince1970)
@@ -354,9 +397,13 @@ extension StorageService {
         return Int64(sqlite3_column_int64(statement, index))
     }
 
-    func decodeArray<T: Decodable>(_ type: T.Type, from data: Data?) -> T? {
+    func decodeArray<T: Decodable>(
+        _ type: T.Type,
+        from data: Data?,
+        using decoder: JSONDecoder
+    ) -> T? {
         guard let data else { return nil }
-        return try? JSONDecoder().decode(T.self, from: data)
+        return try? decoder.decode(T.self, from: data)
     }
 
     func databaseMessage() -> String {
