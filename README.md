@@ -16,13 +16,35 @@ ClipboardHistory keeps searchable clipboard history locally on your Mac. It is w
 
 ## Current status
 
-- Current beta candidate: `1.0.0-beta.1` (`1.0.0`, build `10001`)
+- Current Community beta: [`v1.0.0-beta.1`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) (`1.0.0`, build `10001`)
 - Supported platform: Apple silicon (`arm64`) with macOS 14 Sonoma or later
 - The source on `main` is public and current
-- A GitHub Release and Homebrew Cask have **not** been published yet
+- The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
+- The Homebrew Cask is published from [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap)
 - The Community build is self-signed and is not Apple-notarized
 
-Homebrew installation is therefore not available yet. Until the first release is published, the app can be built from source using the steps below.
+## Install
+
+Install with Homebrew:
+
+```sh
+brew tap BGirginn/tap
+brew install --cask clipboardhistory
+```
+
+To update or uninstall later:
+
+```sh
+brew update
+brew upgrade --cask clipboardhistory
+brew uninstall --cask clipboardhistory
+```
+
+Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap clipboardhistory` also deletes that local user data.
+
+The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
+
+The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1).
 
 ## Features
 
@@ -120,7 +142,7 @@ Project documentation:
 
 ## Distribution
 
-The repository currently contains the source and reproducible Community packaging scripts. The first immutable GitHub Release and the `BGirginn/homebrew-tap` Cask will be prepared separately. Do not use or advertise a `brew install` command until those public resources exist.
+`v1.0.0-beta.1` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
 
 ## License
 

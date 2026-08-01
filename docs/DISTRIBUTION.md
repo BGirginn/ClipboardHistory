@@ -1,35 +1,64 @@
 # Community beta distribution
 
-Distribution remains disabled until every row in [TESTING.md](TESTING.md) passes for the exact commit. Do not create `v1.0.0-beta.1`, a GitHub Release, or a Cask from a merely successful build.
+`v1.0.0-beta.1` is distributed as an explicitly pre-release Community build for Apple silicon Macs running macOS 14 or later. It is self-signed, is not Apple-notarized, and must not be described as a production or Developer ID release.
 
 ## Stable signing identity
 
-Create one self-signed `ClipboardHistory Community Beta` code-signing certificate, retain its encrypted backup outside the repository, and use that same identity for every update. No Apple account, Development Team, or provisioning profile is involved. Never commit or upload the private key. Every runnable configuration has the same empty entitlement file and login-Keychain service; changing the designated requirement can strand access to the existing key.
+The release uses one self-signed `ClipboardHistory Community Beta` code-signing certificate. No Apple account, Development Team, or provisioning profile is involved. The private key remains outside the repository in the maintainer's login Keychain; it must never be committed or uploaded.
 
 ```sh
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
 
-After creation, export exactly this identity from Keychain Access as an encrypted `.p12` and store the backup outside the repository. Do not send its password through shell arguments, chat, logs, or CI variables.
+Changing the signing identity changes the designated requirement and can strand access to an existing login-Keychain encryption key. Export the identity from Keychain Access as an encrypted `.p12`, store it outside the repository, and never expose its password in shell arguments, logs, chat, or CI variables.
 
-Build artifacts only after local release gates pass:
+## Release artifacts
+
+Build from the exact clean release commit:
 
 ```sh
-scripts/release-gate.sh /private/tmp/ClipboardHistoryCombined.xcresult
 scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.1
 ```
 
-The artifact script requires `syft` and creates the arm64-only app, `ClipboardHistory-1.0.0-beta.1-arm64.zip`, matching DMG, SHA-256 manifest, SPDX SBOM, designated requirement, and public certificate fingerprint. It verifies that `lipo -archs` is exactly `arm64`, the minimum OS is macOS 14, and the embedded version is `1.0.0` build `10001` with beta label `1.0.0-beta.1`.
+The script requires `syft` and produces:
 
-The Community beta is self-signed and not notarized. Test the exact downloaded, quarantined artifact in a clean account/VM. Document macOS System Settings > Privacy & Security > Open Anyway with the expected certificate fingerprint. Never remove quarantine, run `xattr`, or hide Gatekeeper warnings in an installer or Cask.
+- `ClipboardHistory-1.0.0-beta.1-arm64.zip`
+- `ClipboardHistory-1.0.0-beta.1-arm64.dmg`
+- `ClipboardHistory-1.0.0-beta.1-arm64.spdx.json`
+- `SHA256SUMS`
+- `designated-requirement.txt`
+- `signing-certificate-sha256.txt`
 
-## GitHub Release and Homebrew
+It verifies the code signature and designated requirement, an empty final entitlement set, exact `arm64` architecture, minimum macOS 14, version `1.0.0` build `10001`, DMG and ZIP integrity, checksums, and SPDX metadata.
 
-Release notes must link the test/coverage/security/accessibility/performance evidence and publish the checksum, SBOM, fingerprint, and known limitations. Only then create and push the annotated tag.
+The Community beta retains normal quarantine behavior. If Gatekeeper blocks first launch, document Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway. Never remove quarantine, run `xattr`, or suppress the warning in the Cask.
 
-After the immutable GitHub Release URL exists, add `Casks/clipboardhistory.rb` to `BGirginn/homebrew-tap` with the real ZIP SHA-256, `app "ClipboardHistory.app"`, `depends_on arch: :arm64`, and `depends_on macos: :sonoma`. Normal uninstall must preserve Application Support and preferences. A separately documented `zap` stanza may remove history, preferences, and caches only when the user explicitly requests `--zap`.
+## GitHub Release
 
-Run `brew audit --cask --strict`, install, upgrade, uninstall, reinstall, and a clean-user launch from the Cask. Record the running PID's exact executable, bundle/build versions, signature/designated requirement, login-Keychain read, and SQLite `PRAGMA integrity_check`. The ZIP downloaded by Homebrew must match the GitHub checksum byte-for-byte.
+The tag and prerelease are published from the same clean commit. Release assets include the ZIP, DMG, checksum manifest, SPDX SBOM, designated requirement, and public signing-certificate fingerprint. The release notes link the known validation gaps rather than claiming notarization or unsupported OS evidence.
 
-Apple signing/Keychain rationale follows [TN3137](https://developer.apple.com/documentation/Technotes/tn3137-on-mac-keychains), [TN3127](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements), and [TN2206](https://developer.apple.com/library/archive/technotes/tn2206/_index.html). A future Developer ID release must use Apple's supported [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution); it is a separate release model.
+## Homebrew Cask
+
+The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`:
+
+```sh
+brew tap BGirginn/tap
+brew install --cask clipboardhistory
+```
+
+`Casks/clipboardhistory.rb` uses the GitHub Release ZIP and its exact SHA-256 with:
+
+```ruby
+depends_on arch: :arm64
+depends_on macos: :sonoma
+app "ClipboardHistory.app"
+```
+
+Normal uninstall preserves Application Support and preferences. The optional `--zap` path removes them only when the user explicitly asks for complete deletion.
+
+For every Cask update, run style/audit, fetch the public URL, install into an isolated app directory, verify the running artifact metadata/signature/architecture, and perform normal uninstall. The ZIP fetched by Homebrew must match the checksum published in the GitHub Release.
+
+## Future Developer ID release
+
+Apple signing and Keychain rationale follows [TN3137](https://developer.apple.com/documentation/Technotes/tn3137-on-mac-keychains), [TN3127](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements), and [TN2206](https://developer.apple.com/library/archive/technotes/tn2206/_index.html). A future Developer ID release must use Apple's supported [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution); it is a separate release model.

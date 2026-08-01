@@ -4,9 +4,9 @@ Date: 2026-08-01
 
 Candidate: `v1.0.0-beta.1`
 
-Decision: **release artifacts blocked; source publication does not authorize a tag, GitHub Release, or Cask**
+Decision: **approved as a public self-signed Community prerelease with the validation gaps below disclosed; not approved as a production/notarized release**
 
-This report records local evidence for the clean `beta/arm64-opt-in-lock` branch tip. It is not signed-distribution or external OS-matrix evidence and becomes stale after any source change.
+This report records local evidence gathered during beta preparation. Later targeted interaction fixes and the app icon received focused regression/build verification rather than a repeat of the entire suite at the owner's request. It is not external OS-matrix evidence.
 
 ## Preservation and scope
 
@@ -50,13 +50,13 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 
 The merged coverage result is retained locally as `Combined.xccovreport` alongside its unit and UI `.xcresult` bundles. Release evidence paths are working-session artifacts and are not committed into the source repository.
 
-## Remaining release blockers
+## Known beta validation gaps
 
 1. The seven isolated UI tests cover the automated action matrix, but the self-signed Debug app did not complete Xcode's `XCUIApplication.launch()` handshake. The final self-signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state flows still require a clean-user manual run.
 2. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
 3. Actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak/growth run remain incomplete. The short idle CPU/RSS and SQLite integrity smoke passes.
 4. Only macOS 26.5 arm64 executed locally. Repository Actions are disabled, so macOS 14/15/26 evidence from the exact clean release commit requires an explicitly authorized external run.
 5. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
-6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. The required clean-user/VM Open Anyway test, checksum comparison, tag, GitHub Release, and Homebrew Cask audit/install lifecycle remain absent.
+6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. A separate clean-user/VM Open Anyway run remains unrecorded; publication-time checksum and Homebrew lifecycle checks are required for the public prerelease.
 
-Source-code visibility is independent from binary-release readiness. The source repository may be public, but no tag, GitHub Release, tap repository, or Cask is created until the remaining artifact gates pass. Local candidate ZIP/DMG/SBOM artifacts exist only as verification inputs and are not a published release.
+The owner explicitly authorized a public beta release with these gaps disclosed. This decision does not convert the Community build into a notarized production release and does not waive the missing external matrix for a later stable release.

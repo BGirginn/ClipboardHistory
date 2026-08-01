@@ -16,13 +16,35 @@ ClipboardHistory, aranabilir pano geçmişini yalnızca Mac'inizde tutar. Swift 
 
 ## Güncel durum
 
-- Güncel beta adayı: `1.0.0-beta.1` (`1.0.0`, build `10001`)
+- Güncel Community beta: [`v1.0.0-beta.1`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) (`1.0.0`, build `10001`)
 - Desteklenen platform: macOS 14 Sonoma veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
-- GitHub Release ve Homebrew Cask **henüz yayımlanmadı**
+- İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
+- Homebrew Cask [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) üzerinden yayımlanmıştır
 - Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
 
-Bu nedenle Homebrew kurulumu henüz kullanılamaz. İlk sürüm yayımlanana kadar uygulama aşağıdaki adımlarla kaynak koddan derlenebilir.
+## Kurulum
+
+Homebrew ile kurulum:
+
+```sh
+brew tap BGirginn/tap
+brew install --cask clipboardhistory
+```
+
+Daha sonra güncellemek veya kaldırmak için:
+
+```sh
+brew update
+brew upgrade --cask clipboardhistory
+brew uninstall --cask clipboardhistory
+```
+
+Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap clipboardhistory` komutu bu yerel kullanıcı verilerini de siler.
+
+Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, ClipboardHistory üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
+
+ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) sayfasından da indirilebilir.
 
 ## Özellikler
 
@@ -120,7 +142,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-Depo şu anda kaynak kodu ve yeniden üretilebilir Community paketleme scriptlerini içerir. İlk değişmez GitHub Release ve `BGirginn/homebrew-tap` Cask'i ayrıca hazırlanacaktır. Bu public kaynaklar oluşmadan bir `brew install` komutu kullanılmamalı veya duyurulmamalıdır.
+`v1.0.0-beta.1`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
 
 ## Lisans
 
