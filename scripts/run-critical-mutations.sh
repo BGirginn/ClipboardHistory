@@ -23,7 +23,7 @@ run_mutation() {
       perl -0pi -e 's/if item\.creationDate < generalCutoff/if item.creationDate > generalCutoff/' "$checkout/ClipboardHistory/Services/StorageMaintenanceService.swift"
       ;;
     authenticated_decryption)
-      perl -0pi -e 's/return try AES\.GCM\.open\(sealedBox, using: key\)/return sealedBox.ciphertext/' "$checkout/ClipboardHistory/Services/EncryptionService.swift"
+      perl -0pi -e 's/return try AES\.GCM\.open\(box, using: key\)/return box.ciphertext/' "$checkout/ClipboardHistory/Services/EncryptionCryptoBackend.swift"
       ;;
     search_conjunction)
       perl -0pi -e 's/terms\.allSatisfy \{ term in/terms.contains { term in/' "$checkout/ClipboardHistory/Models/ClipboardSearchQuery.swift"
@@ -35,9 +35,17 @@ run_mutation() {
       perl -0pi -e 's/guard !isLocked \|\| settings\.captureWhileLocked else/guard isLocked || settings.captureWhileLocked else/' "$checkout/ClipboardHistory/ViewModels/ClipboardHistoryMutationController.swift"
       ;;
     key_rotation)
-      perl -0pi -e 's/\} else if encryption != nil \{\n            encryption = \.ephemeral\(\)\n        \}/} else if encryption != nil {\n            return\n        }/' "$checkout/ClipboardHistory/Services/StorageRecoveryAndEncryptionRotation.swift"
+      perl -0pi -e 's/\} else \{\n            encryption = \.ephemeral\(\)\n        \}/} else {\n            return\n        }/' "$checkout/ClipboardHistory/Services/StorageRecoveryAndEncryptionRotation.swift"
       ;;
   esac
+
+  if diff -qr \
+      "$repository_root/ClipboardHistory" \
+      "$checkout/ClipboardHistory" >/dev/null; then
+    print -u2 "mutation infrastructure failure: $name did not alter production source"
+    rm -rf "$mutation_root"
+    exit 2
+  fi
 
   if xcodebuild -quiet \
       -project "$checkout/ClipboardHistory.xcodeproj" \
