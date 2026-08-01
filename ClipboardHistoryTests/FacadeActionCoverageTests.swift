@@ -179,8 +179,8 @@ final class FacadeActionCoverageTests: XCTestCase {
         await context.viewModel.insert(.text(value: "migrate", hash: "migrate"))
         context.settings.encryptionMode = .all
         context.viewModel.settingsDidChange()
-        if let maintenanceTask = context.viewModel.maintenanceTask {
-            await maintenanceTask.value
+        await waitUntil("encryption migration") {
+            context.viewModel.appliedEncryptionMode == .all
         }
         XCTAssertEqual(context.viewModel.appliedEncryptionMode, .all)
         context.viewModel.isShuttingDown = true
