@@ -19,7 +19,7 @@ final class ClipboardMonitor {
     var shouldCaptureFromApplication: ((String?) -> Bool)?
 
     private let pasteboard: any ClipboardPasteboard
-    private let processingService: ClipboardProcessingService
+    private let processingService: any ClipboardContentProcessing
     private let timerScheduler: any RepeatingTimerScheduling
     private var previousChangeCount: Int
     private var lastDeliveredChangeCount = 0
@@ -29,7 +29,7 @@ final class ClipboardMonitor {
 
     init(
         pasteboard: any ClipboardPasteboard = NSPasteboard.general,
-        processingService: ClipboardProcessingService = ClipboardProcessingService(),
+        processingService: any ClipboardContentProcessing = ClipboardProcessingService(),
         timerScheduler: any RepeatingTimerScheduling = SystemRepeatingTimerScheduler()
     ) {
         self.pasteboard = pasteboard

@@ -58,6 +58,92 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         harness.stop()
     }
 
+    func testInjectedGlobalAndLocalMonitorsCloseAndAreRemoved() async throws {
+        let monitor = RecordingPanelEventMonitor()
+        var isShown = true
+        var closeCount = 0
+        let coordinator = PanelCloseCoordinator(
+            notificationCenter: NotificationCenter(),
+            eventMonitor: monitor,
+            isPanelShown: { isShown },
+            closePanel: {
+                isShown = false
+                closeCount += 1
+            }
+        )
+        coordinator.start()
+        coordinator.start()
+        let event = try XCTUnwrap(
+            NSEvent.otherEvent(
+                with: .applicationDefined,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                subtype: 0,
+                data1: 0,
+                data2: 0
+            )
+        )
+
+        XCTAssertTrue(monitor.fireLocal(event) === event)
+        XCTAssertEqual(closeCount, 1)
+        isShown = true
+        monitor.fireGlobal(event)
+        for _ in 0..<20 where closeCount < 2 { await Task.yield() }
+        XCTAssertEqual(closeCount, 2)
+
+        coordinator.stop()
+        coordinator.stop()
+        XCTAssertEqual(monitor.removedCount, 2)
+    }
+
+    func testLocalPanelAndStatusEventsAreIgnoredAndHiddenPanelCancelsDeferredClose() async throws {
+        let monitor = RecordingPanelEventMonitor()
+        var isShown = true
+        var panelEvent = true
+        var statusEvent = false
+        var closeCount = 0
+        let coordinator = PanelCloseCoordinator(
+            notificationCenter: NotificationCenter(),
+            eventMonitor: monitor,
+            isPanelShown: { isShown },
+            isPanelEvent: { _ in panelEvent },
+            isStatusItemEvent: { _ in statusEvent },
+            closePanel: { closeCount += 1 }
+        )
+        coordinator.start()
+        let event = try XCTUnwrap(
+            NSEvent.otherEvent(
+                with: .applicationDefined,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                subtype: 0,
+                data1: 0,
+                data2: 0
+            )
+        )
+        _ = monitor.fireLocal(event)
+        panelEvent = false
+        statusEvent = true
+        _ = monitor.fireLocal(event)
+        XCTAssertEqual(closeCount, 0)
+
+        statusEvent = false
+        coordinator.menuTrackingDidBegin()
+        coordinator.requestCloseForOutsideInteraction()
+        coordinator.menuTrackingDidEnd()
+        isShown = false
+        try? await Task.sleep(for: .milliseconds(75))
+        XCTAssertEqual(closeCount, 0)
+        XCTAssertFalse(coordinator.menuCommandWasSelected)
+        coordinator.stop()
+    }
+
     @MainActor
     private final class Harness {
         let notificationCenter = NotificationCenter()
@@ -92,4 +178,33 @@ private final class IntegrationPanelEventMonitorStub: PanelEventMonitoring {
     func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? { nil }
     func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? { nil }
     func removeMonitor(_ monitor: Any) {}
+}
+
+@MainActor
+private final class RecordingPanelEventMonitor: PanelEventMonitoring {
+    private var globalHandler: ((NSEvent) -> Void)?
+    private var localHandler: ((NSEvent) -> NSEvent?)?
+    private(set) var removedCount = 0
+
+    func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? {
+        globalHandler = handler
+        return NSObject()
+    }
+
+    func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? {
+        localHandler = handler
+        return NSObject()
+    }
+
+    func removeMonitor(_ monitor: Any) {
+        removedCount += 1
+    }
+
+    func fireGlobal(_ event: NSEvent) {
+        globalHandler?(event)
+    }
+
+    func fireLocal(_ event: NSEvent) -> NSEvent? {
+        localHandler?(event)
+    }
 }

@@ -19,10 +19,6 @@ struct KeychainService: @unchecked Sendable {
         self.client = client
     }
 
-    static func loadOrCreateKey() throws -> Data {
-        try live.loadOrCreateKey()
-    }
-
     func loadOrCreateKey() throws -> Data {
         if let existing = try loadKey() {
             return existing

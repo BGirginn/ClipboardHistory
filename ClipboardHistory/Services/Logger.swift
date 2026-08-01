@@ -2,7 +2,7 @@ import Foundation
 import os
 
 enum AppLog {
-    private static let subsystem = Bundle.main.bundleIdentifier ?? "ClipboardHistory"
+    static let subsystem = Bundle.main.bundleIdentifier ?? "ClipboardHistory"
 
     static let clipboard = Logger(subsystem: subsystem, category: "clipboard")
     static let storage = Logger(subsystem: subsystem, category: "storage")

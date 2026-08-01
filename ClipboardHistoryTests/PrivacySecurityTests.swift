@@ -117,6 +117,62 @@ final class PrivacySecurityTests: XCTestCase {
         XCTAssertEqual(releases, 1)
     }
 
+    func testGlobalShortcutInjectedRegistrationFailuresAndDefaultReleaseAction() {
+        let installFailure = StubGlobalShortcutBackend(installStatus: OSStatus(eventInternalErr))
+        let failedInstall = GlobalShortcutMonitor(action: {}, backend: installFailure)
+        failedInstall.setEnabled(true)
+        XCTAssertNotNil(failedInstall.registrationError)
+
+        let duplicateBackend = StubGlobalShortcutBackend(
+            registerStatus: OSStatus(eventHotKeyExistsErr)
+        )
+        let duplicate = GlobalShortcutMonitor(action: {}, backend: duplicateBackend)
+        duplicate.setEnabled(true)
+        XCTAssertTrue(duplicate.registrationError?.contains(GlobalShortcut.defaultShortcut.title) == true)
+
+        let genericBackend = StubGlobalShortcutBackend(registerStatus: OSStatus(eventInternalErr))
+        let generic = GlobalShortcutMonitor(action: {}, backend: genericBackend)
+        generic.setEnabled(true, shortcut: GlobalShortcut.defaultShortcut)
+        XCTAssertNotNil(generic.registrationError)
+        XCTAssertFalse(generic.registrationError?.contains(GlobalShortcut.defaultShortcut.title) == true)
+        XCTAssertEqual(genericBackend.unregisterCount, 2)
+
+        let successBackend = StubGlobalShortcutBackend()
+        let defaultRelease = GlobalShortcutMonitor(action: {}, backend: successBackend)
+        defaultRelease.setEnabled(true)
+        successBackend.eventAction?(UInt32(kEventHotKeyPressed))
+        successBackend.eventAction?(UInt32(kEventHotKeyReleased))
+        XCTAssertNil(defaultRelease.registrationError)
+        XCTAssertFalse(defaultRelease.isPressed)
+    }
+
+    func testSystemGlobalShortcutCarbonCallbackForwardsEventKind() throws {
+        let backend = SystemGlobalShortcutBackend()
+        var receivedKind: UInt32?
+        backend.eventAction = { receivedKind = $0 }
+        XCTAssertEqual(SystemGlobalShortcutBackend.carbonEventHandler(nil, nil, nil), noErr)
+
+        var event: EventRef?
+        let createStatus = CreateEvent(
+            nil,
+            OSType(kEventClassKeyboard),
+            UInt32(kEventHotKeyPressed),
+            GetCurrentEventTime(),
+            EventAttributes(kEventAttributeNone),
+            &event
+        )
+        XCTAssertEqual(createStatus, noErr)
+        let unwrappedEvent = try XCTUnwrap(event)
+        defer { ReleaseEvent(unwrappedEvent) }
+        let pointer = Unmanaged.passUnretained(backend).toOpaque()
+
+        XCTAssertEqual(
+            SystemGlobalShortcutBackend.carbonEventHandler(nil, unwrappedEvent, pointer),
+            noErr
+        )
+        XCTAssertEqual(receivedKind, UInt32(kEventHotKeyPressed))
+    }
+
     func testPasswordArchiveUsesAuthenticatedEncryption() throws {
         let plaintext = Data("archive content".utf8)
         let encrypted = try PasswordArchiveCrypto.encrypt(plaintext, password: "correct password")
@@ -310,5 +366,30 @@ final class PrivacySecurityTests: XCTestCase {
             if let data = try? Data(contentsOf: url) { result.append(data) }
         }
         return result
+    }
+}
+
+@MainActor
+private final class StubGlobalShortcutBackend: GlobalShortcutBackend {
+    var eventAction: ((UInt32) -> Void)?
+    let installStatus: OSStatus
+    let registerStatus: OSStatus
+    private(set) var unregisterCount = 0
+
+    init(installStatus: OSStatus = noErr, registerStatus: OSStatus = noErr) {
+        self.installStatus = installStatus
+        self.registerStatus = registerStatus
+    }
+
+    func installEventHandler() -> OSStatus {
+        installStatus
+    }
+
+    func register(shortcut: GlobalShortcut) -> OSStatus {
+        registerStatus
+    }
+
+    func unregister() {
+        unregisterCount += 1
     }
 }

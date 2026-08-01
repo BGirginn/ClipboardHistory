@@ -3,28 +3,42 @@ import Foundation
 
 struct EncryptionService: Sendable {
     private let key: SymmetricKey
+    private let cryptoBackend: any EncryptionCryptoBackend
 
-    private init(key: SymmetricKey) {
+    private init(
+        key: SymmetricKey,
+        cryptoBackend: any EncryptionCryptoBackend
+    ) {
         self.key = key
+        self.cryptoBackend = cryptoBackend
     }
 
-    init(keyData: Data) throws {
+    init(
+        keyData: Data,
+        cryptoBackend: any EncryptionCryptoBackend = SystemEncryptionCryptoBackend()
+    ) throws {
         guard keyData.count == 32 else { throw EncryptionServiceError.invalidKey }
         key = SymmetricKey(data: keyData)
+        self.cryptoBackend = cryptoBackend
     }
 
     static func live(
-        keyLoader: () throws -> Data = KeychainService.loadOrCreateKey
+        keyLoader: () throws -> Data
     ) throws -> EncryptionService {
         try EncryptionService(keyData: keyLoader())
     }
 
-    static func ephemeral() -> EncryptionService {
-        EncryptionService(key: SymmetricKey(size: .bits256))
+    static func ephemeral(
+        cryptoBackend: any EncryptionCryptoBackend = SystemEncryptionCryptoBackend()
+    ) -> EncryptionService {
+        EncryptionService(
+            key: SymmetricKey(size: .bits256),
+            cryptoBackend: cryptoBackend
+        )
     }
 
     func encrypt(_ data: Data) throws -> Data {
-        guard let combined = try AES.GCM.seal(data, using: key).combined else {
+        guard let combined = try cryptoBackend.seal(data, using: key) else {
             throw EncryptionServiceError.invalidCiphertext
         }
         return combined
@@ -32,8 +46,7 @@ struct EncryptionService: Sendable {
 
     func decrypt(_ data: Data) throws -> Data {
         do {
-            let sealedBox = try AES.GCM.SealedBox(combined: data)
-            return try AES.GCM.open(sealedBox, using: key)
+            return try cryptoBackend.open(data, using: key)
         } catch {
             throw EncryptionServiceError.invalidCiphertext
         }

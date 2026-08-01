@@ -7,6 +7,7 @@ import XCTest
 @MainActor
 final class ApplicationLockTests: XCTestCase {
     func testLocalSystemAuthenticatorCoversSuccessCancellationAndUnavailableReasons() async throws {
+        _ = LocalSystemAuthenticator()
         _ = LocalSystemAuthenticator.liveContext()
         let successContext = StubDeviceOwnerAuthenticationContext(
             canEvaluate: true,
@@ -102,6 +103,30 @@ final class ApplicationLockTests: XCTestCase {
 
         XCTAssertEqual(service.state, .disabled)
         XCTAssertNotNil(service.errorMessage)
+    }
+
+    func testCancelledUnlockAndActivityTimerResetStayFailClosed() async {
+        let service = AppLockService(authenticator: StubSystemAuthenticator { _ in false })
+
+        service.configure(enabled: true, option: .oneMinute, startsLocked: true)
+        await service.unlock()
+        XCTAssertEqual(service.state, .locked)
+
+        let clock = CancellationCoverageSleepClock()
+        let timerService = AppLockService(
+            authenticator: StubSystemAuthenticator { _ in true },
+            sleepClock: clock
+        )
+        timerService.configure(enabled: true, option: .oneMinute)
+        await clock.waitForCallCount(1)
+        timerService.recordActivity()
+        await clock.waitForCallCount(2)
+        timerService.configure(enabled: false, option: .never)
+        for _ in 0..<20 { await Task.yield() }
+
+        XCTAssertEqual(timerService.state, .disabled)
+        let cancellationCount = await clock.cancellationCount()
+        XCTAssertGreaterThanOrEqual(cancellationCount, 1)
     }
 
     func testUnavailableAuthenticationLeavesStateUnchanged() async {
@@ -327,6 +352,31 @@ final class ApplicationLockTests: XCTestCase {
             pasteboard: pasteboard,
             viewModel: viewModel
         )
+    }
+}
+
+private actor CancellationCoverageSleepClock: SleepClock {
+    private var calls = 0
+    private var cancellations = 0
+
+    func sleep(for duration: Duration) async throws {
+        calls += 1
+        do {
+            try await Task.sleep(for: .seconds(60))
+        } catch {
+            cancellations += 1
+            throw error
+        }
+    }
+
+    func waitForCallCount(_ expected: Int) async {
+        while calls < expected {
+            await Task.yield()
+        }
+    }
+
+    func cancellationCount() -> Int {
+        cancellations
     }
 }
 

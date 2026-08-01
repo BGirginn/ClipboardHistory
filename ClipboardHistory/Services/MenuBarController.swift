@@ -12,6 +12,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private lazy var detachablePanel = dependencies.makePanel(viewModel)
     private let viewModel: ClipboardHistoryViewModel
     private let quickLookService: any QuickLookPresenting
+    private let shortcutBackend: any GlobalShortcutBackend
     private var shortcutCancellable: AnyCancellable?
     private var shortcutPresetCancellable: AnyCancellable?
     private var panelEdgeCancellable: AnyCancellable?
@@ -19,17 +20,20 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private var panelCloseCoordinator: PanelCloseCoordinator!
     private lazy var shortcutMonitor = GlobalShortcutMonitor(
         action: { [weak self] in self?.shortcutPressed() },
-        releaseAction: { [weak self] in self?.shortcutReleased() }
+        releaseAction: { [weak self] in self?.shortcutReleased() },
+        backend: shortcutBackend
     )
 
     init(
         viewModel: ClipboardHistoryViewModel,
         dependencies: MenuBarControllerDependencies = .live,
         panelEventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
+        shortcutBackend: any GlobalShortcutBackend = SystemGlobalShortcutBackend(),
         popoverAnchor: @escaping () -> NSView? = { nil }
     ) {
         self.viewModel = viewModel
         self.dependencies = dependencies
+        self.shortcutBackend = shortcutBackend
         self.popoverAnchor = popoverAnchor
         statusItem = dependencies.makeStatusItem()
         popover = dependencies.makePopover()

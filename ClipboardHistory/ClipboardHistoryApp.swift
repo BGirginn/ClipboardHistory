@@ -19,34 +19,58 @@ enum ClipboardHistoryMain {
 
 @MainActor
 final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
+    typealias ViewModelFactory = @MainActor () -> ClipboardHistoryViewModel
+    typealias MenuBarControllerFactory = @MainActor (ClipboardHistoryViewModel) -> MenuBarController
+
+    private let environment: [String: String]
+    private let viewModelFactory: ViewModelFactory
+    private let menuBarControllerFactory: MenuBarControllerFactory
     private var viewModel: ClipboardHistoryViewModel?
     private var menuBarController: MenuBarController?
     #if DEBUG
     private var uiTestAnchorWindow: NSWindow?
     #endif
 
+    override convenience init() {
+        self.init(
+            environment: ProcessInfo.processInfo.environment,
+            viewModelFactory: { ClipboardHistoryViewModel() },
+            menuBarControllerFactory: { MenuBarController(viewModel: $0) }
+        )
+    }
+
+    init(
+        environment: [String: String],
+        viewModelFactory: @escaping ViewModelFactory,
+        menuBarControllerFactory: @escaping MenuBarControllerFactory
+    ) {
+        self.environment = environment
+        self.viewModelFactory = viewModelFactory
+        self.menuBarControllerFactory = menuBarControllerFactory
+        super.init()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
-        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else {
+        guard environment["XCTestConfigurationFilePath"] == nil else {
             AppLog.lifecycle.debug("Application services disabled for hosted unit tests")
             return
         }
         #endif
         #if DEBUG
-        if ProcessInfo.processInfo.environment["CLIPBOARD_HISTORY_UI_TESTING"] == "1" {
+        if environment["CLIPBOARD_HISTORY_UI_TESTING"] == "1" {
             launchForUITesting()
             return
         }
         #endif
-        let viewModel = ClipboardHistoryViewModel()
+        let viewModel = viewModelFactory()
         self.viewModel = viewModel
-        menuBarController = MenuBarController(viewModel: viewModel)
+        menuBarController = menuBarControllerFactory(viewModel)
         AppLog.lifecycle.notice("Application launched; interface=menu-bar")
     }
 
     #if DEBUG
     private func launchForUITesting() {
-        let environment = ProcessInfo.processInfo.environment
         let requestedRoot = environment["CLIPBOARD_HISTORY_TEST_ROOT"].map(
             URL.init(fileURLWithPath:)
         )

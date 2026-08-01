@@ -1,11 +1,18 @@
 import AppKit
 import Foundation
 
-actor ClipboardProcessingService {
+protocol ClipboardContentProcessing: Actor {
     func process(
         _ rawContent: ClipboardRawContent,
         sourceBundleIdentifier: String?
-    ) -> ClipboardContent? {
+    ) async -> ClipboardContent?
+}
+
+actor ClipboardProcessingService: ClipboardContentProcessing {
+    func process(
+        _ rawContent: ClipboardRawContent,
+        sourceBundleIdentifier: String?
+    ) async -> ClipboardContent? {
         switch rawContent {
         case let .text(value, rtfData, htmlData):
             let subtype = TextClassifier.subtype(for: value)

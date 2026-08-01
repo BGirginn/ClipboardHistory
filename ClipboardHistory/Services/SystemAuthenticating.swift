@@ -35,9 +35,11 @@ final class LocalSystemAuthenticator: SystemAuthenticating {
         LAContext()
     }
 
-    init(
-        contextProvider: @escaping @MainActor () -> any DeviceOwnerAuthenticationContext = liveContext
-    ) {
+    convenience init() {
+        self.init(contextProvider: Self.liveContext)
+    }
+
+    init(contextProvider: @escaping @MainActor () -> any DeviceOwnerAuthenticationContext) {
         self.contextProvider = contextProvider
     }
 

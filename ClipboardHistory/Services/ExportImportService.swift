@@ -1,9 +1,19 @@
 import Foundation
 
 actor ExportImportService {
-    private let maximumArchiveBytes = 512_000_000
-    private let maximumAssetBytes = 128_000_000
-    private let maximumItemCount = 50_000
+    private let maximumArchiveBytes: Int
+    private let maximumAssetBytes: Int
+    private let maximumItemCount: Int
+
+    init(
+        maximumArchiveBytes: Int = 512_000_000,
+        maximumAssetBytes: Int = 128_000_000,
+        maximumItemCount: Int = 50_000
+    ) {
+        self.maximumArchiveBytes = maximumArchiveBytes
+        self.maximumAssetBytes = maximumAssetBytes
+        self.maximumItemCount = maximumItemCount
+    }
 
     func exportArchive(
         items: [ClipboardItem],

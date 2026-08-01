@@ -102,10 +102,115 @@ final class StorageRecoveryImportTests: XCTestCase {
         }
     }
 
+    func testDestinationSymlinkIsRejectedBeforeArchiveAccess() async throws {
+        let root = temporaryDirectory("StorageRecoverySymlink")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let target = root.appending(path: "target", directoryHint: .isDirectory)
+        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: destination, withDestinationURL: target)
+
+        do {
+            _ = try await StorageRecoveryImportService().migrate(
+                encryptedArchive: root.appending(path: "unused.clipboardarchive"),
+                password: "password",
+                to: destination,
+                keyProvider: FixedMasterKeyProvider(key: Data(repeating: 1, count: 32))
+            )
+            XCTFail("Expected destination symlink rejection")
+        } catch ExportImportError.unsafePath {
+            // Expected.
+        }
+    }
+
+    func testFailedFinalMoveRestoresBackupAndRemovesStaging() async throws {
+        let root = temporaryDirectory("StorageRecoveryMoveRollback")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let sourceStorage = StorageService(
+            baseDirectory: root.appending(path: "Source"),
+            encryptionService: .ephemeral()
+        )
+        let item = ClipboardItem(type: .text, text: "new", hash: "new")
+        let archive = root.appending(path: "migration.clipboardarchive")
+        try await ExportImportService().exportArchive(
+            items: [item],
+            storage: sourceStorage,
+            to: archive,
+            mode: .encrypted,
+            includeImagesAndDocuments: true,
+            password: "password"
+        )
+        await sourceStorage.close()
+        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        let marker = destination.appending(path: "old-marker")
+        try Data("old".utf8).write(to: marker)
+        let fileSystem = FailingFinalMoveFileSystem(destination: destination)
+        let service = StorageRecoveryImportService(fileSystem: fileSystem)
+
+        do {
+            _ = try await service.migrate(
+                encryptedArchive: archive,
+                password: "password",
+                to: destination,
+                keyProvider: FixedMasterKeyProvider(key: Data(repeating: 2, count: 32))
+            )
+            XCTFail("Expected final staging move failure")
+        } catch is FailingFinalMoveFileSystem.ExpectedFailure {
+            XCTAssertEqual(try Data(contentsOf: marker), Data("old".utf8))
+            XCTAssertEqual(fileSystem.injectedFailureCount, 1)
+            XCTAssertEqual(fileSystem.removedStagingCount, 1)
+        }
+    }
+
     private func temporaryDirectory(_ prefix: String) -> URL {
         FileManager.default.temporaryDirectory.appending(
             path: "\(prefix)-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
+    }
+}
+
+private final class FailingFinalMoveFileSystem: MigrationFileSystem, @unchecked Sendable {
+    struct ExpectedFailure: Error {}
+
+    private let local = LocalMigrationFileSystem()
+    private let destination: URL
+    private(set) var injectedFailureCount = 0
+    private(set) var removedStagingCount = 0
+
+    init(destination: URL) {
+        self.destination = destination.standardizedFileURL
+    }
+
+    func fileExists(at url: URL) -> Bool {
+        local.fileExists(at: url)
+    }
+
+    func isSymbolicLink(at url: URL) throws -> Bool {
+        try local.isSymbolicLink(at: url)
+    }
+
+    func createDirectory(at url: URL) throws {
+        try local.createDirectory(at: url)
+    }
+
+    func moveItem(at source: URL, to destination: URL) throws {
+        if source.lastPathComponent.hasPrefix(".ClipboardHistory-recovery-import-"),
+           destination.standardizedFileURL == self.destination,
+           injectedFailureCount == 0 {
+            injectedFailureCount += 1
+            throw ExpectedFailure()
+        }
+        try local.moveItem(at: source, to: destination)
+    }
+
+    func removeItem(at url: URL) throws {
+        if url.lastPathComponent.hasPrefix(".ClipboardHistory-recovery-import-") {
+            removedStagingCount += 1
+        }
+        try local.removeItem(at: url)
     }
 }

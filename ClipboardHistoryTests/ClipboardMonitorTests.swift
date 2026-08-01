@@ -283,6 +283,36 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         try? FileManager.default.removeItem(at: directory)
     }
 
+    func testClipboardChangeDuringProcessingDropsStaleResult() async {
+        let pasteboard = NSPasteboard(name: .init("ClipboardMonitorStale-\(UUID().uuidString)"))
+        let processor = BlockingClipboardContentProcessor()
+        let staleMonitor = ClipboardMonitor(
+            pasteboard: pasteboard,
+            processingService: processor
+        )
+        staleMonitor.delegate = self
+        pasteboard.clearContents()
+        pasteboard.setString("first", forType: .string)
+
+        let poll = Task { await staleMonitor.pollNowAndWait() }
+        await processor.waitUntilStarted()
+        pasteboard.clearContents()
+        pasteboard.setString("newer", forType: .string)
+        await processor.resume(
+            with: .text(
+                value: "first",
+                rtfData: nil,
+                htmlData: nil,
+                subtype: .plainText,
+                hash: "first",
+                sourceBundleIdentifier: nil
+            )
+        )
+        await poll.value
+
+        XCTAssertNil(receivedContent)
+    }
+
     func clipboardMonitor(
         _ monitor: ClipboardMonitor,
         didReceive content: ClipboardContent,
@@ -345,5 +375,30 @@ private final class MonitorTimerTokenSpy: RepeatingTimerToken, @unchecked Sendab
 
     func cancel() {
         cancelCount += 1
+    }
+}
+
+private actor BlockingClipboardContentProcessor: ClipboardContentProcessing {
+    private var didStart = false
+    private var result: ClipboardContent?
+    private var continuation: CheckedContinuation<ClipboardContent?, Never>?
+
+    func process(
+        _ rawContent: ClipboardRawContent,
+        sourceBundleIdentifier: String?
+    ) async -> ClipboardContent? {
+        didStart = true
+        if let result { return result }
+        return await withCheckedContinuation { continuation = $0 }
+    }
+
+    func waitUntilStarted() async {
+        while !didStart { await Task.yield() }
+    }
+
+    func resume(with result: ClipboardContent) {
+        self.result = result
+        continuation?.resume(returning: result)
+        continuation = nil
     }
 }

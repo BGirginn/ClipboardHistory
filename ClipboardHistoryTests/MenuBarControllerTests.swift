@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import XCTest
 
 @testable import ClipboardHistory
@@ -81,6 +82,74 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testPopoverDetachableStatusActionShortcutAndPublisherCallbacks() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        await context.viewModel.insert(.text(value: "shortcut", hash: "shortcut"))
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        let popover = MenuPopoverStub()
+        let panel = MenuPanelStub()
+        let anchor = NSView(frame: NSRect(x: 0, y: 0, width: 1, height: 1))
+        let eventMonitor = MenuRecordingPanelEventMonitor()
+        let shortcutBackend = MenuShortcutBackendStub()
+        let dependencies = MenuBarControllerDependencies(
+            makeStatusItem: { statusItem },
+            makePopover: { popover },
+            makePanel: { _ in panel },
+            quickLookPresenter: MenuQuickLookSpy()
+        )
+        let controller = MenuBarController(
+            viewModel: context.viewModel,
+            dependencies: dependencies,
+            panelEventMonitor: eventMonitor,
+            shortcutBackend: shortcutBackend,
+            popoverAnchor: { anchor }
+        )
+
+        context.settings.globalShortcutPresetID = GlobalShortcut.presets[1].id
+        context.settings.globalShortcutEnabled = true
+        XCTAssertGreaterThanOrEqual(shortcutBackend.installCount, 1)
+        XCTAssertGreaterThanOrEqual(shortcutBackend.registerCount, 1)
+
+        context.settings.shortcutActivationMode = .toggle
+        shortcutBackend.fire(UInt32(kEventHotKeyPressed))
+        XCTAssertTrue(popover.isShown)
+        shortcutBackend.fire(UInt32(kEventHotKeyReleased))
+        shortcutBackend.fire(UInt32(kEventHotKeyPressed))
+        XCTAssertFalse(popover.isShown)
+
+        context.settings.shortcutActivationMode = .hold
+        shortcutBackend.fire(UInt32(kEventHotKeyPressed))
+        shortcutBackend.fire(UInt32(kEventHotKeyReleased))
+        controller.closePopover()
+
+        statusItem.button?.performClick(nil)
+        let event = try XCTUnwrap(
+            NSEvent.otherEvent(
+                with: .applicationDefined,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                subtype: 0,
+                data1: 0,
+                data2: 0
+            )
+        )
+        _ = eventMonitor.fireLocal(event)
+        controller.closePopover()
+
+        context.settings.panelPresentationMode = .detachable
+        controller.showPopover()
+        XCTAssertTrue(panel.isVisible)
+        controller.togglePopover()
+        XCTAssertFalse(panel.isVisible)
+
+        controller.stop()
+        await cleanup(context)
+    }
+
     private struct Context {
         let directory: URL
         let suite: String
@@ -125,6 +194,60 @@ final class MenuBarControllerTests: XCTestCase {
 }
 
 @MainActor
+private final class MenuPopoverStub: NSPopover {
+    private var presented = false
+
+    override var isShown: Bool { presented }
+
+    override func show(
+        relativeTo positioningRect: NSRect,
+        of positioningView: NSView,
+        preferredEdge: NSRectEdge
+    ) {
+        presented = true
+        delegate?.popoverWillShow?(Notification(name: NSPopover.willShowNotification, object: self))
+    }
+
+    override func performClose(_ sender: Any?) {
+        presented = false
+    }
+
+    override func close() {
+        presented = false
+    }
+}
+
+@MainActor
+private final class MenuPanelStub: NSPanel {
+    private var presented = false
+
+    init() {
+        super.init(
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+    }
+
+    override var isVisible: Bool { presented }
+
+    override func makeKeyAndOrderFront(_ sender: Any?) {
+        presented = true
+    }
+
+    override func orderOut(_ sender: Any?) {
+        presented = false
+    }
+
+    override func close() {
+        presented = false
+    }
+
+    override func setFrameOrigin(_ point: NSPoint) {}
+}
+
+@MainActor
 private final class MenuQuickLookSpy: QuickLookPresenting {
     private(set) var shownItems: [ClipboardItem] = []
     private(set) var closeCount = 0
@@ -149,4 +272,45 @@ private final class MenuPanelEventMonitorStub: PanelEventMonitoring {
     func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? { nil }
     func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? { nil }
     func removeMonitor(_ monitor: Any) {}
+}
+
+@MainActor
+private final class MenuRecordingPanelEventMonitor: PanelEventMonitoring {
+    private var localHandler: ((NSEvent) -> NSEvent?)?
+
+    func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? { NSObject() }
+
+    func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? {
+        localHandler = handler
+        return NSObject()
+    }
+
+    func removeMonitor(_ monitor: Any) {}
+
+    func fireLocal(_ event: NSEvent) -> NSEvent? {
+        localHandler?(event)
+    }
+}
+
+@MainActor
+private final class MenuShortcutBackendStub: GlobalShortcutBackend {
+    var eventAction: ((UInt32) -> Void)?
+    private(set) var installCount = 0
+    private(set) var registerCount = 0
+
+    func installEventHandler() -> OSStatus {
+        installCount += 1
+        return noErr
+    }
+
+    func register(shortcut: GlobalShortcut) -> OSStatus {
+        registerCount += 1
+        return noErr
+    }
+
+    func unregister() {}
+
+    func fire(_ kind: UInt32) {
+        eventAction?(kind)
+    }
 }

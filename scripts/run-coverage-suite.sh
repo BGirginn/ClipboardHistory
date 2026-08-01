@@ -23,6 +23,7 @@ xcodebuild -quiet \
   -derivedDataPath "$evidence_root/UnitDerivedData" \
   -resultBundlePath "$evidence_root/Unit.xcresult" \
   -enableCodeCoverage YES \
+  ENABLE_DEBUG_DYLIB=NO \
   CODE_SIGNING_ALLOWED=NO \
   -only-testing:ClipboardHistoryTests test
 
@@ -36,6 +37,10 @@ xcodebuild -quiet \
   -derivedDataPath "$evidence_root/UIDerivedData" \
   -resultBundlePath "$evidence_root/UI.xcresult" \
   -enableCodeCoverage YES \
+  ENABLE_DEBUG_DYLIB=NO \
+  CODE_SIGNING_ALLOWED=YES \
+  CODE_SIGNING_REQUIRED=YES \
+  CODE_SIGN_STYLE=Manual \
   CODE_SIGN_ENTITLEMENTS=ClipboardHistory/ClipboardHistory.entitlements \
   CODE_SIGN_IDENTITY=- \
   -only-testing:ClipboardHistoryUITests test
