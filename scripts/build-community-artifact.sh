@@ -67,14 +67,29 @@ beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifac
 
 zip="$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.zip"
 dmg="$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.dmg"
+spdx="$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
 hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname 'ClipboardHistory 1.0.0-beta.1' "$dmg"
+hdiutil verify "$dmg" >/dev/null
+unzip -tq "$zip" >/dev/null
 syft scan "dir:$artifact_app" \
   --source-name ClipboardHistory \
   --source-version 1.0.0-beta.1 \
-  -o "spdx-json=$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json"
-shasum -a 256 "$zip" "$dmg" "$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json" > "$output_directory/SHA256SUMS"
-codesign -d -r- "$artifact_app" 2> "$output_directory/designated-requirement.txt"
+  -o "spdx-json=$spdx"
+jq -e '.spdxVersion == "SPDX-2.3" and .name == "ClipboardHistory"' "$spdx" >/dev/null
+(
+  cd "$output_directory"
+  shasum -a 256 "${zip:t}" "${dmg:t}" "${spdx:t}" > SHA256SUMS
+  shasum -a 256 -c SHA256SUMS >/dev/null
+)
+designated_requirement=$(codesign -d -r- "$artifact_app" 2>/dev/null)
+requirement=${designated_requirement#designated => }
+[[ "$requirement" != "$designated_requirement" ]] || {
+  print -u2 "artifact build: designated requirement extraction failed"
+  exit 1
+}
+print -r -- "$designated_requirement" > "$output_directory/designated-requirement.txt"
+codesign --verify -R "=$requirement" "$artifact_app"
 security find-certificate -c "$identity" -p \
   | openssl x509 -noout -fingerprint -sha256 \
   > "$output_directory/signing-certificate-sha256.txt"
