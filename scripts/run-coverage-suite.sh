@@ -26,9 +26,8 @@ xcodebuild -quiet \
   CODE_SIGNING_ALLOWED=NO \
   -only-testing:ClipboardHistoryTests test
 
-# The Community entitlements are empty, which permits a deterministic ad-hoc
-# UI run without weakening the Development target's Data Protection Keychain
-# entitlement or requiring a developer profile on an isolated CI host.
+# The production entitlement file is empty, so the isolated UI run can use an
+# ad-hoc signature without an Apple account or provisioning profile.
 xcodebuild -quiet \
   -project ClipboardHistory.xcodeproj \
   -scheme ClipboardHistory \
@@ -37,7 +36,7 @@ xcodebuild -quiet \
   -derivedDataPath "$evidence_root/UIDerivedData" \
   -resultBundlePath "$evidence_root/UI.xcresult" \
   -enableCodeCoverage YES \
-  CODE_SIGN_ENTITLEMENTS=ClipboardHistory/ClipboardHistoryCommunity.entitlements \
+  CODE_SIGN_ENTITLEMENTS=ClipboardHistory/ClipboardHistory.entitlements \
   CODE_SIGN_IDENTITY=- \
   -only-testing:ClipboardHistoryUITests test
 

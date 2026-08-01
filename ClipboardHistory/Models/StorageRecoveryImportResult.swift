@@ -1,6 +1,6 @@
 import Foundation
 
-struct CommunityMigrationResult: Equatable, Sendable {
+struct StorageRecoveryImportResult: Equatable, Sendable {
     let importedItemCount: Int
     let rollbackBackupURL: URL?
 }

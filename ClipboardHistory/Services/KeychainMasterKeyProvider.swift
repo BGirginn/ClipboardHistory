@@ -1,21 +1,13 @@
 import Foundation
 
 struct KeychainMasterKeyProvider: MasterKeyProvider {
-    let backend: KeychainBackend
-
-    static var active: KeychainMasterKeyProvider {
-        #if COMMUNITY
-        KeychainMasterKeyProvider(backend: .login)
-        #else
-        KeychainMasterKeyProvider(backend: .dataProtection)
-        #endif
-    }
+    static let active = KeychainMasterKeyProvider()
 
     func loadOrCreateKey() throws -> Data {
-        try KeychainService.loadOrCreateKey(backend: backend)
+        try KeychainService.loadOrCreateKey()
     }
 
     func replaceKey(with newKey: Data) throws {
-        try KeychainService.rotateKey(with: newKey, backend: backend)
+        try KeychainService.rotateKey(with: newKey)
     }
 }

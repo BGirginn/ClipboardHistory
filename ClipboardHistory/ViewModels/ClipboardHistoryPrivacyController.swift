@@ -267,9 +267,9 @@ extension ClipboardHistoryViewModel {
         }
     }
 
-    func importCommunityMigrationArchive(password: String) {
+    func importStorageRecoveryArchive(password: String) {
         Task { [weak self] in
-            await self?.performCommunityMigrationImport(password: password)
+            await self?.performStorageRecoveryImport(password: password)
         }
     }
 

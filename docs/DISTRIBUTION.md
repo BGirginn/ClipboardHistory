@@ -4,15 +4,20 @@ Distribution remains disabled until every row in [TESTING.md](TESTING.md) passes
 
 ## Stable signing identity
 
-Create one self-signed `ClipboardHistory Community Beta` code-signing certificate offline, retain its encrypted backup outside the repository, and use that same identity for every Community update. Never commit or upload the private key. `CommunityRelease` has an empty entitlement file and uses the login Keychain; changing the designated requirement can strand access to the existing key.
+Create one self-signed `ClipboardHistory Community Beta` code-signing certificate, retain its encrypted backup outside the repository, and use that same identity for every update. No Apple account, Development Team, or provisioning profile is involved. Never commit or upload the private key. Every runnable configuration has the same empty entitlement file and login-Keychain service; changing the designated requirement can strand access to the existing key.
+
+```sh
+scripts/create-community-signing-identity.sh
+scripts/verify-community-signing.sh
+```
+
+After creation, export exactly this identity from Keychain Access as an encrypted `.p12` and store the backup outside the repository. Do not send its password through shell arguments, chat, logs, or CI variables.
 
 Build artifacts only after local release gates pass:
 
 ```sh
 scripts/release-gate.sh /private/tmp/ClipboardHistoryCombined.xcresult
-scripts/build-community-artifact.sh \
-  'ClipboardHistory Community Beta' \
-  /private/tmp/ClipboardHistory-1.0.0-beta.1
+scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.1
 ```
 
 The artifact script requires `syft` and creates the arm64-only app, `ClipboardHistory-1.0.0-beta.1-arm64.zip`, matching DMG, SHA-256 manifest, SPDX SBOM, designated requirement, and public certificate fingerprint. It verifies that `lipo -archs` is exactly `arm64`, the minimum OS is macOS 14, and the embedded version is `1.0.0` build `10001` with beta label `1.0.0-beta.1`.

@@ -10,9 +10,9 @@ private struct FixedMasterKeyProvider: MasterKeyProvider {
     func replaceKey(with newKey: Data) throws {}
 }
 
-final class CommunityMigrationTests: XCTestCase {
+final class StorageRecoveryImportTests: XCTestCase {
     func testVerifiedMigrationAtomicallyReplacesAndPreservesRollbackBackup() async throws {
-        let root = temporaryDirectory("CommunityMigration")
+        let root = temporaryDirectory("StorageRecoveryImport")
         defer { try? FileManager.default.removeItem(at: root) }
         let sourceRoot = root.appending(path: "Source", directoryHint: .isDirectory)
         let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
@@ -45,7 +45,7 @@ final class CommunityMigrationTests: XCTestCase {
         await sourceStorage.close()
 
         let keyProvider = FixedMasterKeyProvider(key: Data(repeating: 0x47, count: 32))
-        let result = try await CommunityMigrationService().migrate(
+        let result = try await StorageRecoveryImportService().migrate(
             encryptedArchive: archiveURL,
             password: "migration-password",
             to: destination,
@@ -65,7 +65,7 @@ final class CommunityMigrationTests: XCTestCase {
     }
 
     func testWrongPasswordNeverReplacesExistingDestination() async throws {
-        let root = temporaryDirectory("CommunityMigrationWrongPassword")
+        let root = temporaryDirectory("StorageRecoveryImportWrongPassword")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let sourceStorage = StorageService(
@@ -89,7 +89,7 @@ final class CommunityMigrationTests: XCTestCase {
         try Data([1, 2, 3]).write(to: marker)
 
         do {
-            _ = try await CommunityMigrationService().migrate(
+            _ = try await StorageRecoveryImportService().migrate(
                 encryptedArchive: archiveURL,
                 password: "wrong-password",
                 to: destination,

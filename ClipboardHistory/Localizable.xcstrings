@@ -3,12 +3,6 @@
   "strings": {
     "%arg %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$arg %2$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -989,12 +983,6 @@
     },
     "Excluded application, %arg, %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Excluded application, %1$arg, %2$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -1243,12 +1231,12 @@
         }
       }
     },
-    "Import Migration Archive…": {
+    "Import Recovery Archive…": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Geçiş Arşivini İçe Aktar…"
+            "value": "Kurtarma Arşivini İçe Aktar…"
           }
         }
       }
@@ -1263,24 +1251,8 @@
         }
       }
     },
-    "Imported %arg items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%arg öğe içe aktarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
-          }
-        }
-      }
-    },
     "Imported %arg; skipped %arg duplicates.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Imported %1$arg; skipped %2$arg duplicates."
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -1345,16 +1317,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Anahtar Zinciri işlemi %arg durumuyla başarısız oldu."
-          }
-        }
-      }
-    },
-    "Keys are stored in the macOS Data Protection Keychain. Item type, dates, sizes, hashes, and source application remain visible as metadata.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anahtarlar macOS Veri Koruma Anahtar Zinciri'nde saklanır. Öğe türü, tarihler, boyutlar, karmalar ve kaynak uygulama meta veri olarak görünür kalır."
           }
         }
       }
@@ -1499,32 +1461,12 @@
         }
       }
     },
-    "Migrate from Apple Development Build": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Development Yapısından Geçiş Yap"
-          }
-        }
-      }
-    },
     "Migration": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Geçiş"
-          }
-        }
-      }
-    },
-    "Migration failed without replacing the previous database: %arg. Quit and reopen Clipboard History.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Önceki veritabanı değiştirilmeden geçiş başarısız oldu: %arg. Clipboard History'yi kapatıp yeniden açın."
           }
         }
       }
@@ -1969,6 +1911,36 @@
         }
       }
     },
+    "Recover from Encrypted Archive": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli Arşivden Kurtar"
+          }
+        }
+      }
+    },
+    "Recovered %arg items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg öğe kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery failed without replacing the previous database: %arg. Quit and reopen Clipboard History.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önceki veritabanı değiştirilmeden kurtarma başarısız oldu: %arg. Clipboard History'yi kapatıp yeniden açın."
+          }
+        }
+      }
+    },
     "Remove an item after it is pasted": {
       "localizations": {
         "tr": {
@@ -1991,12 +1963,6 @@
     },
     "Removed %arg items and reclaimed %arg.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Removed %1$arg items and reclaimed %2$arg."
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2185,12 +2151,12 @@
         }
       }
     },
-    "Select the password-protected full archive exported by the Apple Development build. The current database is retained as a rollback backup until the import is verified.": {
+    "Select a password-protected full archive. The unavailable database is retained as a rollback backup until the import is verified.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple Development yapısından dışa aktarılan parola korumalı tam arşivi seçin. İçe aktarma doğrulanana kadar mevcut veritabanı geri dönüş yedeği olarak tutulur."
+            "value": "Parola korumalı bir tam arşiv seçin. İçe aktarma doğrulanana kadar kullanılamayan veritabanı geri dönüş yedeği olarak tutulur."
           }
         }
       }
@@ -2485,22 +2451,22 @@
         }
       }
     },
-    "The migration archive password is required.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geçiş arşivi parolası gerekiyor."
-          }
-        }
-      }
-    },
     "The preview is hidden.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Önizleme gizlendi."
+          }
+        }
+      }
+    },
+    "The recovery archive password is required.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma arşivi parolası gerekiyor."
           }
         }
       }

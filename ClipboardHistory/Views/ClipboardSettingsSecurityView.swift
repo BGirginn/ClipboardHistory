@@ -12,15 +12,9 @@ struct ClipboardSettingsSecurityView: View {
                     }
                 }
 
-                #if COMMUNITY
                 Text("Keys are stored in the macOS login Keychain and access is bound to the stable Community Beta signing identity. Item type, dates, sizes, hashes, and source application remain visible as metadata.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                #else
-                Text("Keys are stored in the macOS Data Protection Keychain. Item type, dates, sizes, hashes, and source application remain visible as metadata.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                #endif
             }
 
             Section("Application Lock") {

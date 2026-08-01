@@ -1,24 +1,21 @@
 #!/bin/zsh
 set -euo pipefail
 
-if [[ $# -ne 2 ]]; then
-  print -u2 "usage: $0 'ClipboardHistory Community Beta' /empty/output/directory"
+if [[ $# -ne 1 ]]; then
+  print -u2 "usage: $0 /empty/output/directory"
   exit 64
 fi
 
 repository_root=${0:A:h:h}
-identity=$1
-output_directory=${2:A}
+identity='ClipboardHistory Community Beta'
+output_directory=${1:A}
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact build: output directory must be empty"
   exit 1
 fi
 mkdir -p "$output_directory"
 
-if ! security find-identity -v -p codesigning | rg -Fq "\"$identity\""; then
-  print -u2 "artifact build: signing identity not found: $identity"
-  exit 1
-fi
+"$repository_root/scripts/verify-community-signing.sh"
 if ! command -v syft >/dev/null; then
   print -u2 "artifact build: syft is required for the SPDX SBOM"
   exit 1
@@ -42,6 +39,12 @@ source_app="$derived_data/Build/Products/CommunityRelease/ClipboardHistory.app"
 artifact_app="$staging/ClipboardHistory.app"
 ditto --noqtn "$source_app" "$artifact_app"
 codesign --verify --deep --strict --verbose=2 "$artifact_app"
+codesign -d --entitlements :- "$artifact_app" 2>/dev/null \
+  | plutil -convert json -o - - \
+  | jq -e 'length == 0' >/dev/null || {
+    print -u2 "artifact build: CommunityRelease contains an unexpected entitlement"
+    exit 1
+  }
 
 architectures=$(lipo -archs "$artifact_app/Contents/MacOS/ClipboardHistory")
 [[ "$architectures" == "arm64" ]] || {

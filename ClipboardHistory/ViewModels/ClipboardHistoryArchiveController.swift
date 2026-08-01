@@ -76,9 +76,9 @@ extension ClipboardHistoryViewModel {
         }
     }
 
-    func performCommunityMigrationImport(password: String) async {
+    func performStorageRecoveryImport(password: String) async {
         guard !password.isEmpty else {
-            archiveStatusMessage = String(localized: "The migration archive password is required.")
+            archiveStatusMessage = String(localized: "The recovery archive password is required.")
             return
         }
         let panel = NSOpenPanel()
@@ -90,16 +90,16 @@ extension ClipboardHistoryViewModel {
         await cancelAndAwaitAllPendingWrites()
         await storage.close()
         do {
-            let result = try await CommunityMigrationService().migrate(
+            let result = try await StorageRecoveryImportService().migrate(
                 encryptedArchive: source,
                 password: password,
                 to: StorageService.defaultBaseDirectory()
             )
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Imported \(result.importedItemCount) items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
+            archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
         } catch {
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Migration failed without replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")
+            archiveStatusMessage = String(localized: "Recovery failed without replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")
         }
     }
 

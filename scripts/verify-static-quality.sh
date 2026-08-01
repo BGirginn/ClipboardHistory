@@ -4,7 +4,7 @@ set -euo pipefail
 repository_root=${0:A:h:h}
 cd "$repository_root"
 
-plutil -lint ClipboardHistory/Info.plist ClipboardHistory/ClipboardHistory.entitlements ClipboardHistory/ClipboardHistoryCommunity.entitlements >/dev/null
+plutil -lint ClipboardHistory/Info.plist ClipboardHistory/ClipboardHistory.entitlements >/dev/null
 xcodebuild -project ClipboardHistory.xcodeproj -list >/dev/null
 
 if rg -n 'URLSession|NWConnection|Network\.framework|https?://' ClipboardHistory --glob '*.swift'; then

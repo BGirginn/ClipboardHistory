@@ -93,14 +93,12 @@ jobs:
   signed-ui:
     if: ${{ vars.SIGNED_UI_RUNNER_ENABLED == 'true' }}
     runs-on: [self-hosted, macOS, ARM64, macOS-26, signed-ui]
-    env:
-      DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - run: scripts/verify-development-signing.sh
+      - run: scripts/verify-community-signing.sh
       - run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath /private/tmp/ClipboardHistorySignedUI \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
             -only-testing:ClipboardHistoryUITests test

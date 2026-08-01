@@ -5,10 +5,9 @@ import XCTest
 @testable import ClipboardHistory
 
 final class MasterKeyProviderTests: XCTestCase {
-    func testBackendsUseSeparateServicesAndOnlyDevelopmentUsesDataProtection() {
-        XCTAssertNotEqual(KeychainBackend.dataProtection.service, KeychainBackend.login.service)
-        XCTAssertTrue(KeychainBackend.dataProtection.usesDataProtectionKeychain)
-        XCTAssertFalse(KeychainBackend.login.usesDataProtectionKeychain)
+    func testAllConfigurationsUseStableLoginKeychainService() {
+        XCTAssertEqual(KeychainService.service, "com.brgirgin.ClipboardHistory.encryption")
+        XCTAssertEqual(KeychainService.account, "history-master-key-v1")
     }
 
     @MainActor

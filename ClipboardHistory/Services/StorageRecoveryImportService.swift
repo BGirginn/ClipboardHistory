@@ -1,6 +1,6 @@
 import Foundation
 
-actor CommunityMigrationService {
+actor StorageRecoveryImportService {
     private let fileSystem: any MigrationFileSystem
     private let exportImportService: ExportImportService
 
@@ -16,8 +16,8 @@ actor CommunityMigrationService {
         encryptedArchive: URL,
         password: String,
         to destinationDirectory: URL,
-        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider(backend: .login)
-    ) async throws -> CommunityMigrationResult {
+        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active
+    ) async throws -> StorageRecoveryImportResult {
         guard !password.isEmpty else { throw ExportImportError.passwordRequired }
         let destination = destinationDirectory.standardizedFileURL
         if fileSystem.fileExists(at: destination),
@@ -27,7 +27,7 @@ actor CommunityMigrationService {
         let parent = destination.deletingLastPathComponent()
         try fileSystem.createDirectory(at: parent)
         let staging = parent.appending(
-            path: ".ClipboardHistory-community-import-\(UUID().uuidString.lowercased())",
+            path: ".ClipboardHistory-recovery-import-\(UUID().uuidString.lowercased())",
             directoryHint: .isDirectory
         )
         let backupRoot = parent.appending(
@@ -35,7 +35,7 @@ actor CommunityMigrationService {
             directoryHint: .isDirectory
         )
         let backup = backupRoot.appending(
-            path: "before-community-\(UUID().uuidString.lowercased())",
+            path: "before-recovery-import-\(UUID().uuidString.lowercased())",
             directoryHint: .isDirectory
         )
         var movedExistingData = false
@@ -73,7 +73,7 @@ actor CommunityMigrationService {
                 }
                 throw error
             }
-            return CommunityMigrationResult(
+            return StorageRecoveryImportResult(
                 importedItemCount: report.importedCount,
                 rollbackBackupURL: movedExistingData ? backup : nil
             )

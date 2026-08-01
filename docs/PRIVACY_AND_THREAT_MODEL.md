@@ -16,7 +16,7 @@ The app intentionally has no networking, telemetry, analytics, account, sync, re
 
 ## Keychain and signing
 
-Apple Development builds use Data Protection Keychain. Community builds use the login Keychain because a stable community signing requirement is needed across upgrades. Community builds must be signed by the same offline-held self-signed certificate and have no unauthorized keychain access-group entitlement. A certificate fingerprint is required in release notes.
+Every runnable configuration uses one classic login-Keychain service because a stable signing requirement is needed across upgrades. Builds must use the same self-signed certificate and have no keychain access-group entitlement. This requires no Apple account or provisioning profile. A certificate fingerprint is required in release notes.
 
 The community beta is not Apple-trusted or notarized. Documentation may explain macOS's visible Open Anyway flow, but installers and scripts must never delete quarantine metadata or call `xattr` to suppress Gatekeeper.
 

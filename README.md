@@ -4,7 +4,7 @@ ClipboardHistory is a private, native macOS menu bar clipboard manager written i
 
 The app has no networking, telemetry, analytics, cloud service, account system, or third-party dependency.
 
-> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 run passes 126 unit/integration tests, 6 UI tests, separate 125-test ASan and TSan runs, all 7 critical mutations, and the optimized 5,000-item p95 benchmark. Debug, Release, and CommunityRelease are arm64-only with a macOS 14 minimum. Production line coverage is only 73.14%, and signed UI, the full accessibility/visual and soak/Instruments programs, macOS 14/15/26 compatibility evidence, stable Community signing, and clean-machine distribution remain incomplete. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
+> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 run passes 126 unit/integration tests and 6 isolated UI tests; the three build configurations remain arm64-only with a macOS 14 minimum. A stable self-signed Community identity is installed, and an entitlement-free `1.0.0 (10001)` CommunityRelease build passed signature, designated-requirement, architecture, and local launch checks without an Apple account or profile. The last pre-signing-change coverage measurement was only 73.14% and must be regenerated; full signed UI, accessibility/visual, soak/Instruments, macOS 14/15/26, encrypted signing-key backup, and clean-machine distribution gates remain incomplete. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
 
 [Türkçe README](README_TR.md)
 
@@ -26,7 +26,7 @@ The app has no networking, telemetry, analytics, cloud service, account system, 
 - Command-Shift-V global panel shortcut, launch at login, private mode, temporary pause, and per-application exclusion rules
 - Local secret detection, temporary sensitive-item retention, AES-GCM encryption, Keychain-backed keys, and an opt-in LocalAuthentication application lock
 - Count, age, image-age, and storage-size retention with pinned-item preservation
-- Password-protected local archives, per-entry SHA-256 manifests, validated merge import, and verified Community migration with rollback preservation
+- Password-protected local archives, per-entry SHA-256 manifests, validated merge import, and verified recovery import with rollback preservation
 - SQLite transactions, integrity checking, crash staging cleanup, corruption preservation, JSON migration, and orphan cleanup
 
 ## Architecture
@@ -37,19 +37,24 @@ The app has no networking, telemetry, analytics, cloud service, account system, 
 - `StorageService` is a 384-line actor façade over separate SQLite repository, asset, migration, maintenance, recovery, and encryption-rotation facets below 500 lines.
 - `ThumbnailService` decodes and resizes off the main actor, never upscales, stores list thumbnails separately, regenerates missing thumbnails, cancels obsolete work, and uses a bounded `NSCache`.
 - `SecretDetectionService`, `EncryptionService`, `AppLockService`, and exclusion/private-mode policy provide the local privacy boundary.
-- `ExportImportService` validates archive versions, entry counts, sizes, managed paths, and record/asset manifests. `CommunityMigrationService` imports into isolated storage and atomically swaps only after verification.
+- `ExportImportService` validates archive versions, entry counts, sizes, managed paths, and record/asset manifests. `StorageRecoveryImportService` imports into isolated storage and atomically swaps only after verification.
 
 ## Requirements
 
 - macOS 14 or later on Apple silicon (arm64 only)
 - Xcode 16 or later with Swift 6 support
-- A selected Apple Development team for a runnable Development build that uses Data Protection Keychain, or the separately managed stable Community certificate for `CommunityRelease`
+- The locally installed self-signed `ClipboardHistory Community Beta` identity for runnable builds; no Apple account, Development Team, or provisioning profile is required
 
 Touch ID depends on Mac hardware and system configuration. The optional application lock also accepts the Mac login password through LocalAuthentication and never creates a separate ClipboardHistory password. Launch at login uses `SMAppService`.
 
 ## Build and test
 
-Open `ClipboardHistory.xcodeproj`, select the `ClipboardHistory` target, choose your Development Team under Signing & Capabilities, and run the scheme.
+Create the accountless signing identity once, then open `ClipboardHistory.xcodeproj` and run the scheme. The private key remains in the login Keychain and must never be committed:
+
+```sh
+scripts/create-community-signing-identity.sh
+scripts/verify-community-signing.sh
+```
 
 Command-line compile without signing:
 
@@ -74,7 +79,7 @@ xcodebuild \
   test
 ```
 
-Unsigned builds intentionally cannot access the Data Protection Keychain. Encryption operations fail closed and do not write plaintext, but encryption must be exercised with a properly signed runnable build.
+All runnable configurations use the same classic login-Keychain service and stable self-signed identity. Unsigned command-line builds are compile/test inputs only; encryption operations still fail closed and never fall back to plaintext when Keychain access is denied.
 
 Static and localization checks:
 
@@ -171,7 +176,7 @@ Secret detection combines known prefixes and regular expressions, key-value cont
 
 Detection is heuristic and can have false positives and false negatives. It is not a substitute for password-manager or organizational data-loss-prevention policy.
 
-Stored encryption uses AES-GCM authenticated encryption with a random 256-bit master key. Apple Development builds keep it in the macOS Data Protection Keychain; Community builds use a separately named login-Keychain item bound to the stable Community signing identity. Sensitive-only encryption is the default encryption mode; all-item encryption is optional. Encrypted text and protected metadata are stored as ciphertext BLOB data, while image, thumbnail, PDF, and rich payload bytes are encrypted before disk write and decrypted only on demand. Decrypted thumbnail caches are invalidated on lock/private-mode changes.
+Stored encryption uses AES-GCM authenticated encryption with a random 256-bit master key. Every runnable configuration keeps the same master key in the macOS login Keychain, with access bound to the stable self-signed Community Beta identity. Sensitive-only encryption is the default encryption mode; all-item encryption is optional. Encrypted text and protected metadata are stored as ciphertext BLOB data, while image, thumbnail, PDF, and rich payload bytes are encrypted before disk write and decrypted only on demand. Decrypted thumbnail caches are invalidated on lock/private-mode changes.
 
 Metadata such as item type, dates, pin state, sizes, hashes, source bundle identifier, logical filenames, and record counts remains visible in SQLite. User titles, tags, collection names, OCR, and QR results are protected. Full-database encryption is not claimed.
 
@@ -209,4 +214,4 @@ The latest provisional measurements and the stricter Release/p95 gates are recor
 
 See the [beta readiness report](docs/BETA_READINESS_REPORT.md), [architecture](docs/ARCHITECTURE.md), [privacy and threat model](docs/PRIVACY_AND_THREAT_MODEL.md), [testing](docs/TESTING.md), [known limitations](docs/KNOWN_LIMITATIONS.md), [security policy](SECURITY.md), and [contributing](CONTRIBUTING.md).
 
-Before production distribution, perform an independent security review of secret heuristics, cryptographic lifecycle, import fuzzing, Keychain entitlements, bookmark scope behavior, and privacy logging; then profile with Instruments and verify Touch ID, screen lock, launch at login, menu bar interaction, and global-shortcut conflicts on supported macOS versions.
+Before production distribution, perform an independent security review of secret heuristics, cryptographic lifecycle, import fuzzing, login-Keychain ACL behavior, bookmark scope behavior, and privacy logging; then profile with Instruments and verify Touch ID, screen lock, launch at login, menu bar interaction, and global-shortcut conflicts on supported macOS versions.

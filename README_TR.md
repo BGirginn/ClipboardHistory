@@ -4,7 +4,7 @@ ClipboardHistory, Swift 6 ve SwiftUI/AppKit ile yazılmış yerel bir macOS pano
 
 ## Durum
 
-Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 koşusunda 126 unit/integration ve 6 UI testi, 125'er testlik ayrı ASan/TSan koşuları, 7 kritik mutasyon ve optimize 5.000 öğelik p95 benchmark kapısı geçmektedir. Debug, Release ve CommunityRelease yalnız arm64'tür ve minimum macOS 14 ister. Üretim satır kapsamı yalnız `%73,14` düzeyindedir; Apple Development imzalı UI, tam erişilebilirlik/görsel, soak/Instruments, macOS 14/15/26 uyumluluk, sabit Community imzası ve temiz makine dağıtım kapıları tamamlanmamıştır. Beta etiketi, GitHub Release'i ve Homebrew Cask yayımlanmamıştır.
+Depo şu anda `v1.0.0-beta.1` öncesi geliştirme aşamasındadır. Yerel arm64 koşusunda 126 unit/integration ve 6 yalıtılmış UI testi geçmektedir; Debug, Release ve CommunityRelease minimum macOS 14 isteyen yalnız arm64 yapılardır. Sabit self-signed Community kimliği kuruldu ve entitlement içermeyen `1.0.0 (10001)` CommunityRelease yapısı Apple hesabı/profile olmadan imza, designated requirement, mimari ve yerel başlatma kontrollerini geçti. İmza değişikliğinden önceki son üretim satır kapsamı yalnız `%73,14` idi ve yeniden ölçülmelidir; tam imzalı UI, erişilebilirlik/görsel, soak/Instruments, macOS 14/15/26, şifreli imza anahtarı yedeği ve temiz makine dağıtım kapıları tamamlanmamıştır. Beta etiketi, GitHub Release'i ve Homebrew Cask yayımlanmamıştır.
 
 ## Başlıca özellikler
 
