@@ -74,7 +74,7 @@ final class MenuBarControllerTests: XCTestCase {
         context.viewModel.pauseUntil = nil
         context.viewModel.isPrivateMode = false
         context.viewModel.privateModeDidChange?(false)
-        XCTAssertEqual(statusItem.button?.toolTip, "Clipboard History (Command-Shift-V, right-click to quit)")
+        XCTAssertEqual(statusItem.button?.toolTip, "Clipboard History (Command-Shift-V, right-click for menu)")
         controller.closePopover()
         XCTAssertFalse(controller.isPopoverShown)
         XCTAssertGreaterThanOrEqual(quickLook.closeCount, 1)
@@ -100,6 +100,7 @@ final class MenuBarControllerTests: XCTestCase {
         let eventMonitor = MenuRecordingPanelEventMonitor()
         let shortcutBackend = MenuShortcutBackendStub()
         var statusItemEvent: NSEvent?
+        var presentedStatusMenu: NSMenu?
         var terminationCount = 0
         let dependencies = MenuBarControllerDependencies(
             makeStatusItem: { statusItem },
@@ -107,6 +108,7 @@ final class MenuBarControllerTests: XCTestCase {
             makePanel: { _ in panel },
             quickLookPresenter: MenuQuickLookSpy(),
             currentEvent: { statusItemEvent },
+            presentStatusMenu: { menu, _ in presentedStatusMenu = menu },
             terminateApplication: { terminationCount += 1 }
         )
         let controller = MenuBarController(
@@ -154,6 +156,9 @@ final class MenuBarControllerTests: XCTestCase {
             pressure: 0
         )
         statusItem.button?.performClick(nil)
+        XCTAssertEqual(presentedStatusMenu?.items.map(\.title), ["Quit ClipboardHistory"])
+        XCTAssertEqual(terminationCount, 0)
+        presentedStatusMenu?.performActionForItem(at: 0)
         XCTAssertEqual(terminationCount, 1)
         statusItemEvent = nil
         let event = try XCTUnwrap(

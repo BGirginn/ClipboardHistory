@@ -1891,6 +1891,17 @@
         }
       }
     },
+    "Quit ClipboardHistory": {
+      "extractionState": "manual",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ClipboardHistory'den Çık"
+          }
+        }
+      }
+    },
     "RTF": {
       "localizations": {
         "tr": {

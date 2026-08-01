@@ -57,7 +57,7 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 - FIFO/LIFO Yapıştırma Yığını ve klavye odaklı gezinme
 - Sistem, Açık ve Koyu görünüm seçenekleri
 - Private Mode, geçici kayıt duraklatma, uygulama hariç tutma ve Sonraki Kopyalamayı Yoksay seçimi
-- Menü çubuğu ikonuna sol tıklayarak paneli açma veya sağ tıklayarak uygulamadan çıkma
+- Menü çubuğu ikonuna sol tıklayarak paneli, sağ tıklayarak Çık seçenekli menüyü açma
 - Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
 - Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
 - Keychain anahtarlı AES-GCM geçmiş şifrelemesi ve plaintext'e düşmeyen hata davranışı

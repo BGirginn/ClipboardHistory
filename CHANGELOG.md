@@ -5,7 +5,7 @@ All notable changes are documented here. The project follows semantic versioning
 ## Unreleased
 
 - Removed the panel search bar and its Command-F focus path.
-- Added right-click-to-quit behavior to the menu-bar icon.
+- Added a right-click menu with an explicit Quit action to the menu-bar icon.
 
 ## 1.0.0-beta.1 - 2026-08-01
 

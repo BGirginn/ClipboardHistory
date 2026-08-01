@@ -8,6 +8,7 @@ struct MenuBarControllerDependencies {
     let makePanel: (ClipboardHistoryViewModel) -> NSPanel
     let quickLookPresenter: any QuickLookPresenting
     let currentEvent: () -> NSEvent?
+    let presentStatusMenu: (NSMenu, NSView) -> Void
     let terminateApplication: () -> Void
 
     init(
@@ -16,6 +17,13 @@ struct MenuBarControllerDependencies {
         makePanel: @escaping (ClipboardHistoryViewModel) -> NSPanel,
         quickLookPresenter: any QuickLookPresenting,
         currentEvent: @escaping () -> NSEvent? = { NSApplication.shared.currentEvent },
+        presentStatusMenu: @escaping (NSMenu, NSView) -> Void = { menu, view in
+            _ = menu.popUp(
+                positioning: nil,
+                at: NSPoint(x: 0, y: view.bounds.maxY),
+                in: view
+            )
+        },
         terminateApplication: @escaping () -> Void = { NSApplication.shared.terminate(nil) }
     ) {
         self.makeStatusItem = makeStatusItem
@@ -23,6 +31,7 @@ struct MenuBarControllerDependencies {
         self.makePanel = makePanel
         self.quickLookPresenter = quickLookPresenter
         self.currentEvent = currentEvent
+        self.presentStatusMenu = presentStatusMenu
         self.terminateApplication = terminateApplication
     }
 
