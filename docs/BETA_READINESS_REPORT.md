@@ -1,0 +1,58 @@
+# Beta readiness report
+
+Date: 2026-08-01
+
+Candidate: `v1.0.0-beta.1`
+
+Decision: **blocked; do not tag, publish, or create the Cask**
+
+This report records local evidence for the clean `beta/arm64-opt-in-lock` branch tip. It is not signed-distribution or external OS-matrix evidence and becomes stale after any source change.
+
+## Preservation and scope
+
+- Before implementation, the complete dirty repository including `.git` was copied to a sibling directory named `ClipboardHistory-backup-20260801-ZteHHj`; 301 files were compared with `diff -rq` and matched.
+- The original worktree was not reset or discarded. Work continues on `beta/arm64-opt-in-lock` from starting commit `351fe22`.
+- The product remains offline-only. Certificates, private keys, and provisioning profiles are forbidden from the repository.
+
+## Implemented changes
+
+- Every target configuration now uses minimum macOS 14 and `ARCHS=arm64`; legacy platform build/release paths were removed. Debug, Release, and CommunityRelease are checked with `lipo`, `file`, `otool`, and bundle metadata.
+- Application lock is off by default and modelled as `disabled`, `unlocked`, or `locked`. Enabling/disabling and unlocking use Touch ID or the Mac login password through LocalAuthentication; no separate ClipboardHistory password or verifier exists.
+- The numbered settings migration preserves existing automatic-lock users. Later launches start locked when enabled; manual, Mac-lock, and inactivity options relock the app.
+- While locked, copy/restore/paste and history visibility are blocked. Recording can remain enabled with encrypted persistence or be consumed and dropped; Private Mode/pause takes precedence. Ask-before-saving sensitive content remains memory-only until unlock or expiry.
+- AES-GCM history encryption remains independent from the UI lock. Keychain, authentication, storage, and archive errors fail closed without plaintext fallback.
+- `ClipboardHistoryViewModel` is a 223-line main-actor façade and `StorageService` a 384-line actor façade. Extracted controller/repository, asset, migration, maintenance, recovery, and rotation facets are all below 500 lines. Static checks enforce 500 lines and one top-level type per production Swift file.
+- English and Turkish String Catalog entries cover the new lock states, actions, explanations, and errors.
+- CI is arm64-only on GitHub's macOS 14, 15, and 26 runners. Separate sanitizer, performance, mutation, coverage, architecture, analyzer, and protected signed-UI jobs exist.
+- Artifact tooling requires exact arm64 output and names ZIP/DMG/SBOM files `ClipboardHistory-1.0.0-beta.1-arm64.*`. The documented Cask requires Sonoma and arm64.
+
+## Current local evidence
+
+| Check | Result |
+|---|---|
+| Unit/integration suite | 126 passed, 0 failed |
+| UI suite | 6 passed, 0 failed with isolated ad-hoc Community entitlements |
+| Merged production line coverage | 73.1409%, 8,360/11,430 executable lines |
+| Per-file 100% coverage gate | Failed as designed; no production source exclusion |
+| Debug/Release/CommunityRelease | Passed; exact `arm64`; minimum macOS 14 |
+| ASan | 125 passed; no compiler/linker/sanitizer diagnostic |
+| TSan | 125 passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
+| Deterministic fuzz | 10,000 hostile inputs passed; expanded media corpus pending |
+| Critical mutation set | 7 killed, 0 survived |
+| Optimized performance | Warm-up plus 10-repeat 5,000-item p95 assertions passed |
+| Localization/static/source structure | Passed |
+
+Coverage evidence is under `.build/CoverageAfterAdapters/Unit.xcresult`, `.build/CoverageAfterAdapters/UI.xcresult`, and `.build/CoverageAfterAdapters/Combined.xccovreport`. These local paths are evidence for this working session only and are not committed release artifacts.
+
+## Remaining release blockers
+
+1. Production line coverage is 73.14%, not the mandatory 100%. Uncovered code remains in system integrations, error paths, Quick Look, drag providers, archive/mutation/privacy orchestration, recovery states, media rows, and SwiftUI action branches.
+2. The six UI tests do not cover the complete signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state matrix.
+3. No matching Development provisioning profile is installed for the Data Protection Keychain access group, so Apple Development-signed full UI/Keychain validation cannot run.
+4. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
+5. Idle CPU, RSS, actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak remain incomplete.
+6. Only macOS 26.5 arm64 executed locally. macOS 14/15/26 evidence from the exact clean release commit remains required.
+7. `syft` 1.50.0 arm64 is installed, but the stable self-signed `ClipboardHistory Community Beta` identity is absent. Artifact generation must continue to refuse release output.
+8. No quarantined clean-user/VM Gatekeeper test, checksum comparison, public-repository transition, tag, GitHub Release, or Homebrew Cask audit/install lifecycle exists.
+
+Because these gates are mandatory, the repository was not made public and no tag, GitHub Release, artifact, tap repository, or Cask was created.

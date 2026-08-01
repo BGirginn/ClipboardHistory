@@ -4,6 +4,10 @@ ClipboardHistory is a private, native macOS menu bar clipboard manager written i
 
 The app has no networking, telemetry, analytics, cloud service, account system, or third-party dependency.
 
+> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 run passes 126 unit/integration tests, 6 UI tests, separate 125-test ASan and TSan runs, all 7 critical mutations, and the optimized 5,000-item p95 benchmark. Debug, Release, and CommunityRelease are arm64-only with a macOS 14 minimum. Production line coverage is only 73.14%, and signed UI, the full accessibility/visual and soak/Instruments programs, macOS 14/15/26 compatibility evidence, stable Community signing, and clean-machine distribution remain incomplete. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
+
+[Türkçe README](README_TR.md)
+
 ## Features
 
 - Text, URL, email, file-path, and source-code classification
@@ -11,31 +15,37 @@ The app has no networking, telemetry, analytics, cloud service, account system, 
 - Single and grouped images, including screenshots copied with Control-Shift-Command-4
 - Original PDF capture with page count, first-page thumbnail, restore, and Quick Look
 - Single or multiple file/folder references with bookmarks, missing-file handling, Finder reveal, restore, and Quick Look
-- Search, type filters, sorting, pinned sections, keyboard navigation, context menus, details, export, and accessibility identifiers
-- Compact menu-bar controls with explicit Locked/Private/Paused status, plus sectioned General, Privacy, Security, Storage, and Advanced settings
+- Fielded search by text/source/type/date/collection/tag/OCR, sorting, pinned/snippet sections, keyboard navigation, context menus, details, export, and accessibility identifiers
+- Separate Copy, Paste to Active App, and Paste As original/plain/RTF/sanitized-HTML actions; only direct paste requests Accessibility access
+- On-device color recognition, Vision OCR, and QR decoding; extracted results follow the same encryption policy
+- Encrypted titles, tags and collections; editable text, local text transformations, and reusable pinned snippets
+- FIFO/LIFO temporary Paste Stack, multiple selection, drag providers, bulk deletion, age cleanup, and Command-1…9 selection
+- Always-ignore transient/concealed/auto-generated pasteboard types, optional Universal Clipboard/custom UTI exclusion, and Ignore Next Copy
+- Configurable shortcut activation and a detachable keyboard-oriented panel at a selected screen edge
+- Compact menu-bar controls with optional application lock plus explicit Private/Paused status, and sectioned General, Privacy, Security, Storage, and Advanced settings
 - Command-Shift-V global panel shortcut, launch at login, private mode, temporary pause, and per-application exclusion rules
-- Local secret detection, temporary sensitive-item retention, AES-GCM encryption, Keychain-backed keys, automatic lock, and LocalAuthentication unlock
+- Local secret detection, temporary sensitive-item retention, AES-GCM encryption, Keychain-backed keys, and an opt-in LocalAuthentication application lock
 - Count, age, image-age, and storage-size retention with pinned-item preservation
-- Password-protected local archives and validated merge import
+- Password-protected local archives, per-entry SHA-256 manifests, validated merge import, and verified Community migration with rollback preservation
 - SQLite transactions, integrity checking, crash staging cleanup, corruption preservation, JSON migration, and orphan cleanup
 
 ## Architecture
 
 - `MenuBarController` owns the AppKit `NSStatusItem`, 380 x 500 `NSPopover`, Carbon global hotkey, and Quick Look presentation. `LSUIElement` plus the accessory activation policy keep the app out of the Dock.
-- `ClipboardHistoryViewModel` is the main-actor MVVM coordinator for presentation, privacy policy, duplicate suppression, restore feedback, expiration, locking, and cleanup.
+- `ClipboardHistoryViewModel` is a 223-line main-actor façade. Mutation, privacy, capture, presentation, interaction, archive, and monitor responsibilities are split into isolated facets below 500 lines.
 - `ClipboardMonitor` checks `NSPasteboard.general.changeCount` every 0.5 seconds. Clipboard decoding stays lightweight; hashing, normalization, conversion, and metadata work run asynchronously.
-- `StorageService` is an actor around native SQLite prepared statements, WAL journaling, transactions, staged asset writes, migrations, and retention.
+- `StorageService` is a 384-line actor façade over separate SQLite repository, asset, migration, maintenance, recovery, and encryption-rotation facets below 500 lines.
 - `ThumbnailService` decodes and resizes off the main actor, never upscales, stores list thumbnails separately, regenerates missing thumbnails, cancels obsolete work, and uses a bounded `NSCache`.
 - `SecretDetectionService`, `EncryptionService`, `AppLockService`, and exclusion/private-mode policy provide the local privacy boundary.
-- `ExportImportService` validates archive versions, entry counts, sizes, and filenames before merging data through the normal storage API.
+- `ExportImportService` validates archive versions, entry counts, sizes, managed paths, and record/asset manifests. `CommunityMigrationService` imports into isolated storage and atomically swaps only after verification.
 
 ## Requirements
 
-- macOS 13 or later
+- macOS 14 or later on Apple silicon (arm64 only)
 - Xcode 16 or later with Swift 6 support
-- A selected Apple Development team for a runnable build that uses Data Protection Keychain
+- A selected Apple Development team for a runnable Development build that uses Data Protection Keychain, or the separately managed stable Community certificate for `CommunityRelease`
 
-Touch ID depends on Mac hardware and system configuration. Launch at login uses `SMAppService` on macOS 13+.
+Touch ID depends on Mac hardware and system configuration. The optional application lock also accepts the Mac login password through LocalAuthentication and never creates a separate ClipboardHistory password. Launch at login uses `SMAppService`.
 
 ## Build and test
 
@@ -48,7 +58,7 @@ xcodebuild \
   -project ClipboardHistory.xcodeproj \
   -scheme ClipboardHistory \
   -configuration Debug \
-  -destination 'platform=macOS' \
+  -destination 'platform=macOS,arch=arm64' \
   CODE_SIGNING_ALLOWED=NO \
   build
 ```
@@ -59,12 +69,24 @@ Run the unit and integration suite:
 xcodebuild \
   -project ClipboardHistory.xcodeproj \
   -scheme ClipboardHistory \
-  -destination 'platform=macOS' \
+  -destination 'platform=macOS,arch=arm64' \
   CODE_SIGNING_ALLOWED=NO \
   test
 ```
 
 Unsigned builds intentionally cannot access the Data Protection Keychain. Encryption operations fail closed and do not write plaintext, but encryption must be exercised with a properly signed runnable build.
+
+Static and localization checks:
+
+```sh
+scripts/verify-static-quality.sh
+```
+
+Coverage is deliberately release-blocking and permits no source exclusion:
+
+```sh
+scripts/verify-coverage.sh /private/tmp/ClipboardHistoryTests.xcresult
+```
 
 ## Run
 
@@ -103,10 +125,11 @@ id, type, textContent, imageFilename, thumbnailFilename, contentHash,
 createdAt, lastUsedAt, pinnedAt, isPinned, useCount, contentSubtype,
 expiresAt, isSensitive, sourceApplicationBundleID, storageVersion,
 displayTitle, payloadFilename, assetFilenames, fileURLs, fileBookmarks,
-imageWidth, imageHeight, pageCount, fileSize, isEncrypted
+imageWidth, imageHeight, pageCount, fileSize, isEncrypted,
+protectedMetadata, collectionID, isSnippet, pasteboardTypes
 ```
 
-`Settings(key, value)` stores migration state. `SchemaMigrations(version, appliedAt)` records applied schema versions. Indexes cover creation date, last use, content hash, item type, pin state, expiry, and searchable text.
+`ClipboardCollections` stores identifiers and encrypted collection payloads. `Settings(key, value)` stores migration state. `SchemaMigrations(version, appliedAt)` records applied schema versions. Indexes cover creation date, last use, content hash, item type, pin state, expiry, collection, snippet, and searchable text.
 
 Every value write uses a bound prepared statement. Multi-record changes and migrations use `BEGIN IMMEDIATE`, commit on success, and roll back on error. SQLite uses full mutex mode, WAL, a busy timeout, foreign-key enforcement, and startup `quick_check` integrity validation.
 
@@ -148,11 +171,11 @@ Secret detection combines known prefixes and regular expressions, key-value cont
 
 Detection is heuristic and can have false positives and false negatives. It is not a substitute for password-manager or organizational data-loss-prevention policy.
 
-Stored encryption uses AES-GCM authenticated encryption with a random 256-bit master key in the macOS Data Protection Keychain (`AfterFirstUnlockThisDeviceOnly`). Sensitive-only encryption is the default encryption mode; all-item encryption is optional. Encrypted text is stored as ciphertext BLOB data, while image, thumbnail, PDF, and rich payload bytes are encrypted before disk write and decrypted only on demand. Decrypted thumbnail caches are invalidated on lock/private-mode changes.
+Stored encryption uses AES-GCM authenticated encryption with a random 256-bit master key. Apple Development builds keep it in the macOS Data Protection Keychain; Community builds use a separately named login-Keychain item bound to the stable Community signing identity. Sensitive-only encryption is the default encryption mode; all-item encryption is optional. Encrypted text and protected metadata are stored as ciphertext BLOB data, while image, thumbnail, PDF, and rich payload bytes are encrypted before disk write and decrypted only on demand. Decrypted thumbnail caches are invalidated on lock/private-mode changes.
 
-Metadata such as item type, dates, pin state, sizes, hashes, source bundle identifier, logical filenames, and record counts remains visible in SQLite. Full-database encryption is not claimed.
+Metadata such as item type, dates, pin state, sizes, hashes, source bundle identifier, logical filenames, and record counts remains visible in SQLite. User titles, tags, collection names, OCR, and QR results are protected. Full-database encryption is not claimed.
 
-Automatic lock supports inactivity intervals, screen lock, Touch ID where available, and the Mac login credential through LocalAuthentication. A locked app hides previews, rejects restoration, and clears decrypted caches.
+Application lock is off by default. Enabling or disabling it requires Touch ID or the Mac login credential through LocalAuthentication; no separate app password or verifier is stored. Once enabled, later launches begin locked. A locked app hides previews, rejects copy/restore/paste, and clears decrypted caches. With “Continue recording while locked” enabled, new items are encrypted and saved; disabling it consumes and drops new changes. Private Mode and pause always take precedence.
 
 Logging uses `os.Logger` and records only operation type/status, anonymized identifiers, error category, timing, and migration version. Clipboard text, secret values, decrypted data, raw image/PDF bytes, and unnecessary full paths are never logged.
 
@@ -170,16 +193,7 @@ Imports validate the archive version, total size, item count, asset names, and r
 
 ## Performance observations
 
-Measurements from the automated macOS test host on 2026-07-18 (temporary local SQLite databases, Release-capable host; timings vary by hardware and filesystem):
-
-| Items | SQLite write | SQLite read |
-|---:|---:|---:|
-| 100 | 8.031 ms | 1.972 ms |
-| 500 | 12.123 ms | 6.038 ms |
-| 1,000 | 16.355 ms | 6.699 ms |
-| 5,000 | 46.272 ms | 19.129 ms |
-
-For 5,000 items, ViewModel load measured 45.386 ms, filtering 23.303 ms, and SwiftUI panel construction 16.309 ms. A live idle sample showed 0.0% CPU and approximately 46 MB RSS after format validation. These are observations, not guarantees. Scroll frame pacing, energy impact, and long-session heap growth still require manual Instruments profiling on target hardware.
+The latest provisional measurements and the stricter Release/p95 gates are recorded in [the performance report](docs/PERFORMANCE.md). Current numbers are observations, not release evidence; Instruments, repeated optimized measurements, and the eight-hour soak remain mandatory.
 
 ## Known platform limitations and review boundary
 
@@ -190,6 +204,9 @@ For 5,000 items, ViewModel load measured 45.386 ms, filtering 23.303 ms, and Swi
 - Secret detection is deliberately conservative but not perfect.
 - Keychain encryption and Touch ID require a properly signed app and an interactive user session. An unsigned command-line build fails closed.
 - Best-effort deletion cannot promise physical erasure on APFS/SSD media.
-- The project does not include cloud synchronization, App Store packaging, notarization, or production distribution.
+- The Community configuration is intentionally not Apple-notarized. It must retain quarantine and present the normal Gatekeeper warning; no installer may suppress it.
+- The project does not include cloud synchronization, mobile clients, team sharing, remote servers, telemetry, AI, App Store packaging, or a currently published production distribution.
+
+See the [beta readiness report](docs/BETA_READINESS_REPORT.md), [architecture](docs/ARCHITECTURE.md), [privacy and threat model](docs/PRIVACY_AND_THREAT_MODEL.md), [testing](docs/TESTING.md), [known limitations](docs/KNOWN_LIMITATIONS.md), [security policy](SECURITY.md), and [contributing](CONTRIBUTING.md).
 
 Before production distribution, perform an independent security review of secret heuristics, cryptographic lifecycle, import fuzzing, Keychain entitlements, bookmark scope behavior, and privacy logging; then profile with Instruments and verify Touch ID, screen lock, launch at login, menu bar interaction, and global-shortcut conflicts on supported macOS versions.

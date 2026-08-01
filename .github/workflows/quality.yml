@@ -1,0 +1,106 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/verify-static-quality.sh
+
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-15, macos-26]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Unit and integration tests
+        run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration Debug -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath /private/tmp/ClipboardHistoryCI \
+            CODE_SIGNING_ALLOWED=NO -only-testing:ClipboardHistoryTests test
+      - name: Release build
+        run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration Release -destination 'generic/platform=macOS' \
+            -derivedDataPath /private/tmp/ClipboardHistoryRelease \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
+      - name: Verify Release architecture
+        run: |
+          executable=/private/tmp/ClipboardHistoryRelease/Build/Products/Release/ClipboardHistory.app/Contents/MacOS/ClipboardHistory
+          test "$(lipo -archs "$executable")" = arm64
+          file "$executable" | grep -q 'Mach-O 64-bit executable arm64'
+
+  coverage:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Produce coverage result
+        run: scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-${{ github.sha }}
+          path: |
+            /private/tmp/ClipboardHistoryCoverage/Unit.xcresult
+            /private/tmp/ClipboardHistoryCoverage/UI.xcresult
+            /private/tmp/ClipboardHistoryCoverage/Combined.xccovreport
+
+  analyze:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration Debug -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath /private/tmp/ClipboardHistoryAnalyze \
+            CODE_SIGNING_ALLOWED=NO analyze
+
+  arm64-configurations:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/verify-arm64-builds.sh
+
+  sanitizers:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/verify-sanitizers.sh
+
+  performance:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/verify-performance.sh
+
+  mutations:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/run-critical-mutations.sh
+
+  signed-ui:
+    if: ${{ vars.SIGNED_UI_RUNNER_ENABLED == 'true' }}
+    runs-on: [self-hosted, macOS, ARM64, macOS-26, signed-ui]
+    env:
+      DEVELOPMENT_TEAM: ${{ vars.APPLE_DEVELOPMENT_TEAM }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: scripts/verify-development-signing.sh
+      - run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration Debug -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath /private/tmp/ClipboardHistorySignedUI \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            -only-testing:ClipboardHistoryUITests test
