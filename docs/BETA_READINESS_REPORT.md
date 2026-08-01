@@ -25,6 +25,7 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 - `ClipboardHistoryViewModel` is a 223-line main-actor façade and `StorageService` a 384-line actor façade. Extracted controller/repository, asset, migration, maintenance, recovery, and rotation facets are all below 500 lines. Static checks enforce 500 lines and one top-level type per production Swift file.
 - English and Turkish String Catalog entries cover the new lock states, actions, explanations, and errors.
 - Settings now offer persistent System/Light/Dark appearance. Reopening the menu-bar panel always returns to the main history instead of stale settings/detail/search state, and the one-shot ignore action is visually distinct from Private Mode with armed-state feedback.
+- Panel context-menu coordination now protects the right-mouse-down to AppKit menu-tracking transition, so the first right click cannot be mistaken for an outside interaction while genuine outside clicks still close the panel.
 - The checked-in CI workflow is arm64-only on GitHub's macOS 14, 15, and 26 runners, but repository GitHub Actions are disabled by owner request. Equivalent architecture, sanitizer, performance, mutation, coverage, and UI gates run locally.
 - Artifact tooling requires exact arm64 output and names ZIP/DMG/SBOM files `ClipboardHistory-1.0.0-beta.1-arm64.*`. The documented Cask requires Sonoma and arm64.
 
@@ -32,13 +33,13 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 
 | Check | Result |
 |---|---|
-| Unit/integration/benchmark suite | 202 current tests covered by the unit/integration and optimized benchmark gates, 0 failed |
+| Unit/integration/benchmark suite | 204 current tests covered by the unit/integration and optimized benchmark gates, 0 failed |
 | UI suite | 7 passed, 0 failed with isolated ad-hoc production entitlements |
-| Merged production line coverage | 100%, 11,850/11,850 executable lines |
+| Merged production line coverage | 100%, 11,880/11,880 executable lines |
 | Per-file 100% coverage gate | Passed for every production Swift file; no production source exclusion |
 | Debug/Release/CommunityRelease | Passed; exact `arm64`; minimum macOS 14 |
-| ASan | 201 eligible tests passed; no compiler/linker/sanitizer diagnostic |
-| TSan | 201 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
+| ASan | 203 eligible tests passed; no compiler/linker/sanitizer diagnostic |
+| TSan | 203 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
 | Deterministic fuzz | 10,000 hostile validation inputs plus 512 malformed media corpus cases passed |
 | Critical mutation set | 7 killed, 0 survived |
 | Optimized performance | Warm-up plus 20-repeat 5,000-item p95 assertions passed |

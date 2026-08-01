@@ -58,6 +58,89 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         harness.stop()
     }
 
+    func testPanelRightClickBeforeMenuTrackingIgnoresTransientApplicationResign() async throws {
+        let notificationCenter = NotificationCenter()
+        let monitor = RecordingPanelEventMonitor()
+        var isShown = true
+        var closeCount = 0
+        let coordinator = PanelCloseCoordinator(
+            notificationCenter: notificationCenter,
+            eventMonitor: monitor,
+            isPanelShown: { isShown },
+            isPanelEvent: { _ in true },
+            closePanel: {
+                isShown = false
+                closeCount += 1
+            }
+        )
+        coordinator.start()
+        let rightClick = try XCTUnwrap(
+            NSEvent.mouseEvent(
+                with: .rightMouseDown,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                eventNumber: 0,
+                clickCount: 1,
+                pressure: 1
+            )
+        )
+
+        XCTAssertTrue(monitor.fireLocal(rightClick) === rightClick)
+        notificationCenter.post(
+            name: NSApplication.didResignActiveNotification,
+            object: NSApp
+        )
+        notificationCenter.post(name: NSMenu.didBeginTrackingNotification, object: NSMenu())
+        notificationCenter.post(name: NSMenu.didEndTrackingNotification, object: NSMenu())
+        try? await Task.sleep(for: .milliseconds(75))
+
+        XCTAssertTrue(isShown)
+        XCTAssertEqual(closeCount, 0)
+        coordinator.stop()
+    }
+
+    func testPanelRightClickGraceExpiresWhenNoMenuStarts() async throws {
+        let notificationCenter = NotificationCenter()
+        let monitor = RecordingPanelEventMonitor()
+        var closeCount = 0
+        let coordinator = PanelCloseCoordinator(
+            notificationCenter: notificationCenter,
+            eventMonitor: monitor,
+            isPanelShown: { true },
+            isPanelEvent: { _ in true },
+            closePanel: { closeCount += 1 }
+        )
+        coordinator.start()
+        let rightClick = try XCTUnwrap(
+            NSEvent.mouseEvent(
+                with: .rightMouseDown,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: 0,
+                windowNumber: 0,
+                context: nil,
+                eventNumber: 0,
+                clickCount: 1,
+                pressure: 1
+            )
+        )
+
+        _ = monitor.fireLocal(rightClick)
+        XCTAssertTrue(coordinator.isPanelContextMenuInteraction)
+        try? await Task.sleep(for: .milliseconds(300))
+        XCTAssertFalse(coordinator.isPanelContextMenuInteraction)
+        notificationCenter.post(
+            name: NSApplication.didResignActiveNotification,
+            object: NSApp
+        )
+
+        XCTAssertEqual(closeCount, 1)
+        coordinator.stop()
+    }
+
     func testInjectedGlobalAndLocalMonitorsCloseAndAreRemoved() async throws {
         let monitor = RecordingPanelEventMonitor()
         var isShown = true

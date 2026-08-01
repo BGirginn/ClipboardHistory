@@ -5,13 +5,13 @@ No single layer is sufficient. A beta tag requires retained evidence from the ex
 | Gate | Required evidence | Current local status (2026-08-01) |
 |---|---|---|
 | Swift build | arm64 Debug, Release, CommunityRelease; macOS 14 minimum; zero compiler/analyzer/linker diagnostics | All three configurations passed the `lipo`, `file`, `otool`, and minimum-OS gate; analyzer passed locally |
-| Unit/integration | Model, pasteboard, storage, encryption, migration, lock lifecycle, search, stack, OCR/QR | 202 current tests passed across the unit/integration and optimized benchmark gates; 0 failed |
+| Unit/integration | Model, pasteboard, storage, encryption, migration, lock lifecycle, search, stack, OCR/QR | 204 current tests passed across the unit/integration and optimized benchmark gates; 0 failed |
 | Fuzz | 10,000+ deterministic hostile inputs plus malformed archive/media cases | 10,000 hostile archive/HTML/path inputs and 512 malformed PNG/JPEG/GIF/TIFF/BMP/HEIC/PDF/RTF corpus cases passed |
-| Coverage | Every executable production Swift line, per file and aggregate, 100% | Passed: 11,850/11,850 executable production lines and every production Swift file at 100% |
+| Coverage | Every executable production Swift line, per file and aggregate, 100% | Passed: 11,880/11,880 executable production lines and every production Swift file at 100% |
 | UI automation | Status item, shortcut, panel/menu tracking, keyboard, settings, lock, paste, drag/drop, import/export | 7 isolated ad-hoc-signed UI tests passed. A self-signed Debug attempt remained in `XCUIApplication.launch()` for more than 10 minutes despite valid signatures and test entitlements; manual signed-app coverage remains pending |
 | Accessibility/visual | macOS 14/15/26, light/dark, high contrast, reduced motion/transparency, 200%, Turkish/English, VoiceOver/focus, small/multiple displays | Partial render and Turkish smoke evidence only; full matrix pending |
 | Performance | Optimized arm64 Release, warm-up, 10+ runs, p95 thresholds | Automated 5,000-item write/read/load/filter/panel-layout p95 gate passed with 20 repetitions; 10-sample idle smoke passed at 0.0% median CPU and 44,400 KB maximum RSS |
-| Sanitizers | ASan and TSan separately with `ENABLE_DEBUG_DYLIB=NO` and zero diagnostics | ASan 201 passed; TSan 201 passed; the optimized benchmark is intentionally separate; no warning or sanitizer diagnostic |
+| Sanitizers | ASan and TSan separately with `ENABLE_DEBUG_DYLIB=NO` and zero diagnostics | ASan 203 passed; TSan 203 passed; the optimized benchmark is intentionally separate; no warning or sanitizer diagnostic |
 | Mutation | Pasteboard identity, retention, authenticated decryption, search, archive, lock capture, key rotation | 7 killed, 0 survived |
 | Soak/Instruments | Eight hours; idle CPU <1%; RSS <75 MB; <10% post-warm-up growth; no crash/hang; SQLite integrity; Time Profiler/Leaks/Energy/Concurrency | Short CommunityRelease idle CPU/RSS and SQLite integrity smoke passed; eight-hour growth, crash/hang, and Instruments evidence remain pending |
 | Compatibility | arm64 on macOS 14, 15, and 26 | macOS 26.5 arm64 passed locally; macOS 14/15 and exact release-commit matrix evidence pending |
