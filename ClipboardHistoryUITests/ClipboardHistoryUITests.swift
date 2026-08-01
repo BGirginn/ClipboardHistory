@@ -2,19 +2,10 @@ import XCTest
 
 @MainActor
 final class ClipboardHistoryUITests: XCTestCase {
-    func testSearchSettingsAndIgnoreNextCopyAreKeyboardAccessible() {
+    func testSearchIsRemovedAndSettingsAndIgnoreNextCopyRemainAccessible() {
         let application = launchApplication()
         defer { application.terminate() }
-        let search = application.textFields.firstMatch
-        XCTAssertTrue(search.waitForExistence(timeout: 2))
-        search.click()
-        search.typeText("Alpha")
-        let filteredRows = application.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH 'clipboard.row.'")
-        )
-        XCTAssertEqual(filteredRows.count, 1)
-        XCTAssertTrue(application.buttons["Clear Search"].exists)
-        application.buttons["Clear Search"].click()
+        XCTAssertFalse(application.textFields.firstMatch.exists)
 
         application.buttons["Ignore Next Copy"].click()
         application.buttons["Open Settings"].click()

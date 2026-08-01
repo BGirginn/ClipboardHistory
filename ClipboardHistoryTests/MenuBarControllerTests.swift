@@ -74,7 +74,7 @@ final class MenuBarControllerTests: XCTestCase {
         context.viewModel.pauseUntil = nil
         context.viewModel.isPrivateMode = false
         context.viewModel.privateModeDidChange?(false)
-        XCTAssertEqual(statusItem.button?.toolTip, "Clipboard History (Command-Shift-V)")
+        XCTAssertEqual(statusItem.button?.toolTip, "Clipboard History (Command-Shift-V, right-click to quit)")
         controller.closePopover()
         XCTAssertFalse(controller.isPopoverShown)
         XCTAssertGreaterThanOrEqual(quickLook.closeCount, 1)
@@ -99,11 +99,15 @@ final class MenuBarControllerTests: XCTestCase {
         let anchor = NSView(frame: NSRect(x: 0, y: 0, width: 1, height: 1))
         let eventMonitor = MenuRecordingPanelEventMonitor()
         let shortcutBackend = MenuShortcutBackendStub()
+        var statusItemEvent: NSEvent?
+        var terminationCount = 0
         let dependencies = MenuBarControllerDependencies(
             makeStatusItem: { statusItem },
             makePopover: { popover },
             makePanel: { _ in panel },
-            quickLookPresenter: MenuQuickLookSpy()
+            quickLookPresenter: MenuQuickLookSpy(),
+            currentEvent: { statusItemEvent },
+            terminateApplication: { terminationCount += 1 }
         )
         let controller = MenuBarController(
             viewModel: context.viewModel,
@@ -137,6 +141,21 @@ final class MenuBarControllerTests: XCTestCase {
         controller.closePopover()
 
         statusItem.button?.performClick(nil)
+        XCTAssertTrue(popover.isShown)
+        statusItemEvent = NSEvent.mouseEvent(
+            with: .rightMouseUp,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            eventNumber: 0,
+            clickCount: 1,
+            pressure: 0
+        )
+        statusItem.button?.performClick(nil)
+        XCTAssertEqual(terminationCount, 1)
+        statusItemEvent = nil
         let event = try XCTUnwrap(
             NSEvent.otherEvent(
                 with: .applicationDefined,

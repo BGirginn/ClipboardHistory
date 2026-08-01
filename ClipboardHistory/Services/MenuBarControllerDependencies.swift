@@ -7,6 +7,24 @@ struct MenuBarControllerDependencies {
     let makePopover: () -> NSPopover
     let makePanel: (ClipboardHistoryViewModel) -> NSPanel
     let quickLookPresenter: any QuickLookPresenting
+    let currentEvent: () -> NSEvent?
+    let terminateApplication: () -> Void
+
+    init(
+        makeStatusItem: @escaping () -> NSStatusItem,
+        makePopover: @escaping () -> NSPopover,
+        makePanel: @escaping (ClipboardHistoryViewModel) -> NSPanel,
+        quickLookPresenter: any QuickLookPresenting,
+        currentEvent: @escaping () -> NSEvent? = { NSApplication.shared.currentEvent },
+        terminateApplication: @escaping () -> Void = { NSApplication.shared.terminate(nil) }
+    ) {
+        self.makeStatusItem = makeStatusItem
+        self.makePopover = makePopover
+        self.makePanel = makePanel
+        self.quickLookPresenter = quickLookPresenter
+        self.currentEvent = currentEvent
+        self.terminateApplication = terminateApplication
+    }
 
     static var live: MenuBarControllerDependencies {
         MenuBarControllerDependencies(

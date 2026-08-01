@@ -47,8 +47,10 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
                 accessibilityDescription: "Clipboard History"
             )
             button.target = self
-            button.action = #selector(togglePopoverFromStatusItem)
-            button.toolTip = "Clipboard History (Command-Shift-V)"
+            button.action = #selector(handleStatusItemAction)
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.setAccessibilityHelp("Left-click to open Clipboard History. Right-click to quit.")
+            button.toolTip = "Clipboard History (Command-Shift-V, right-click to quit)"
         }
 
         popover.behavior = .applicationDefined
@@ -159,8 +161,12 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         viewModel.lockService.recordActivity()
     }
 
-    @objc private func togglePopoverFromStatusItem() {
-        togglePopover()
+    @objc private func handleStatusItemAction() {
+        if dependencies.currentEvent()?.type == .rightMouseUp {
+            dependencies.terminateApplication()
+        } else {
+            togglePopover()
+        }
     }
 
     private func shortcutPressed() {
@@ -253,6 +259,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             systemSymbolName: symbol,
             accessibilityDescription: accessibilityDescription
         )
-        statusItem.button?.toolTip = accessibilityDescription + " (Command-Shift-V)"
+        statusItem.button?.toolTip = accessibilityDescription + " (Command-Shift-V, right-click to quit)"
     }
 }

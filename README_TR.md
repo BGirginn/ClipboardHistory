@@ -52,11 +52,12 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 ## Özellikler
 
 - Metin, URL, e-posta, kaynak kod, zengin metin, görsel, PDF ve dosya/klasör geçmişi
-- Arama, tür/tarih/kaynak filtreleri, sıralama, koleksiyonlar, etiketler, sabitlenen öğeler ve parçacıklar
+- Tür/tarih/kaynak filtreleri, sıralama, koleksiyonlar, etiketler, sabitlenen öğeler ve parçacıklar
 - Kopyalama, geri yükleme, etkin uygulamaya yapıştırma, farklı biçimde yapıştırma, Quick Look, sürükle-bırak ve toplu işlemler
 - FIFO/LIFO Yapıştırma Yığını ve klavye odaklı gezinme
 - Sistem, Açık ve Koyu görünüm seçenekleri
 - Private Mode, geçici kayıt duraklatma, uygulama hariç tutma ve Sonraki Kopyalamayı Yoksay seçimi
+- Menü çubuğu ikonuna sol tıklayarak paneli açma veya sağ tıklayarak uygulamadan çıkma
 - Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
 - Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
 - Keychain anahtarlı AES-GCM geçmiş şifrelemesi ve plaintext'e düşmeyen hata davranışı

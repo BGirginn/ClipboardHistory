@@ -491,16 +491,6 @@
         }
       }
     },
-    "Clear Search": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aramayı Temizle"
-          }
-        }
-      }
-    },
     "Clear all clipboard history?": {
       "localizations": {
         "tr": {
@@ -2157,16 +2147,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ekran kenarı"
-          }
-        }
-      }
-    },
-    "Search history or use field filters…": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geçmişte ara veya alan filtrelerini kullan…"
           }
         }
       }

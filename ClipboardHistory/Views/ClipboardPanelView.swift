@@ -6,12 +6,10 @@ struct ClipboardPanelView: View {
     @ObservedObject private var settings: AppSettings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @State private var searchIsFocused: Bool
 
-    init(viewModel: ClipboardHistoryViewModel, searchIsFocused: Bool = false) {
+    init(viewModel: ClipboardHistoryViewModel) {
         self.viewModel = viewModel
         _settings = ObservedObject(wrappedValue: viewModel.settings)
-        _searchIsFocused = State(initialValue: searchIsFocused)
     }
 
     var body: some View {
@@ -30,11 +28,6 @@ struct ClipboardPanelView: View {
                 ClipboardDetailView(item: item, viewModel: viewModel)
             } else {
                 ClipboardPanelHeaderView(viewModel: viewModel)
-                ClipboardSearchField(
-                    text: $viewModel.searchText,
-                    focusRequest: viewModel.searchFocusRequest,
-                    focusChanged: updateSearchFocus
-                )
                 ClipboardFilterBar(viewModel: viewModel)
                 if viewModel.selectedItemIDs.count > 1 {
                     ClipboardBulkActionsView(viewModel: viewModel)
@@ -50,7 +43,7 @@ struct ClipboardPanelView: View {
                     selectedItemID: viewModel.selectedItemID,
                     selectedItemIDs: viewModel.selectedItemIDs,
                     copiedItemID: viewModel.copiedItemID,
-                    hasSearch: !viewModel.searchText.isEmpty,
+                    hasSearch: false,
                     isLocked: viewModel.isLocked,
                     storage: viewModel.storage,
                     thumbnailService: viewModel.thumbnailService,
@@ -103,10 +96,6 @@ struct ClipboardPanelView: View {
         .accessibilityIdentifier("clipboard.panel")
     }
 
-    func updateSearchFocus(_ focused: Bool) {
-        searchIsFocused = focused
-    }
-
     private var itemActions: ClipboardItemActions {
         let router = ClipboardPanelItemActionRouter(viewModel: viewModel)
         return ClipboardItemActions(
@@ -132,21 +121,12 @@ struct ClipboardPanelView: View {
     }
 
     func handleKeyEvent(_ event: NSEvent) -> Bool {
-        handleKeyEvent(event, searchIsFocused: searchIsFocused)
-    }
-
-    func handleKeyEvent(_ event: NSEvent, searchIsFocused: Bool) -> Bool {
         guard !viewModel.isLocked else { return false }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        if modifiers == .command, event.charactersIgnoringModifiers?.lowercased() == "f" {
-            viewModel.focusSearch()
-            return true
-        }
         if event.keyCode == 53 {
-            viewModel.closeOrClearSearch()
+            viewModel.closePanel()
             return true
         }
-        guard !searchIsFocused else { return false }
 
         if modifiers.contains(.command), event.keyCode == 51 {
             if modifiers.contains(.shift) {

@@ -259,29 +259,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(ClipboardPasteStackView(viewModel: context.viewModel), named: "paste-stack-fifo", colorScheme: .light)
             context.viewModel.settings.pasteStackOrder = .lifo
             try render(ClipboardPasteStackView(viewModel: context.viewModel), named: "paste-stack-lifo", colorScheme: .dark)
-            var searchValue = "search"
-            try render(
-                ClipboardSearchField(
-                    text: Binding(
-                        get: { searchValue },
-                        set: { searchValue = $0 }
-                    ),
-                    focusRequest: 1,
-                    focusChanged: { _ in }
-                ),
-                named: "search-field-filled",
-                colorScheme: .light
-            )
-            searchValue = ""
-            try render(
-                ClipboardSearchField(
-                    text: Binding(get: { searchValue }, set: { searchValue = $0 }),
-                    focusRequest: 2,
-                    focusChanged: { _ in }
-                ),
-                named: "search-field-empty",
-                colorScheme: .dark
-            )
             try render(
                 ClipboardHistoryListView(
                     isHistoryEmpty: false,

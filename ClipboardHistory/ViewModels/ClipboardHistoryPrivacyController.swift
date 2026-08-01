@@ -63,16 +63,8 @@ extension ClipboardHistoryViewModel {
         requestPreview?(selectedItem)
     }
 
-    func closeOrClearSearch() {
-        if !searchText.isEmpty {
-            searchText = ""
-        } else {
-            requestClosePanel?()
-        }
-    }
-
-    func focusSearch() {
-        searchFocusRequest += 1
+    func closePanel() {
+        requestClosePanel?()
     }
 
     func toggleIgnoreNextCopy() {

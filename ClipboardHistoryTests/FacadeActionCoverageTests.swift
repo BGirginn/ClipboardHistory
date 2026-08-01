@@ -42,16 +42,10 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.previewSelected()
         XCTAssertEqual(previewed?.id, previewable.id)
 
-        context.viewModel.searchText = "query"
-        context.viewModel.closeOrClearSearch()
-        XCTAssertEqual(context.viewModel.searchText, "")
         var closeCount = 0
         context.viewModel.requestClosePanel = { closeCount += 1 }
-        context.viewModel.closeOrClearSearch()
+        context.viewModel.closePanel()
         XCTAssertEqual(closeCount, 1)
-        let originalFocusRequest = context.viewModel.searchFocusRequest
-        context.viewModel.focusSearch()
-        XCTAssertEqual(context.viewModel.searchFocusRequest, originalFocusRequest + 1)
         context.viewModel.toggleIgnoreNextCopy()
         XCTAssertTrue(context.viewModel.isIgnoringNextCopy)
         context.viewModel.toggleIgnoreNextCopy()
@@ -659,14 +653,6 @@ final class FacadeActionCoverageTests: XCTestCase {
             isLocked: false
         ).body
 
-        var query = "clear me"
-        ClipboardSearchField(
-            text: Binding(get: { query }, set: { query = $0 }),
-            focusRequest: 0,
-            focusChanged: { _ in }
-        ).clearSearch()
-        XCTAssertEqual(query, "")
-
         let png = try makePNG()
         let imageID = UUID()
         let storedImageFilename = await context.storage.storeImage(png, id: imageID)
@@ -837,11 +823,8 @@ final class FacadeActionCoverageTests: XCTestCase {
         let panel = ClipboardPanelView(viewModel: context.viewModel)
         _ = panel.body
         panel.cancelDialog()
-        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 3, modifiers: .command, characters: "f")))
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 3, modifiers: .command, characters: "f")))
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 53)))
-        panel.updateSearchFocus(true)
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125), searchIsFocused: true))
-        panel.updateSearchFocus(false)
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: [.command, .shift])))
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .option)))

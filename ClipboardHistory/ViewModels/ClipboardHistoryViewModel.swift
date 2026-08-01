@@ -13,7 +13,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published var selectedItemID: UUID?
     @Published var selectedItemIDs: Set<UUID> = []
     @Published var searchText = "" { didSet { refreshDisplayedItems() } }
-    @Published var searchFocusRequest = 0
     @Published var isShowingSettings = false
     @Published var copiedItemID: UUID?
     @Published var detailItem: ClipboardItem?

@@ -52,11 +52,12 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 ## Features
 
 - Text, URL, email, source-code, rich-text, image, PDF, and file/folder history
-- Search, type/date/source filters, sorting, collections, tags, pinned items, and snippets
+- Type/date/source filters, sorting, collections, tags, pinned items, and snippets
 - Copy, restore, paste to the active app, Paste As, Quick Look, drag and drop, and bulk actions
 - FIFO/LIFO Paste Stack and keyboard-oriented navigation
 - System, Light, and Dark appearance options
 - Private Mode, temporary recording pause, app exclusions, and Ignore Next Copy toggle
+- Left-click the menu-bar icon to open the panel or right-click it to quit the app
 - Optional application lock using Touch ID or the Mac login password
 - Local secret detection and temporary handling for sensitive clipboard items
 - AES-GCM history encryption with a Keychain-backed key and no plaintext fallback
