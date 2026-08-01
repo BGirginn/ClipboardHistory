@@ -4,7 +4,7 @@ ClipboardHistory is a private, native macOS menu bar clipboard manager written i
 
 The app has no networking, telemetry, analytics, cloud service, account system, or third-party dependency.
 
-> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 run passes 126 unit/integration tests and 6 isolated UI tests; the three build configurations remain arm64-only with a macOS 14 minimum. A stable self-signed Community identity is installed, and an entitlement-free `1.0.0 (10001)` CommunityRelease build passed signature, designated-requirement, architecture, and local launch checks without an Apple account or profile. The last pre-signing-change coverage measurement was only 73.14% and must be regenerated; full signed UI, accessibility/visual, soak/Instruments, macOS 14/15/26, encrypted signing-key backup, and clean-machine distribution gates remain incomplete. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
+> **Pre-release status:** `v1.0.0-beta.1` has not been tagged or published. The current local arm64 evidence covers 201 unit/integration/benchmark tests and 7 isolated UI tests. Every production Swift file and the app aggregate are at 100% line coverage (11,714/11,714), all three build configurations are arm64-only with a macOS 14 minimum, ASan/TSan pass 200 eligible tests each, the optimized p95 benchmark passes, and all 7 critical mutations are killed. A stable self-signed Community identity is installed, and an entitlement-free `1.0.0 (10001)` artifact passes signature, designated-requirement, architecture, checksum, DMG, and SPDX checks without an Apple account or profile. Xcode UI automation cannot complete its launch handshake when the Debug app is self-signed, so clean-user manual UI/Gatekeeper evidence remains mandatory alongside the accessibility/visual matrix, eight-hour soak/Instruments, macOS 14/15/26 runs, and encrypted signing-key backup. No GitHub Release or Homebrew Cask should be advertised until [the test matrix](docs/TESTING.md) is fully green.
 
 [Türkçe README](README_TR.md)
 
@@ -198,7 +198,7 @@ Imports validate the archive version, total size, item count, asset names, and r
 
 ## Performance observations
 
-The latest provisional measurements and the stricter Release/p95 gates are recorded in [the performance report](docs/PERFORMANCE.md). Current numbers are observations, not release evidence; Instruments, repeated optimized measurements, and the eight-hour soak remain mandatory.
+The optimized Release/p95 gate and remaining live-process thresholds are recorded in [the performance report](docs/PERFORMANCE.md). The automated benchmark is release evidence; Instruments, live panel timing, CPU/RSS measurements, and the eight-hour soak remain mandatory.
 
 ## Known platform limitations and review boundary
 

@@ -31,30 +31,29 @@ This report records local evidence for the clean `beta/arm64-opt-in-lock` branch
 
 | Check | Result |
 |---|---|
-| Unit/integration suite | 126 passed, 0 failed |
-| UI suite | 6 passed, 0 failed with isolated ad-hoc production entitlements |
-| Merged production line coverage | Previous source state: 73.1409%, 8,360/11,430 executable lines; regeneration required |
-| Per-file 100% coverage gate | Failed as designed; no production source exclusion |
+| Unit/integration/benchmark suite | 201 current tests covered by the unit/integration and optimized benchmark gates, 0 failed |
+| UI suite | 7 passed, 0 failed with isolated ad-hoc production entitlements |
+| Merged production line coverage | 100%, 11,714/11,714 executable lines |
+| Per-file 100% coverage gate | Passed for every production Swift file; no production source exclusion |
 | Debug/Release/CommunityRelease | Passed; exact `arm64`; minimum macOS 14 |
-| ASan | 125 passed; no compiler/linker/sanitizer diagnostic |
-| TSan | 125 passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
-| Deterministic fuzz | 10,000 hostile inputs passed; expanded media corpus pending |
+| ASan | 200 eligible tests passed; no compiler/linker/sanitizer diagnostic |
+| TSan | 200 eligible tests passed with `ENABLE_DEBUG_DYLIB=NO`; no duplicate-rpath or sanitizer diagnostic |
+| Deterministic fuzz | 10,000 hostile validation inputs plus 512 malformed media corpus cases passed |
 | Critical mutation set | 7 killed, 0 survived |
 | Optimized performance | Warm-up plus 10-repeat 5,000-item p95 assertions passed |
 | Localization/static/source structure | Passed |
 | Accountless signing | Stable `ClipboardHistory Community Beta` identity installed; SHA-256 `13:19:E8:8B:23:2F:B0:F1:70:A5:DE:8B:A8:32:D3:58:72:E1:C9:5C:D0:3D:A9:59:90:23:47:62:3D:ED:46:CC` |
 | Signed CommunityRelease | `1.0.0 (10001)`, beta label `1.0.0-beta.1`, exact arm64, empty final entitlements, hardened runtime, designated requirement verified; launched and quit cleanly |
 
-The previous coverage evidence under `.build/CoverageAfterAdapters` predates the signing/Keychain source change and is not current release evidence. The current unit result is `/private/tmp/ClipboardHistorySelfSignedUnit2.xcresult`; the current isolated UI result is `/private/tmp/ClipboardHistoryAdHocUIFinal.xcresult`. These paths are local working-session evidence and are not committed release artifacts.
+The merged coverage result is retained locally as `Combined.xccovreport` alongside its unit and UI `.xcresult` bundles. Release evidence paths are working-session artifacts and are not committed into the source repository.
 
 ## Remaining release blockers
 
-1. The current source coverage merge has not been regenerated and the previous value was only 73.14%, not the mandatory 100%. Uncovered code remains in system integrations, error paths, Quick Look, drag providers, archive/mutation/privacy orchestration, recovery states, media rows, and SwiftUI action branches.
-2. The six UI tests do not cover the complete protected self-signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state matrix.
-3. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
-4. Idle CPU, RSS, actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak remain incomplete.
-5. Only macOS 26.5 arm64 executed locally. macOS 14/15/26 evidence from the exact clean release commit remains required.
-6. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
-7. No quarantined clean-user/VM Gatekeeper test, checksum comparison, public-repository transition, tag, GitHub Release, or Homebrew Cask audit/install lifecycle exists.
+1. The seven isolated UI tests cover the automated action matrix, but the self-signed Debug app did not complete Xcode's `XCUIApplication.launch()` handshake. The final self-signed status-item, Accessibility paste, lock settings, drag/drop, import/export, collection/stack, multi-display, and failure-state flows still require a clean-user manual run.
+2. Full VoiceOver/focus, high contrast, Reduce Motion/Transparency, 200% scaling, light/dark, both locales, small-screen, multi-display, and macOS-version evidence is absent.
+3. Idle CPU, RSS, actual panel-visible timing, scrolling, large-media stress, Instruments, and the eight-hour soak remain incomplete.
+4. Only macOS 26.5 arm64 executed locally. macOS 14/15/26 evidence from the exact clean release commit remains required.
+5. The self-signed identity has not yet been exported from Keychain Access as an encrypted `.p12` backup stored outside the repository.
+6. A quarantined temporary artifact copy was rejected by Gatekeeper as expected for an unnotarized self-signed app. The required clean-user/VM Open Anyway test, checksum comparison, public-repository transition, tag, GitHub Release, and Homebrew Cask audit/install lifecycle remain absent.
 
-Because these gates are mandatory, the repository was not made public and no tag, GitHub Release, artifact, tap repository, or Cask was created.
+Because these gates are mandatory, the repository was not made public and no tag, GitHub Release, tap repository, or Cask was created. Local candidate ZIP/DMG/SBOM artifacts exist only as verification inputs and are not a published release.

@@ -9,4 +9,4 @@
 - File bookmarks cannot restore deleted files, disconnected volumes, or revoked access.
 - Secret detection is heuristic and can have false positives or negatives.
 - APFS snapshots, backups, and SSD wear levelling prevent a physical-erasure guarantee.
-- Signed UI automation, the full visual/VoiceOver matrix, Instruments, eight-hour soak, expanded media fuzz corpus, and 100% line coverage remain beta blockers.
+- Self-signed manual UI validation, the full visual/VoiceOver matrix, Instruments, and the eight-hour soak remain beta blockers. The expanded media corpus and 100% production line-coverage gates pass locally.
