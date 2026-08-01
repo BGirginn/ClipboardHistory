@@ -9,10 +9,10 @@ enum EncryptionServiceError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case let .keychain(status): "Keychain operation failed with status \(status)."
-        case .invalidKey: "The encryption key is invalid."
-        case .invalidCiphertext: "Encrypted clipboard data is invalid."
-        case .encryptionUnavailable: "Encrypted storage is currently unavailable."
+        case let .keychain(status): String(localized: "Keychain operation failed with status \(status).")
+        case .invalidKey: String(localized: "The encryption key is invalid.")
+        case .invalidCiphertext: String(localized: "Encrypted clipboard data is invalid.")
+        case .encryptionUnavailable: String(localized: "Encrypted storage is currently unavailable.")
         }
     }
 }

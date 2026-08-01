@@ -15,6 +15,8 @@ final class AppSettings: ObservableObject {
     @Published var allowedBundleIdentifiersText: String { didSet { save() } }
     @Published var encryptionMode: EncryptionMode { didSet { save() } }
     @Published var autoLockOption: AutoLockOption { didSet { save() } }
+    @Published private(set) var applicationLockEnabled: Bool { didSet { save() } }
+    @Published var captureWhileLocked: Bool { didSet { save() } }
     @Published var retentionDays: Int { didSet { save() } }
     @Published var imageRetentionDays: Int { didSet { save() } }
     @Published var maximumStorageMegabytes: Int { didSet { save() } }
@@ -25,13 +27,33 @@ final class AppSettings: ObservableObject {
     @Published var captureRichText: Bool { didSet { save() } }
     @Published var capturePDFs: Bool { didSet { save() } }
     @Published var captureFiles: Bool { didSet { save() } }
+    @Published var imageTextRecognitionEnabled: Bool { didSet { save() } }
+    @Published var ignoreUniversalClipboard: Bool { didSet { save() } }
+    @Published var ignoredPasteboardTypesText: String { didSet { save() } }
+    @Published var pasteStackOrder: PasteStackOrder { didSet { save() } }
+    @Published var pasteStackRemovesUsedItems: Bool { didSet { save() } }
+    @Published var pasteStackTimeoutMinutes: Int { didSet { save() } }
+    @Published var globalShortcutPresetID: String { didSet { save() } }
+    @Published var shortcutActivationMode: ShortcutActivationMode { didSet { save() } }
+    @Published var panelPresentationMode: PanelPresentationMode { didSet { save() } }
+    @Published var panelScreenEdge: PanelScreenEdge { didSet { save() } }
 
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         globalShortcutEnabled = defaults.object(forKey: Key.globalShortcutEnabled) as? Bool ?? true
-        closePanelAfterCopying = defaults.object(forKey: Key.closePanelAfterCopying) as? Bool ?? true
+        if defaults.integer(forKey: Key.closePanelAfterCopyingMigrationVersion)
+            < Self.closePanelAfterCopyingMigrationVersion {
+            closePanelAfterCopying = false
+            defaults.set(false, forKey: Key.closePanelAfterCopying)
+            defaults.set(
+                Self.closePanelAfterCopyingMigrationVersion,
+                forKey: Key.closePanelAfterCopyingMigrationVersion
+            )
+        } else {
+            closePanelAfterCopying = defaults.object(forKey: Key.closePanelAfterCopying) as? Bool ?? false
+        }
         historyLimit = max(10, defaults.integer(forKey: Key.historyLimit).nonzero(or: 100))
         thumbnailCacheMegabytes = max(
             8,
@@ -56,9 +78,30 @@ final class AppSettings: ObservableObject {
         encryptionMode = EncryptionMode(
             rawValue: defaults.string(forKey: Key.encryptionMode) ?? ""
         ) ?? .sensitive
-        autoLockOption = AutoLockOption(
+        let storedAutoLockOption = AutoLockOption(
             rawValue: defaults.string(forKey: Key.autoLockOption) ?? ""
         ) ?? .never
+        autoLockOption = storedAutoLockOption
+        if defaults.integer(forKey: Key.applicationLockMigrationVersion)
+            < Self.applicationLockMigrationVersion {
+            let migratedLockEnabled = storedAutoLockOption != .never
+            let migratedCaptureWhileLocked = storedAutoLockOption == .never
+            applicationLockEnabled = migratedLockEnabled
+            captureWhileLocked = migratedCaptureWhileLocked
+            defaults.set(migratedLockEnabled, forKey: Key.applicationLockEnabled)
+            defaults.set(migratedCaptureWhileLocked, forKey: Key.captureWhileLocked)
+            defaults.set(
+                Self.applicationLockMigrationVersion,
+                forKey: Key.applicationLockMigrationVersion
+            )
+        } else {
+            applicationLockEnabled = defaults.object(
+                forKey: Key.applicationLockEnabled
+            ) as? Bool ?? false
+            captureWhileLocked = defaults.object(
+                forKey: Key.captureWhileLocked
+            ) as? Bool ?? true
+        }
         retentionDays = max(1, defaults.integer(forKey: Key.retentionDays).nonzero(or: 90))
         imageRetentionDays = max(
             1,
@@ -77,6 +120,36 @@ final class AppSettings: ObservableObject {
         captureRichText = defaults.object(forKey: Key.captureRichText) as? Bool ?? true
         capturePDFs = defaults.object(forKey: Key.capturePDFs) as? Bool ?? true
         captureFiles = defaults.object(forKey: Key.captureFiles) as? Bool ?? true
+        imageTextRecognitionEnabled = defaults.object(
+            forKey: Key.imageTextRecognitionEnabled
+        ) as? Bool ?? true
+        ignoreUniversalClipboard = defaults.object(
+            forKey: Key.ignoreUniversalClipboard
+        ) as? Bool ?? false
+        ignoredPasteboardTypesText = defaults.string(
+            forKey: Key.ignoredPasteboardTypesText
+        ) ?? ""
+        pasteStackOrder = PasteStackOrder(
+            rawValue: defaults.string(forKey: Key.pasteStackOrder) ?? ""
+        ) ?? .fifo
+        pasteStackRemovesUsedItems = defaults.object(
+            forKey: Key.pasteStackRemovesUsedItems
+        ) as? Bool ?? true
+        pasteStackTimeoutMinutes = max(
+            0,
+            defaults.integer(forKey: Key.pasteStackTimeoutMinutes)
+        )
+        globalShortcutPresetID = defaults.string(forKey: Key.globalShortcutPresetID)
+            ?? GlobalShortcut.defaultShortcut.id
+        shortcutActivationMode = ShortcutActivationMode(
+            rawValue: defaults.string(forKey: Key.shortcutActivationMode) ?? ""
+        ) ?? .toggle
+        panelPresentationMode = PanelPresentationMode(
+            rawValue: defaults.string(forKey: Key.panelPresentationMode) ?? ""
+        ) ?? .popover
+        panelScreenEdge = PanelScreenEdge(
+            rawValue: defaults.string(forKey: Key.panelScreenEdge) ?? ""
+        ) ?? .right
     }
 
     var excludedBundleIdentifiers: Set<String> {
@@ -85,6 +158,23 @@ final class AppSettings: ObservableObject {
 
     var allowedBundleIdentifiers: Set<String> {
         parseBundleIdentifiers(allowedBundleIdentifiersText)
+    }
+
+    var ignoredPasteboardTypes: Set<String> {
+        var types = parseBundleIdentifiers(ignoredPasteboardTypesText)
+        if ignoreUniversalClipboard {
+            types.insert("com.apple.is-remote-clipboard")
+        }
+        return types
+    }
+
+    var globalShortcut: GlobalShortcut {
+        GlobalShortcut.presets.first { $0.id == globalShortcutPresetID }
+            ?? GlobalShortcut.defaultShortcut
+    }
+
+    func setApplicationLockEnabled(_ enabled: Bool) {
+        applicationLockEnabled = enabled
     }
 
     private func parseBundleIdentifiers(_ value: String) -> Set<String> {
@@ -108,6 +198,8 @@ final class AppSettings: ObservableObject {
         defaults.set(allowedBundleIdentifiersText, forKey: Key.allowedBundleIdentifiersText)
         defaults.set(encryptionMode.rawValue, forKey: Key.encryptionMode)
         defaults.set(autoLockOption.rawValue, forKey: Key.autoLockOption)
+        defaults.set(applicationLockEnabled, forKey: Key.applicationLockEnabled)
+        defaults.set(captureWhileLocked, forKey: Key.captureWhileLocked)
         defaults.set(retentionDays, forKey: Key.retentionDays)
         defaults.set(imageRetentionDays, forKey: Key.imageRetentionDays)
         defaults.set(maximumStorageMegabytes, forKey: Key.maximumStorageMegabytes)
@@ -118,6 +210,16 @@ final class AppSettings: ObservableObject {
         defaults.set(captureRichText, forKey: Key.captureRichText)
         defaults.set(capturePDFs, forKey: Key.capturePDFs)
         defaults.set(captureFiles, forKey: Key.captureFiles)
+        defaults.set(imageTextRecognitionEnabled, forKey: Key.imageTextRecognitionEnabled)
+        defaults.set(ignoreUniversalClipboard, forKey: Key.ignoreUniversalClipboard)
+        defaults.set(ignoredPasteboardTypesText, forKey: Key.ignoredPasteboardTypesText)
+        defaults.set(pasteStackOrder.rawValue, forKey: Key.pasteStackOrder)
+        defaults.set(pasteStackRemovesUsedItems, forKey: Key.pasteStackRemovesUsedItems)
+        defaults.set(pasteStackTimeoutMinutes, forKey: Key.pasteStackTimeoutMinutes)
+        defaults.set(globalShortcutPresetID, forKey: Key.globalShortcutPresetID)
+        defaults.set(shortcutActivationMode.rawValue, forKey: Key.shortcutActivationMode)
+        defaults.set(panelPresentationMode.rawValue, forKey: Key.panelPresentationMode)
+        defaults.set(panelScreenEdge.rawValue, forKey: Key.panelScreenEdge)
     }
 
     private static let suggestedExcludedApplications = """
@@ -128,10 +230,13 @@ final class AppSettings: ObservableObject {
     com.lastpass.LastPass
     com.apple.keychainaccess
     """
+    private static let closePanelAfterCopyingMigrationVersion = 1
+    private static let applicationLockMigrationVersion = 1
 
     private enum Key {
         static let globalShortcutEnabled = "globalShortcutEnabled"
         static let closePanelAfterCopying = "closePanelAfterCopying"
+        static let closePanelAfterCopyingMigrationVersion = "closePanelAfterCopyingMigrationVersion"
         static let historyLimit = "historyLimit"
         static let thumbnailCacheMegabytes = "thumbnailCacheMegabytes"
         static let selectedFilter = "selectedFilter"
@@ -142,6 +247,9 @@ final class AppSettings: ObservableObject {
         static let allowedBundleIdentifiersText = "allowedBundleIdentifiersText"
         static let encryptionMode = "encryptionMode"
         static let autoLockOption = "autoLockOption"
+        static let applicationLockEnabled = "applicationLockEnabled"
+        static let captureWhileLocked = "captureWhileLocked"
+        static let applicationLockMigrationVersion = "applicationLockMigrationVersion"
         static let retentionDays = "retentionDays"
         static let imageRetentionDays = "imageRetentionDays"
         static let maximumStorageMegabytes = "maximumStorageMegabytes"
@@ -152,6 +260,16 @@ final class AppSettings: ObservableObject {
         static let captureRichText = "captureRichText"
         static let capturePDFs = "capturePDFs"
         static let captureFiles = "captureFiles"
+        static let imageTextRecognitionEnabled = "imageTextRecognitionEnabled"
+        static let ignoreUniversalClipboard = "ignoreUniversalClipboard"
+        static let ignoredPasteboardTypesText = "ignoredPasteboardTypesText"
+        static let pasteStackOrder = "pasteStackOrder"
+        static let pasteStackRemovesUsedItems = "pasteStackRemovesUsedItems"
+        static let pasteStackTimeoutMinutes = "pasteStackTimeoutMinutes"
+        static let globalShortcutPresetID = "globalShortcutPresetID"
+        static let shortcutActivationMode = "shortcutActivationMode"
+        static let panelPresentationMode = "panelPresentationMode"
+        static let panelScreenEdge = "panelScreenEdge"
     }
 }
 

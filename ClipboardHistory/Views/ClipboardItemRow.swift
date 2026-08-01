@@ -1,21 +1,27 @@
 import SwiftUI
 
-struct ClipboardItemRow: View {
+struct ClipboardItemRow: View, @MainActor Equatable {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    let isSelected: Bool
+    let isCopied: Bool
+    let isLocked: Bool
+    let storage: StorageService
+    let thumbnailService: ThumbnailService
+    let actions: ClipboardItemActions
 
     @State private var isHovering = false
 
-    private var isSelected: Bool { viewModel.selectedItemID == item.id }
-    private var isCopied: Bool { viewModel.copiedItemID == item.id }
-
     var body: some View {
         Button {
-            viewModel.selectedItemID = item.id
-            viewModel.restore(item)
+            actions.selectAndCopy(item)
         } label: {
             HStack(spacing: 0) {
-                rowContent
+                ClipboardItemRowContent(
+                    item: item,
+                    storage: storage,
+                    thumbnailService: thumbnailService,
+                    isLocked: isLocked
+                )
 
                 if isCopied {
                     Label("Copied", systemImage: "checkmark.circle.fill")
@@ -40,9 +46,9 @@ struct ClipboardItemRow: View {
                 .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 1.5)
         }
         .onHover { isHovering = $0 }
-        .simultaneousGesture(TapGesture().onEnded { viewModel.selectedItemID = item.id })
+        .onDrag { actions.dragProvider(item) }
         .contextMenu {
-            ClipboardItemContextMenu(item: item, viewModel: viewModel)
+            ClipboardItemContextMenu(item: item, actions: actions)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
@@ -50,28 +56,6 @@ struct ClipboardItemRow: View {
         .accessibilityValue(accessibilityValue)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
         .accessibilityIdentifier("clipboard.row.\(item.id.uuidString)")
-    }
-
-    @ViewBuilder
-    private var rowContent: some View {
-        switch item.type {
-        case .text, .richText:
-            TextClipboardItemRow(item: item, isLocked: viewModel.isLocked)
-        case .image, .imageGroup:
-            ImageClipboardItemRow(
-                item: item,
-                storage: viewModel.storage,
-                thumbnailService: viewModel.thumbnailService,
-                isLocked: viewModel.isLocked
-            )
-        case .pdf, .files:
-            DocumentClipboardItemRow(
-                item: item,
-                storage: viewModel.storage,
-                thumbnailService: viewModel.thumbnailService,
-                isLocked: viewModel.isLocked
-            )
-        }
     }
 
     private var backgroundStyle: some ShapeStyle {
@@ -90,7 +74,7 @@ struct ClipboardItemRow: View {
         case .pdf: kind = "PDF"
         case .files: kind = "Files, \(item.fileURLs.count) items"
         }
-        let preview = item.isSensitive || viewModel.isLocked ? "content hidden" : item.displayTitle ?? item.text ?? ""
+        let preview = item.isSensitive || isLocked ? "content hidden" : item.displayTitle ?? item.text ?? ""
         return "\(kind), \(preview), copied \(DateFormatting.timestamp(for: item.creationDate))"
     }
 
@@ -102,5 +86,12 @@ struct ClipboardItemRow: View {
             isCopied ? "copied" : nil,
             item.isEncrypted ? "encrypted" : nil
         ].compactMap { $0 }.joined(separator: ", ")
+    }
+
+    static func == (lhs: ClipboardItemRow, rhs: ClipboardItemRow) -> Bool {
+        lhs.item == rhs.item
+            && lhs.isSelected == rhs.isSelected
+            && lhs.isCopied == rhs.isCopied
+            && lhs.isLocked == rhs.isLocked
     }
 }

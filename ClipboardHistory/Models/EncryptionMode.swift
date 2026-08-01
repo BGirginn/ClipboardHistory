@@ -9,9 +9,9 @@ enum EncryptionMode: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .off: "Off"
-        case .sensitive: "Sensitive Items"
-        case .all: "All Items"
+        case .off: String(localized: "Off")
+        case .sensitive: String(localized: "Sensitive Items")
+        case .all: String(localized: "All Items")
         }
     }
 }

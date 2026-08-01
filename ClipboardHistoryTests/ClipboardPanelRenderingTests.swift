@@ -22,6 +22,10 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let context = makeContext()
         do {
             context.viewModel.setPrivateModeEnabled(true)
+            context.viewModel.lockService.configure(
+                enabled: true,
+                option: .never
+            )
             context.viewModel.lock()
             try render(
                 ClipboardPanelView(viewModel: context.viewModel),

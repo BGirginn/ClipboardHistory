@@ -10,6 +10,8 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
     private var monitor: ClipboardMonitor!
     private var pasteboard: NSPasteboard!
     private var viewModel: ClipboardHistoryViewModel!
+    private var defaults: UserDefaults!
+    private var defaultsSuite: String!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -20,10 +22,13 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
         storage = StorageService(baseDirectory: temporaryDirectory)
         pasteboard = NSPasteboard(name: .init("ClipboardHistoryTests-\(UUID().uuidString)"))
         monitor = ClipboardMonitor(pasteboard: pasteboard)
+        defaultsSuite = "ClipboardHistoryViewModelDefaults-\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: defaultsSuite)
         viewModel = ClipboardHistoryViewModel(
             storage: storage,
             monitor: monitor,
             restorePasteboard: pasteboard,
+            settings: AppSettings(defaults: defaults),
             startsAutomatically: false
         )
     }
@@ -33,6 +38,9 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
         viewModel = nil
         monitor = nil
         pasteboard = nil
+        defaults.removePersistentDomain(forName: defaultsSuite)
+        defaults = nil
+        defaultsSuite = nil
         await storage?.close()
         storage = nil
         if let temporaryDirectory {
@@ -113,6 +121,122 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.items.count, 1)
         XCTAssertEqual(pasteboard.data(forType: .png), data)
+    }
+
+    func testDeletingCurrentClipboardItemAlsoClearsPasteboard() async throws {
+        let text = "delete current clipboard"
+        let hash = HashUtility.sha256(text: text)
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(text, forType: .string))
+        await viewModel.insert(
+            .text(value: text, hash: hash),
+            pasteboardIdentity: monitor.currentIdentity
+        )
+        let item = try XCTUnwrap(viewModel.items.first)
+
+        await viewModel.deleteAndWait(item)
+
+        let persistedHistory = await storage.loadHistory()
+        XCTAssertNil(pasteboard.string(forType: .string))
+        XCTAssertTrue(viewModel.items.isEmpty)
+        XCTAssertTrue(persistedHistory.isEmpty)
+    }
+
+    func testDeletingHistoryItemPreservesDifferentCurrentClipboardContent() async throws {
+        let savedText = "saved history item"
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(savedText, forType: .string))
+        await viewModel.insert(
+            .text(value: savedText, hash: HashUtility.sha256(text: savedText)),
+            pasteboardIdentity: monitor.currentIdentity
+        )
+        let item = try XCTUnwrap(viewModel.items.first)
+        let currentText = "different current clipboard"
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(currentText, forType: .string))
+
+        await viewModel.deleteAndWait(item)
+
+        XCTAssertEqual(pasteboard.string(forType: .string), currentText)
+    }
+
+    func testDeleteClearsPasteboardBeforeAsynchronousStorageCleanup() async throws {
+        let text = "clear immediately"
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(text, forType: .string))
+        await viewModel.insert(
+            .text(value: text, hash: HashUtility.sha256(text: text)),
+            pasteboardIdentity: monitor.currentIdentity
+        )
+        let item = try XCTUnwrap(viewModel.items.first)
+
+        viewModel.delete(item)
+
+        XCTAssertNil(pasteboard.string(forType: .string))
+        XCTAssertTrue(viewModel.items.isEmpty)
+    }
+
+    func testDuplicateDeliveryUpdatesPasteboardIdentity() async throws {
+        let text = "duplicate identity"
+        let content = ClipboardContent.text(value: text, hash: HashUtility.sha256(text: text))
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(text, forType: .string))
+        await viewModel.insert(content, pasteboardIdentity: monitor.currentIdentity)
+        pasteboard.clearContents()
+        XCTAssertTrue(pasteboard.setString(text, forType: .string))
+        await viewModel.insert(content, pasteboardIdentity: monitor.currentIdentity)
+        let item = try XCTUnwrap(viewModel.items.first)
+
+        await viewModel.deleteAndWait(item)
+
+        XCTAssertNil(pasteboard.string(forType: .string))
+    }
+
+    func testRestoredItemIdentityAllowsImmediatePasteboardClearOnDelete() async throws {
+        let text = "restore then delete"
+        await viewModel.insert(.text(value: text, hash: HashUtility.sha256(text: text)))
+        let item = try XCTUnwrap(viewModel.items.first)
+        await viewModel.restoreAndWait(item)
+
+        await viewModel.deleteAndWait(item)
+
+        XCTAssertNil(pasteboard.string(forType: .string))
+    }
+
+    func testImmediateDeleteCannotBeUndoneByPendingUsageWrite() async throws {
+        let text = "usage write deletion race"
+        await viewModel.insert(.text(value: text, hash: HashUtility.sha256(text: text)))
+        let item = try XCTUnwrap(viewModel.items.first)
+        await viewModel.restoreAndWait(item)
+
+        await viewModel.deleteAndWait(item)
+
+        let persisted = await storage.loadHistory()
+        XCTAssertTrue(persisted.isEmpty)
+    }
+
+    func testImmediateDeleteCannotBeUndoneByPendingPinWrite() async throws {
+        let text = "pin write deletion race"
+        await viewModel.insert(.text(value: text, hash: HashUtility.sha256(text: text)))
+        let item = try XCTUnwrap(viewModel.items.first)
+        viewModel.togglePin(item)
+
+        await viewModel.deleteAndWait(item)
+
+        let persisted = await storage.loadHistory()
+        XCTAssertTrue(persisted.isEmpty)
+    }
+
+    func testClearHistoryCannotBeUndoneByPendingUsageWrite() async throws {
+        let text = "usage write clear race"
+        await viewModel.insert(.text(value: text, hash: HashUtility.sha256(text: text)))
+        let item = try XCTUnwrap(viewModel.items.first)
+        await viewModel.restoreAndWait(item)
+
+        await viewModel.clearHistoryNow()
+
+        let persisted = await storage.loadHistory()
+        XCTAssertTrue(persisted.isEmpty)
     }
 
     private func makePNGData() -> Data? {

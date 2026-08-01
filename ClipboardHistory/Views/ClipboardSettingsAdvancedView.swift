@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipboardSettingsAdvancedView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
+    @State private var newCollectionName = ""
 
     var body: some View {
         Form {
@@ -29,6 +30,77 @@ struct ClipboardSettingsAdvancedView: View {
                     "Capture files and folders",
                     isOn: $viewModel.settings.captureFiles
                 )
+                Toggle(
+                    "Recognize text in images on device",
+                    isOn: $viewModel.settings.imageTextRecognitionEnabled
+                )
+            }
+
+            Section("Ignored Pasteboard Types") {
+                Toggle(
+                    "Ignore Universal Clipboard",
+                    isOn: $viewModel.settings.ignoreUniversalClipboard
+                )
+                TextField(
+                    "Custom UTI identifiers",
+                    text: $viewModel.settings.ignoredPasteboardTypesText,
+                    axis: .vertical
+                )
+                .font(.body.monospaced())
+                .lineLimit(2...5)
+                Button(
+                    "Ignore Next Copy",
+                    systemImage: "eye.slash",
+                    action: viewModel.ignoreNextCopy
+                )
+                Text("Transient, concealed, and auto-generated pasteboard types are always ignored.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Collections") {
+                HStack {
+                    TextField("New collection name", text: $newCollectionName)
+                    Button("Add", systemImage: "plus") {
+                        viewModel.createCollection(named: newCollectionName)
+                        newCollectionName = ""
+                    }
+                    .disabled(newCollectionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+                ForEach(viewModel.collections) { collection in
+                    HStack {
+                        Label(collection.name, systemImage: "folder")
+                        Spacer()
+                        Button("Delete \(collection.name)", systemImage: "trash", role: .destructive) {
+                            viewModel.deleteCollection(collection)
+                        }
+                        .labelStyle(.iconOnly)
+                    }
+                }
+                Text("Collection names and item tags are encrypted at rest.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Paste Stack") {
+                Picker("Order", selection: $viewModel.settings.pasteStackOrder) {
+                    ForEach(PasteStackOrder.allCases) { order in
+                        Text(order.title).tag(order)
+                    }
+                }
+                Toggle(
+                    "Remove an item after it is pasted",
+                    isOn: $viewModel.settings.pasteStackRemovesUsedItems
+                )
+                Stepper(
+                    "Reset after \(viewModel.settings.pasteStackTimeoutMinutes) minutes (0 means never)",
+                    value: $viewModel.settings.pasteStackTimeoutMinutes,
+                    in: 0...120
+                )
+                Button("Reset Paste Stack", systemImage: "xmark.circle") {
+                    viewModel.resetPasteStack()
+                }
+                .disabled(viewModel.pasteStackItems.isEmpty)
             }
 
             Section("Database") {

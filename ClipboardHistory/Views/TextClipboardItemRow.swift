@@ -48,6 +48,7 @@ private extension ClipboardContentSubtype {
         case .email: "Email"
         case .filePath: "File Path"
         case .sourceCode: "Source Code"
+        case .color: "Color"
         case .rtf: "RTF"
         case .html: "HTML"
         case .image: "Image"

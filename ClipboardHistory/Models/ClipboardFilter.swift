@@ -5,15 +5,17 @@ enum ClipboardFilter: String, Codable, CaseIterable, Identifiable, Sendable {
     case text
     case images
     case pinned
+    case snippets
 
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .all: "All"
-        case .text: "Text"
-        case .images: "Images"
-        case .pinned: "Pinned"
+        case .all: String(localized: "All")
+        case .text: String(localized: "Text")
+        case .images: String(localized: "Images")
+        case .pinned: String(localized: "Pinned")
+        case .snippets: String(localized: "Snippets")
         }
     }
 }

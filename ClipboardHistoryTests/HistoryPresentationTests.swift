@@ -73,6 +73,11 @@ final class HistoryPresentationTests: XCTestCase {
         viewModel.settingsDidChange()
         XCTAssertEqual(viewModel.pinnedItems.map(\.hash), [textItem.hash])
         XCTAssertTrue(viewModel.recentItems.isEmpty)
+        viewModel.toggleSnippet(textItem)
+        settings.selectedFilter = .snippets
+        viewModel.settingsDidChange()
+        XCTAssertEqual(viewModel.pinnedItems.map(\.hash), [textItem.hash])
+        XCTAssertTrue(viewModel.recentItems.isEmpty)
     }
 
     func testSortModesAndRecentlyUsedUpdate() async throws {
@@ -104,6 +109,32 @@ final class HistoryPresentationTests: XCTestCase {
         XCTAssertEqual(viewModel.copiedItemID, selected.id)
         try await Task.sleep(for: .milliseconds(1_100))
         XCTAssertNil(viewModel.copiedItemID)
+    }
+
+    func testCopyKeepsPanelOpenByDefault() async throws {
+        await insert("keep open")
+        let item = try XCTUnwrap(viewModel.items.first)
+        var closeCount = 0
+        viewModel.requestClosePanel = { closeCount += 1 }
+
+        await viewModel.restoreAndWait(item)
+        try await Task.sleep(for: .milliseconds(350))
+
+        XCTAssertEqual(closeCount, 0)
+    }
+
+    func testUserEnabledCloseAfterCopyingUsesQuarterSecondDelay() async throws {
+        settings.closePanelAfterCopying = true
+        await insert("close after copy")
+        let item = try XCTUnwrap(viewModel.items.first)
+        var closeCount = 0
+        viewModel.requestClosePanel = { closeCount += 1 }
+
+        await viewModel.restoreAndWait(item)
+        XCTAssertEqual(closeCount, 0)
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertEqual(closeCount, 1)
     }
 
     func testDuplicateScopesAndHistoryLimitExcludePinned() async {

@@ -16,17 +16,19 @@ struct ClipboardPanelHeaderView: View {
 
                 Spacer(minLength: 8)
 
-                ClipboardHeaderActionButton(
-                    title: viewModel.isLocked ? "Unlock Clipboard History" : "Lock Clipboard History",
-                    systemImage: viewModel.isLocked ? "lock.fill" : "lock.open",
-                    helpText: viewModel.isLocked
-                        ? "Authenticate to unlock clipboard previews"
-                        : "Lock clipboard previews",
-                    accessibilityIdentifier: "header.lock",
-                    accessibilityValue: viewModel.isLocked ? "Locked" : "Unlocked",
-                    isActive: viewModel.isLocked,
-                    action: toggleLock
-                )
+                if viewModel.isApplicationLockEnabled {
+                    ClipboardHeaderActionButton(
+                        title: viewModel.isLocked ? "Unlock Clipboard History" : "Lock Clipboard History",
+                        systemImage: viewModel.isLocked ? "lock.fill" : "lock.open",
+                        helpText: viewModel.isLocked
+                            ? "Authenticate with Touch ID or your Mac login password to unlock clipboard previews"
+                            : "Lock clipboard previews",
+                        accessibilityIdentifier: "header.lock",
+                        accessibilityValue: viewModel.isLocked ? "Locked" : "Unlocked",
+                        isActive: viewModel.isLocked,
+                        action: toggleLock
+                    )
+                }
 
                 ClipboardHeaderActionButton(
                     title: viewModel.isPrivateMode ? "Disable Private Mode" : "Enable Private Mode",
@@ -42,6 +44,15 @@ struct ClipboardPanelHeaderView: View {
                 )
 
                 ClipboardHeaderActionButton(
+                    title: "Ignore Next Copy",
+                    systemImage: "eye.slash",
+                    helpText: "Ignore only the next clipboard change",
+                    accessibilityIdentifier: "header.ignoreNext",
+                    accessibilityValue: "Available",
+                    action: viewModel.ignoreNextCopy
+                )
+
+                ClipboardHeaderActionButton(
                     title: "Clear Clipboard History",
                     systemImage: "trash",
                     helpText: "Clear clipboard history",
@@ -50,6 +61,26 @@ struct ClipboardPanelHeaderView: View {
                     isDisabled: viewModel.items.isEmpty,
                     action: viewModel.clearHistory
                 )
+
+                Menu("Clean History by Age", systemImage: "calendar.badge.minus") {
+                    Button("Older Than 1 Hour") {
+                        viewModel.requestAgeCleanup(olderThan: 3_600)
+                    }
+                    Button("Older Than 1 Day") {
+                        viewModel.requestAgeCleanup(olderThan: 86_400)
+                    }
+                    Button("Older Than 1 Week") {
+                        viewModel.requestAgeCleanup(olderThan: 604_800)
+                    }
+                    Button("Older Than 30 Days") {
+                        viewModel.requestAgeCleanup(olderThan: 2_592_000)
+                    }
+                }
+                .labelStyle(.iconOnly)
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .help("Clean unpinned history by age")
+                .accessibilityLabel("Clean History by Age")
 
                 ClipboardHeaderActionButton(
                     title: "Open Settings",

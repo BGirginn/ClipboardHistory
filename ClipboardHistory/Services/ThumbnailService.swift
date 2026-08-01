@@ -7,6 +7,8 @@ actor ThumbnailService {
     static let shared = ThumbnailService()
 
     private let cache = NSCache<NSString, NSData>()
+    private var inFlightRequests: [UUID: Task<Data?, Never>] = [:]
+    private var requestTokens: [UUID: UUID] = [:]
 
     init(cacheMegabytes: Int = 64) {
         cache.totalCostLimit = max(8, cacheMegabytes) * 1_024 * 1_024
@@ -23,16 +25,55 @@ actor ThumbnailService {
             return Data(referencing: cached)
         }
 
+        if let request = inFlightRequests[item.id] {
+            return await request.value
+        }
+
+        let token = UUID()
+        let request = Task { [item, storage] in
+            await self.loadThumbnailData(for: item, storage: storage)
+        }
+        inFlightRequests[item.id] = request
+        requestTokens[item.id] = token
+        let data = await request.value
+        guard requestTokens[item.id] == token else { return data }
+        inFlightRequests[item.id] = nil
+        requestTokens[item.id] = nil
+        if let data {
+            cache(data, for: key)
+        }
+        return data
+    }
+
+    func invalidate(itemID: UUID) {
+        inFlightRequests[itemID]?.cancel()
+        inFlightRequests[itemID] = nil
+        requestTokens[itemID] = nil
+        cache.removeObject(forKey: itemID.uuidString as NSString)
+    }
+
+    func clearCache() {
+        inFlightRequests.values.forEach { $0.cancel() }
+        inFlightRequests.removeAll()
+        requestTokens.removeAll()
+        cache.removeAllObjects()
+    }
+
+    private func loadThumbnailData(
+        for item: ClipboardItem,
+        storage: StorageService
+    ) async -> Data? {
         if let filename = item.thumbnailFilename,
            let existing = await storage.thumbnailData(
                filename: filename,
                isEncrypted: item.isEncrypted
            ) {
-            cache(existing, for: key)
             return existing
         }
 
+        guard !Task.isCancelled else { return nil }
         guard let generated = await generateThumbnail(for: item, storage: storage) else { return nil }
+        guard !Task.isCancelled else { return nil }
         if let filename = item.thumbnailFilename {
             _ = await storage.storeThumbnail(
                 generated,
@@ -40,16 +81,7 @@ actor ThumbnailService {
                 encrypt: item.isEncrypted
             )
         }
-        cache(generated, for: key)
         return generated
-    }
-
-    func invalidate(itemID: UUID) {
-        cache.removeObject(forKey: itemID.uuidString as NSString)
-    }
-
-    func clearCache() {
-        cache.removeAllObjects()
     }
 
     private func generateThumbnail(

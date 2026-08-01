@@ -6,6 +6,7 @@ enum ClipboardContentSubtype: String, Codable, CaseIterable, Sendable {
     case email
     case filePath
     case sourceCode
+    case color
     case rtf
     case html
     case image

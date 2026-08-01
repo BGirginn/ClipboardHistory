@@ -6,18 +6,30 @@ import SwiftUI
 @MainActor
 final class MenuBarController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
-    private let popover = NSPopover()
+    private let popover: NSPopover
+    private let dependencies: MenuBarControllerDependencies
+    private lazy var detachablePanel = dependencies.makePanel(viewModel)
     private let viewModel: ClipboardHistoryViewModel
-    private let quickLookService = QuickLookService()
+    private let quickLookService: any QuickLookPresenting
     private var shortcutCancellable: AnyCancellable?
+    private var shortcutPresetCancellable: AnyCancellable?
+    private var panelEdgeCancellable: AnyCancellable?
     private var shortcutErrorCancellable: AnyCancellable?
-    private lazy var shortcutMonitor = GlobalShortcutMonitor { [weak self] in
-        self?.togglePopover()
-    }
+    private var panelCloseCoordinator: PanelCloseCoordinator!
+    private lazy var shortcutMonitor = GlobalShortcutMonitor(
+        action: { [weak self] in self?.shortcutPressed() },
+        releaseAction: { [weak self] in self?.shortcutReleased() }
+    )
 
-    init(viewModel: ClipboardHistoryViewModel) {
+    init(
+        viewModel: ClipboardHistoryViewModel,
+        dependencies: MenuBarControllerDependencies = .live
+    ) {
         self.viewModel = viewModel
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        self.dependencies = dependencies
+        statusItem = dependencies.makeStatusItem()
+        popover = dependencies.makePopover()
+        quickLookService = dependencies.quickLookPresenter
         super.init()
 
         if let button = statusItem.button {
@@ -30,7 +42,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             button.toolTip = "Clipboard History (Command-Shift-V)"
         }
 
-        popover.behavior = .transient
+        popover.behavior = .applicationDefined
         popover.animates = true
         popover.delegate = self
         popover.contentSize = NSSize(width: 380, height: 500)
@@ -38,7 +50,20 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             rootView: ClipboardPanelView(viewModel: viewModel)
         )
 
+        panelCloseCoordinator = PanelCloseCoordinator(
+            isPanelShown: { [weak self] in self?.popover.isShown == true },
+            isPanelEvent: { [weak self] event in
+                event.window === self?.popover.contentViewController?.view.window
+            },
+            isStatusItemEvent: { [weak self] event in
+                event.window === self?.statusItem.button?.window
+            },
+            closePanel: { [weak self] in self?.closePopover() }
+        )
         viewModel.requestClosePanel = { [weak self] in self?.closePopover() }
+        viewModel.menuCommandDidRun = { [weak self] in
+            self?.panelCloseCoordinator.menuCommandDidRun()
+        }
         viewModel.requestPreview = { [weak self] item in
             guard let self else { return }
             quickLookService.show(item: item, storage: viewModel.storage)
@@ -48,19 +73,39 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         shortcutCancellable = viewModel.settings.$globalShortcutEnabled
             .removeDuplicates()
             .sink { [weak self] enabled in
-                self?.shortcutMonitor.setEnabled(enabled)
+                guard let self else { return }
+                shortcutMonitor.setEnabled(
+                    enabled,
+                    shortcut: viewModel.settings.globalShortcut
+                )
             }
-        shortcutMonitor.setEnabled(viewModel.settings.globalShortcutEnabled)
+        shortcutPresetCancellable = viewModel.settings.$globalShortcutPresetID
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                shortcutMonitor.setEnabled(
+                    viewModel.settings.globalShortcutEnabled,
+                    shortcut: viewModel.settings.globalShortcut
+                )
+            }
+        shortcutMonitor.setEnabled(
+            viewModel.settings.globalShortcutEnabled,
+            shortcut: viewModel.settings.globalShortcut
+        )
         shortcutErrorCancellable = shortcutMonitor.$registrationError
             .removeDuplicates()
             .sink { [weak viewModel] message in
                 viewModel?.setGlobalShortcutError(message)
             }
+        panelEdgeCancellable = viewModel.settings.$panelScreenEdge
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.positionDetachablePanel() }
         updateStatusIcon()
     }
 
     var isPopoverShown: Bool {
-        popover.isShown
+        popover.isShown || detachablePanel.isVisible
     }
 
     var shortcutRegistrationError: String? {
@@ -68,38 +113,88 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func togglePopover() {
-        popover.isShown ? closePopover() : showPopover()
+        isPopoverShown ? closePopover() : showPopover()
     }
 
     func showPopover() {
-        guard let button = statusItem.button else { return }
-        if #available(macOS 14.0, *) {
-            NSApp.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
+        if viewModel.settings.panelPresentationMode == .detachable {
+            showDetachablePanel()
+            return
         }
+        guard let button = statusItem.button else { return }
+        viewModel.capturePasteTargetApplication()
+        NSApp.activate()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         viewModel.lockService.recordActivity()
     }
 
     func closePopover() {
+        shortcutMonitor.cancelHeldShortcut()
         quickLookService.close()
         popover.performClose(nil)
+        detachablePanel.orderOut(nil)
     }
 
     func stop() {
+        panelCloseCoordinator.stop()
+        shortcutMonitor.cancelHeldShortcut()
         shortcutMonitor.unregister()
         quickLookService.close()
         popover.close()
+        detachablePanel.close()
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 
     func popoverWillShow(_ notification: Notification) {
+        panelCloseCoordinator.start()
         viewModel.lockService.recordActivity()
     }
 
     @objc private func togglePopoverFromStatusItem() {
         togglePopover()
+    }
+
+    private func shortcutPressed() {
+        switch viewModel.settings.shortcutActivationMode {
+        case .toggle:
+            togglePopover()
+        case .hold:
+            if !popover.isShown { showPopover() }
+        }
+    }
+
+    private func shortcutReleased() {
+        guard viewModel.settings.shortcutActivationMode == .hold,
+              popover.isShown else { return }
+        viewModel.pasteSelectedToActiveApp()
+    }
+
+    private func showDetachablePanel() {
+        viewModel.capturePasteTargetApplication()
+        NSApp.activate()
+        positionDetachablePanel()
+        detachablePanel.makeKeyAndOrderFront(nil)
+        viewModel.lockService.recordActivity()
+    }
+
+    private func positionDetachablePanel() {
+        guard detachablePanel.isVisible || viewModel.settings.panelPresentationMode == .detachable,
+              let screen = statusItem.button?.window?.screen ?? NSScreen.main else { return }
+        let visible = screen.visibleFrame
+        let size = detachablePanel.frame.size
+        let margin: CGFloat = 12
+        let origin: NSPoint
+        switch viewModel.settings.panelScreenEdge {
+        case .left:
+            origin = NSPoint(x: visible.minX + margin, y: visible.midY - size.height / 2)
+        case .right:
+            origin = NSPoint(x: visible.maxX - size.width - margin, y: visible.midY - size.height / 2)
+        case .top:
+            origin = NSPoint(x: visible.midX - size.width / 2, y: visible.maxY - size.height - margin)
+        case .bottom:
+            origin = NSPoint(x: visible.midX - size.width / 2, y: visible.minY + margin)
+        }
+        detachablePanel.setFrameOrigin(origin)
     }
 
     private func updateStatusIcon() {

@@ -1,35 +1,57 @@
 import SwiftUI
 
 struct ClipboardHistoryListView: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    let isHistoryEmpty: Bool
+    let pinnedItems: [ClipboardItem]
+    let recentItems: [ClipboardItem]
+    let selectedItemID: UUID?
+    let selectedItemIDs: Set<UUID>
+    let copiedItemID: UUID?
+    let hasSearch: Bool
+    let isLocked: Bool
+    let storage: StorageService
+    let thumbnailService: ThumbnailService
+    let actions: ClipboardItemActions
     let reduceMotion: Bool
 
     var body: some View {
         Group {
-            if viewModel.items.isEmpty {
+            if isHistoryEmpty {
                 ClipboardEmptyStateView()
-            } else if viewModel.pinnedItems.isEmpty && viewModel.recentItems.isEmpty {
-                ClipboardFilteredEmptyStateView(hasSearch: !viewModel.searchText.isEmpty)
+            } else if pinnedItems.isEmpty && recentItems.isEmpty {
+                ClipboardFilteredEmptyStateView(hasSearch: hasSearch)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(spacing: 8, pinnedViews: [.sectionHeaders]) {
-                            if !viewModel.pinnedItems.isEmpty {
+                            if !pinnedItems.isEmpty {
                                 Section {
-                                    ForEach(viewModel.pinnedItems) { item in
-                                        ClipboardItemRow(item: item, viewModel: viewModel)
-                                            .id(item.id)
-                                    }
+                                    ClipboardItemRows(
+                                        items: pinnedItems,
+                                        selectedItemID: selectedItemID,
+                                        selectedItemIDs: selectedItemIDs,
+                                        copiedItemID: copiedItemID,
+                                        isLocked: isLocked,
+                                        storage: storage,
+                                        thumbnailService: thumbnailService,
+                                        actions: actions
+                                    )
                                 } header: {
                                     ClipboardSectionHeader(title: "Pinned", systemImage: "pin.fill")
                                 }
                             }
-                            if !viewModel.recentItems.isEmpty {
+                            if !recentItems.isEmpty {
                                 Section {
-                                    ForEach(viewModel.recentItems) { item in
-                                        ClipboardItemRow(item: item, viewModel: viewModel)
-                                            .id(item.id)
-                                    }
+                                    ClipboardItemRows(
+                                        items: recentItems,
+                                        selectedItemID: selectedItemID,
+                                        selectedItemIDs: selectedItemIDs,
+                                        copiedItemID: copiedItemID,
+                                        isLocked: isLocked,
+                                        storage: storage,
+                                        thumbnailService: thumbnailService,
+                                        actions: actions
+                                    )
                                 } header: {
                                     ClipboardSectionHeader(title: "Recent", systemImage: "clock")
                                 }
@@ -37,7 +59,7 @@ struct ClipboardHistoryListView: View {
                         }
                         .padding(10)
                     }
-                    .onChange(of: viewModel.selectedItemID) { selectedID in
+                    .onChange(of: selectedItemID) { _, selectedID in
                         guard let selectedID else { return }
                         if reduceMotion {
                             proxy.scrollTo(selectedID, anchor: .center)

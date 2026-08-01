@@ -14,27 +14,18 @@ final class PerformanceBenchmarkTests: XCTestCase {
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         let clock = ContinuousClock()
 
-        for count in [100, 500, 1_000, 5_000] {
-            let items = (0..<count).map { index in
-                ClipboardItem(
-                    type: .text,
-                    text: "Benchmark clipboard item \(index)",
-                    creationDate: Date.now.addingTimeInterval(Double(-count + index)),
-                    hash: "benchmark-\(index)"
-                )
-            }
-            let writeStart = clock.now
-            await storage.saveHistory(items)
-            let writeDuration = writeStart.duration(to: clock.now)
-            let readStart = clock.now
-            let loaded = await storage.loadHistory()
-            let readDuration = readStart.duration(to: clock.now)
-
-            XCTAssertEqual(loaded.count, count)
-            AppLog.performance.notice(
-                "benchmark items=\(count) writeMs=\(self.milliseconds(writeDuration)) readMs=\(self.milliseconds(readDuration))"
+        let itemCount = 5_000
+        let items = (0..<itemCount).map { index in
+            ClipboardItem(
+                type: .text,
+                text: "Benchmark clipboard item \(index)",
+                creationDate: Date.now.addingTimeInterval(Double(-itemCount + index)),
+                hash: "benchmark-\(index)"
             )
         }
+        await storage.saveHistory(items)
+        let warmupItems = await storage.loadHistory()
+        XCTAssertEqual(warmupItems.count, itemCount)
 
         let suite = "PerformanceBenchmarkDefaults-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
@@ -47,23 +38,66 @@ final class PerformanceBenchmarkTests: XCTestCase {
             settings: settings,
             startsAutomatically: false
         )
-        let loadStart = clock.now
+        let warmupLoadStart = clock.now
         await viewModel.loadHistory()
-        let viewModelLoadDuration = loadStart.duration(to: clock.now)
-        let filterStart = clock.now
+        _ = warmupLoadStart.duration(to: clock.now)
         viewModel.searchText = "clipboard 4999"
-        let filterDuration = filterStart.duration(to: clock.now)
-        let panelStart = clock.now
-        let hostingView = NSHostingView(rootView: ClipboardPanelView(viewModel: viewModel))
-        hostingView.frame = NSRect(x: 0, y: 0, width: 380, height: 500)
-        hostingView.layoutSubtreeIfNeeded()
-        let panelDuration = panelStart.duration(to: clock.now)
+        viewModel.searchText = ""
+        let warmupView = NSHostingView(rootView: ClipboardPanelView(viewModel: viewModel))
+        warmupView.frame = NSRect(x: 0, y: 0, width: 380, height: 500)
+        warmupView.layoutSubtreeIfNeeded()
 
-        XCTAssertEqual(viewModel.items.count, 5_000)
-        XCTAssertEqual(viewModel.recentItems.count, 1)
-        XCTAssertEqual(hostingView.fittingSize.width, 380, accuracy: 1)
+        var writeMilliseconds: [Double] = []
+        var readMilliseconds: [Double] = []
+        var loadMilliseconds: [Double] = []
+        var filterMilliseconds: [Double] = []
+        var panelMilliseconds: [Double] = []
+
+        for iteration in 0..<10 {
+            let writeStart = clock.now
+            await storage.saveHistory(items)
+            writeMilliseconds.append(milliseconds(writeStart.duration(to: clock.now)))
+
+            let readStart = clock.now
+            let loaded = await storage.loadHistory()
+            readMilliseconds.append(milliseconds(readStart.duration(to: clock.now)))
+            XCTAssertEqual(loaded.count, itemCount)
+
+            let loadStart = clock.now
+            await viewModel.loadHistory()
+            loadMilliseconds.append(milliseconds(loadStart.duration(to: clock.now)))
+
+            let filterStart = clock.now
+            viewModel.searchText = iteration.isMultiple(of: 2)
+                ? "clipboard 4999"
+                : "clipboard 2500"
+            _ = viewModel.recentItems.count
+            filterMilliseconds.append(milliseconds(filterStart.duration(to: clock.now)))
+            viewModel.searchText = ""
+
+            let panelStart = clock.now
+            let hostingView = NSHostingView(
+                rootView: ClipboardPanelView(viewModel: viewModel)
+            )
+            hostingView.frame = NSRect(x: 0, y: 0, width: 380, height: 500)
+            hostingView.layoutSubtreeIfNeeded()
+            panelMilliseconds.append(milliseconds(panelStart.duration(to: clock.now)))
+            XCTAssertEqual(hostingView.fittingSize.width, 380, accuracy: 1)
+        }
+
+        let writeP95 = p95(writeMilliseconds)
+        let readP95 = p95(readMilliseconds)
+        let loadP95 = p95(loadMilliseconds)
+        let filterP95 = p95(filterMilliseconds)
+        let panelP95 = p95(panelMilliseconds)
+        XCTAssertEqual(viewModel.items.count, itemCount)
+        XCTAssertLessThanOrEqual(writeP95, 100)
+        XCTAssertLessThanOrEqual(readP95, 50)
+        XCTAssertLessThanOrEqual(loadP95, 100)
+        XCTAssertLessThanOrEqual(filterP95, 50)
+        XCTAssertLessThanOrEqual(panelP95, 120)
         AppLog.performance.notice(
-            "benchmark items=5000 viewModelLoadMs=\(self.milliseconds(viewModelLoadDuration)) filterMs=\(self.milliseconds(filterDuration)) panelRenderMs=\(self.milliseconds(panelDuration))"
+            "benchmark items=5000 repetitions=10 writeP95Ms=\(writeP95) readP95Ms=\(readP95) viewModelLoadP95Ms=\(loadP95) filterP95Ms=\(filterP95) panelP95Ms=\(panelP95)"
         )
 
         viewModel.prepareForShutdown()
@@ -77,5 +111,11 @@ final class PerformanceBenchmarkTests: XCTestCase {
         let seconds = Double(components.seconds)
         let fractional = Double(components.attoseconds) / 1_000_000_000_000_000_000
         return ((seconds + fractional) * 1_000_000).rounded() / 1_000
+    }
+
+    private func p95(_ values: [Double]) -> Double {
+        let sorted = values.sorted()
+        let index = max(0, Int((Double(sorted.count) * 0.95).rounded(.up)) - 1)
+        return sorted[index]
     }
 }

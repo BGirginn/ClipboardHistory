@@ -114,7 +114,7 @@ final class AdvancedClipboardTests: XCTestCase {
         )
     }
 
-    func testThumbnailGenerationPersistsAndRegenerates() async throws {
+    func testConcurrentThumbnailGenerationCoalescesPersistsAndRegenerates() async throws {
         let directory = temporaryDirectory("ThumbnailTests")
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         let data = try makePNG(color: .green, width: 800, height: 600)
@@ -131,13 +131,29 @@ final class AdvancedClipboardTests: XCTestCase {
         )
         let service = ThumbnailService(cacheMegabytes: 8)
 
-        let first = await service.thumbnailData(for: item, storage: storage)
+        let concurrentResults = await withTaskGroup(
+            of: Data?.self,
+            returning: [Data?].self
+        ) { group in
+            for _ in 0..<12 {
+                group.addTask {
+                    await service.thumbnailData(for: item, storage: storage)
+                }
+            }
+            var results: [Data?] = []
+            for await result in group {
+                results.append(result)
+            }
+            return results
+        }
+        let first = try XCTUnwrap(concurrentResults.compactMap { $0 }.first)
         await service.clearCache()
         let second = await service.thumbnailData(for: item, storage: storage)
 
-        XCTAssertNotNil(first)
+        XCTAssertEqual(concurrentResults.count, 12)
+        XCTAssertTrue(concurrentResults.allSatisfy { $0 == first })
         XCTAssertEqual(first, second)
-        XCTAssertLessThan(first?.count ?? .max, data.count)
+        XCTAssertLessThan(first.count, data.count)
         XCTAssertTrue(FileManager.default.fileExists(atPath: storage.thumbnailsDirectory.appending(path: "thumb.png").path))
         await storage.close()
         try? FileManager.default.removeItem(at: directory)
@@ -241,6 +257,59 @@ final class AdvancedClipboardTests: XCTestCase {
         await XCTAssertThrowsErrorAsync {
             _ = try await ExportImportService().importArchive(
                 from: url,
+                storage: storage,
+                existingItems: [],
+                encryptionMode: .off
+            )
+        }
+        await storage.close()
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    func testImportRejectsTamperedItemManifest() async throws {
+        let directory = temporaryDirectory("TamperedManifest")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
+        let item = ClipboardItem(type: .text, text: "protected", hash: "protected")
+        let archive = ClipboardArchive(
+            version: ClipboardArchive.currentVersion,
+            createdAt: .now,
+            mode: .fullUnencrypted,
+            items: [item],
+            assets: [:],
+            itemHashes: [item.id.uuidString.lowercased(): "tampered"]
+        )
+        let url = directory.appending(path: "tampered.clipboardarchive")
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        try encoder.encode(archive).write(to: url)
+
+        await XCTAssertThrowsErrorAsync {
+            _ = try await ExportImportService().importArchive(
+                from: url,
+                storage: storage,
+                existingItems: [],
+                encryptionMode: .off
+            )
+        }
+        let remainingItems = await storage.loadHistory()
+        XCTAssertTrue(remainingItems.isEmpty)
+        await storage.close()
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    func testImportRejectsSymbolicLinkArchive() async throws {
+        let directory = temporaryDirectory("SymlinkArchive")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
+        let target = directory.appending(path: "target.clipboardarchive")
+        let link = directory.appending(path: "link.clipboardarchive")
+        try Data("not-an-archive".utf8).write(to: target)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+
+        await XCTAssertThrowsErrorAsync {
+            _ = try await ExportImportService().importArchive(
+                from: link,
                 storage: storage,
                 existingItems: [],
                 encryptionMode: .off

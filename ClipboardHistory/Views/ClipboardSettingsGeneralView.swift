@@ -15,7 +15,7 @@ struct ClipboardSettingsGeneralView: View {
         Form {
             Section("Behavior") {
                 Toggle(
-                    "Open with Command-Shift-V",
+                    "Enable global shortcut",
                     isOn: $viewModel.settings.globalShortcutEnabled
                 )
                 .accessibilityIdentifier("settings.globalShortcut")
@@ -43,7 +43,34 @@ struct ClipboardSettingsGeneralView: View {
                 }
             }
 
+            Section("Global Shortcut") {
+                Picker("Shortcut", selection: $viewModel.settings.globalShortcutPresetID) {
+                    ForEach(GlobalShortcut.presets) { shortcut in
+                        Text(shortcut.title).tag(shortcut.id)
+                    }
+                }
+                Picker("Action", selection: $viewModel.settings.shortcutActivationMode) {
+                    ForEach(ShortcutActivationMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                Text("Hold mode requests Accessibility permission only when release triggers Paste to Active App.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Presentation") {
+                Picker("Panel style", selection: $viewModel.settings.panelPresentationMode) {
+                    ForEach(PanelPresentationMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                Picker("Screen edge", selection: $viewModel.settings.panelScreenEdge) {
+                    ForEach(PanelScreenEdge.allCases) { edge in
+                        Text(edge.title).tag(edge)
+                    }
+                }
+                .disabled(viewModel.settings.panelPresentationMode == .popover)
                 Picker("Default filter", selection: $viewModel.settings.selectedFilter) {
                     ForEach(ClipboardFilter.allCases) { filter in
                         Text(filter.title).tag(filter)

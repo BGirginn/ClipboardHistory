@@ -11,11 +11,11 @@ enum AutoLockOption: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .never: "Never"
-        case .oneMinute: "After 1 Minute"
-        case .fiveMinutes: "After 5 Minutes"
-        case .fifteenMinutes: "After 15 Minutes"
-        case .whenMacLocks: "When Mac Locks"
+        case .never: String(localized: "Never")
+        case .oneMinute: String(localized: "After 1 Minute")
+        case .fiveMinutes: String(localized: "After 5 Minutes")
+        case .fifteenMinutes: String(localized: "After 15 Minutes")
+        case .whenMacLocks: String(localized: "When Mac Locks")
         }
     }
 

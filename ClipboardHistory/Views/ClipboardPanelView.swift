@@ -9,8 +9,16 @@ struct ClipboardPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.isShowingSettings {
+            if !viewModel.isStorageAvailable {
+                ClipboardStorageRecoveryView(viewModel: viewModel)
+            } else if viewModel.isShowingSettings {
                 ClipboardSettingsView(viewModel: viewModel)
+            } else if viewModel.isLocked {
+                VStack(spacing: 0) {
+                    ClipboardPanelHeaderView(viewModel: viewModel)
+                    Divider()
+                    ClipboardLockedHistoryView(unlock: viewModel.unlock)
+                }
             } else if let item = viewModel.detailItem {
                 ClipboardDetailView(item: item, viewModel: viewModel)
             } else {
@@ -21,15 +29,42 @@ struct ClipboardPanelView: View {
                     focusChanged: updateSearchFocus
                 )
                 ClipboardFilterBar(viewModel: viewModel)
+                if viewModel.selectedItemIDs.count > 1 {
+                    ClipboardBulkActionsView(viewModel: viewModel)
+                }
+                if !viewModel.pasteStackItems.isEmpty {
+                    ClipboardPasteStackView(viewModel: viewModel)
+                }
                 Divider()
-                ClipboardHistoryListView(viewModel: viewModel, reduceMotion: reduceMotion)
+                ClipboardHistoryListView(
+                    isHistoryEmpty: viewModel.items.isEmpty,
+                    pinnedItems: viewModel.pinnedItems,
+                    recentItems: viewModel.recentItems,
+                    selectedItemID: viewModel.selectedItemID,
+                    selectedItemIDs: viewModel.selectedItemIDs,
+                    copiedItemID: viewModel.copiedItemID,
+                    hasSearch: !viewModel.searchText.isEmpty,
+                    isLocked: viewModel.isLocked,
+                    storage: viewModel.storage,
+                    thumbnailService: viewModel.thumbnailService,
+                    actions: itemActions,
+                    reduceMotion: reduceMotion
+                )
             }
         }
-        .frame(width: 380, height: 500)
+        .frame(
+            minWidth: 340,
+            idealWidth: 380,
+            maxWidth: .infinity,
+            minHeight: 420,
+            idealHeight: 500,
+            maxHeight: .infinity
+        )
         .background(
             reduceTransparency ? AnyShapeStyle(Color(nsColor: .windowBackgroundColor)) : AnyShapeStyle(.regularMaterial)
         )
         .background(KeyboardEventMonitorView(handler: handleKeyEvent))
+        .background(quickSelectionShortcuts)
         .confirmationDialog(
             "Clear all clipboard history?",
             isPresented: $viewModel.isShowingClearConfirmation
@@ -38,6 +73,15 @@ struct ClipboardPanelView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Pinned items and all associated files and thumbnails will also be removed.")
+        }
+        .confirmationDialog(
+            "Delete unpinned items in this time range?",
+            isPresented: $viewModel.isShowingAgeCleanupConfirmation
+        ) {
+            Button("Delete Matching Items", role: .destructive, action: viewModel.confirmAgeCleanup)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Pinned items are preserved. This cannot be undone.")
         }
         .confirmationDialog(
             "Save detected sensitive content?",
@@ -55,7 +99,46 @@ struct ClipboardPanelView: View {
         searchIsFocused = focused
     }
 
+    private var itemActions: ClipboardItemActions {
+        ClipboardItemActions(
+            selectAndCopy: { item in
+                if NSEvent.modifierFlags.contains(.command) {
+                    viewModel.toggleSelection(item)
+                } else {
+                    viewModel.selectOnly(item)
+                    viewModel.restore(item)
+                }
+            },
+            copy: viewModel.restore,
+            paste: { item in viewModel.paste(item) },
+            copyAs: { item, representation in
+                viewModel.copy(item, as: representation)
+            },
+            pasteAs: { item, representation in
+                viewModel.paste(item, as: representation)
+            },
+            togglePin: viewModel.togglePin,
+            toggleSnippet: viewModel.toggleSnippet,
+            moveToCollection: viewModel.move,
+            collections: viewModel.collections,
+            addToPasteStack: viewModel.addToPasteStack,
+            removeFromPasteStack: viewModel.removeFromPasteStack,
+            pasteStackItemIDs: Set(viewModel.pasteStackItemIDs),
+            dragProvider: { item in
+                viewModel.dragProvider.make(for: item, storage: viewModel.storage)
+            },
+            showDetails: viewModel.showDetails,
+            reveal: viewModel.reveal,
+            exportImage: { item, asJPEG in
+                viewModel.exportImage(item, asJPEG: asJPEG)
+            },
+            delete: viewModel.delete,
+            menuCommandDidRun: viewModel.notifyMenuCommandDidRun
+        )
+    }
+
     private func handleKeyEvent(_ event: NSEvent) -> Bool {
+        guard !viewModel.isLocked else { return false }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if modifiers == .command, event.charactersIgnoringModifiers?.lowercased() == "f" {
             viewModel.focusSearch()
@@ -92,5 +175,24 @@ struct ClipboardPanelView: View {
         default:
             return false
         }
+    }
+
+    private var quickSelectionShortcuts: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<9, id: \.self) { index in
+                Button {
+                    viewModel.restoreVisibleItem(at: index)
+                } label: {
+                    EmptyView()
+                }
+                .keyboardShortcut(
+                    KeyEquivalent(Character(String(index + 1))),
+                    modifiers: .command
+                )
+            }
+        }
+        .frame(width: 0, height: 0)
+        .clipped()
+        .accessibilityHidden(true)
     }
 }

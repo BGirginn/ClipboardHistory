@@ -4,6 +4,21 @@ import SwiftUI
 struct ClipboardDetailView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardHistoryViewModel
+    @State private var draftTitle: String
+    @State private var draftText: String
+    @State private var draftTags: String
+    @State private var selectedCollectionID: UUID?
+    @State private var isSnippet: Bool
+
+    init(item: ClipboardItem, viewModel: ClipboardHistoryViewModel) {
+        self.item = item
+        self.viewModel = viewModel
+        _draftTitle = State(initialValue: item.displayTitle ?? "")
+        _draftText = State(initialValue: item.text ?? "")
+        _draftTags = State(initialValue: item.protectedMetadata.tags.joined(separator: ", "))
+        _selectedCollectionID = State(initialValue: item.collectionID)
+        _isSnippet = State(initialValue: item.isSnippet)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,6 +43,7 @@ struct ClipboardDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     preview
+                    editor
                     metadata
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,6 +51,52 @@ struct ClipboardDetailView: View {
             }
         }
         .accessibilityIdentifier("clipboard.detail")
+    }
+
+    private var editor: some View {
+        GroupBox("Organize and Edit") {
+            VStack(alignment: .leading, spacing: 10) {
+                TextField("Visible name", text: $draftTitle)
+                    .accessibilityIdentifier("detail.title")
+                if [.text, .richText].contains(item.type) {
+                    TextField("Text", text: $draftText, axis: .vertical)
+                        .lineLimit(3...10)
+                        .accessibilityIdentifier("detail.text")
+                    Menu("Transform Text", systemImage: "textformat") {
+                        ForEach(TextTransformation.allCases) { transformation in
+                            Button(transformation.title) {
+                                draftText = transformation.apply(to: draftText)
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("detail.transform")
+                }
+                TextField("Tags, separated by commas", text: $draftTags)
+                    .accessibilityIdentifier("detail.tags")
+                Picker("Collection", selection: $selectedCollectionID) {
+                    Text("No Collection").tag(UUID?.none)
+                    ForEach(viewModel.collections) { collection in
+                        Text(collection.name).tag(Optional(collection.id))
+                    }
+                }
+                Toggle("Keep as Snippet", isOn: $isSnippet)
+                HStack {
+                    Spacer()
+                    Button("Save Changes", systemImage: "checkmark") {
+                        viewModel.updateItem(
+                            item,
+                            title: draftTitle,
+                            editedText: [.text, .richText].contains(item.type) ? draftText : nil,
+                            tags: draftTags,
+                            collectionID: selectedCollectionID,
+                            isSnippet: isSnippet
+                        )
+                    }
+                    .accessibilityIdentifier("detail.save")
+                }
+            }
+            .padding(6)
+        }
     }
 
     @ViewBuilder
@@ -90,6 +152,15 @@ struct ClipboardDetailView: View {
             if let source = item.sourceApplicationBundleID {
                 DetailMetadataRow(label: "Source App", value: source)
             }
+            if let ocr = item.protectedMetadata.extractedText {
+                DetailMetadataRow(label: "Recognized Text", value: ocr)
+            }
+            if let qrCode = item.protectedMetadata.qrCodeText {
+                DetailMetadataRow(label: "QR Code", value: qrCode)
+            }
+            if let color = item.protectedMetadata.colorHex {
+                DetailMetadataRow(label: "Color", value: color)
+            }
             if let path = detailPath {
                 DetailMetadataRow(label: "Storage", value: path)
             }
@@ -101,90 +172,17 @@ struct ClipboardDetailView: View {
     private var detailPath: String? {
         if item.type == .files { return item.fileURLs.joined(separator: "\n") }
         if let filename = item.imageFilename ?? item.assetFilenames.first {
-            return viewModel.storage.imageURL(filename: filename, isEncrypted: item.isEncrypted).path
+            return viewModel.storage.imageURL(
+                filename: filename,
+                isEncrypted: item.isEncrypted
+            )?.path
         }
         if let filename = item.payloadFilename {
-            return viewModel.storage.payloadURL(filename: filename, isEncrypted: item.isEncrypted).path
+            return viewModel.storage.payloadURL(
+                filename: filename,
+                isEncrypted: item.isEncrypted
+            )?.path
         }
         return nil
-    }
-}
-
-private struct DetailMetadataRow: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        GridRow {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .lineLimit(5)
-                .truncationMode(.middle)
-        }
-    }
-}
-
-private struct ClipboardFullPreview: View {
-    let item: ClipboardItem
-    let storage: StorageService
-
-    @State private var image: NSImage?
-
-    var body: some View {
-        Group {
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                ProgressView()
-            }
-        }
-        .frame(maxWidth: .infinity, minHeight: 160, maxHeight: 300)
-        .background(.quaternary, in: .rect(cornerRadius: 8))
-        .task(id: item.id) {
-            let data: Data?
-            if item.type == .pdf {
-                data = nil
-            } else if let filename = item.imageFilename ?? item.assetFilenames.first {
-                data = await storage.imageData(filename: filename, isEncrypted: item.isEncrypted)
-            } else {
-                data = nil
-            }
-            guard !Task.isCancelled else { return }
-            image = data.flatMap(NSImage.init(data:))
-        }
-        .overlay {
-            if item.type == .pdf && image == nil {
-                Label("Press Space for Quick Look", systemImage: "doc.richtext")
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-private struct FileDetailPreview: View {
-    let item: ClipboardItem
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(item.fileURLs, id: \.self) { path in
-                HStack(spacing: 8) {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: path))
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 32, height: 32)
-                    VStack(alignment: .leading) {
-                        Text(URL(fileURLWithPath: path).lastPathComponent)
-                        if !FileManager.default.fileExists(atPath: path) {
-                            Label("Unavailable", systemImage: "exclamationmark.triangle")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                        }
-                    }
-                }
-            }
-        }
     }
 }

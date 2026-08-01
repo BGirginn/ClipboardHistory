@@ -3,6 +3,9 @@ import Foundation
 enum TextClassifier {
     static func subtype(for text: String) -> ClipboardContentSubtype {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if ColorParser.hexColor(from: trimmed) != nil {
+            return .color
+        }
         if TextNormalizer.normalizedURLForHash(trimmed) != nil {
             return .url
         }

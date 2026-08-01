@@ -27,6 +27,10 @@ struct ClipboardItem: Codable, Equatable, Identifiable, Sendable {
     var pageCount: Int?
     var fileSize: Int64?
     var isEncrypted: Bool
+    var protectedMetadata: ClipboardProtectedMetadata
+    var collectionID: UUID?
+    var isSnippet: Bool
+    var pasteboardTypes: [String]
 
     init(
         id: UUID = UUID(),
@@ -54,7 +58,11 @@ struct ClipboardItem: Codable, Equatable, Identifiable, Sendable {
         imageHeight: Int? = nil,
         pageCount: Int? = nil,
         fileSize: Int64? = nil,
-        isEncrypted: Bool = false
+        isEncrypted: Bool = false,
+        protectedMetadata: ClipboardProtectedMetadata = ClipboardProtectedMetadata(),
+        collectionID: UUID? = nil,
+        isSnippet: Bool = false,
+        pasteboardTypes: [String] = []
     ) {
         self.id = id
         self.type = type
@@ -82,6 +90,14 @@ struct ClipboardItem: Codable, Equatable, Identifiable, Sendable {
         self.pageCount = pageCount
         self.fileSize = fileSize
         self.isEncrypted = isEncrypted
+        var metadata = protectedMetadata
+        if metadata.displayTitle == nil {
+            metadata.displayTitle = displayTitle
+        }
+        self.protectedMetadata = metadata
+        self.collectionID = collectionID
+        self.isSnippet = isSnippet
+        self.pasteboardTypes = pasteboardTypes
     }
 
     var isStructurallyValid: Bool {
@@ -135,6 +151,13 @@ struct ClipboardItem: Codable, Equatable, Identifiable, Sendable {
         pageCount = try container.decodeIfPresent(Int.self, forKey: .pageCount)
         fileSize = try container.decodeIfPresent(Int64.self, forKey: .fileSize)
         isEncrypted = try container.decodeIfPresent(Bool.self, forKey: .isEncrypted) ?? false
+        protectedMetadata = try container.decodeIfPresent(
+            ClipboardProtectedMetadata.self,
+            forKey: .protectedMetadata
+        ) ?? ClipboardProtectedMetadata(displayTitle: displayTitle)
+        collectionID = try container.decodeIfPresent(UUID.self, forKey: .collectionID)
+        isSnippet = try container.decodeIfPresent(Bool.self, forKey: .isSnippet) ?? false
+        pasteboardTypes = try container.decodeIfPresent([String].self, forKey: .pasteboardTypes) ?? []
     }
 
     private static func legacySubtype(for type: ClipboardItemType) -> ClipboardContentSubtype {

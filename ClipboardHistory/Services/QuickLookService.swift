@@ -3,7 +3,7 @@ import Foundation
 import QuickLookUI
 
 @MainActor
-final class QuickLookService: NSObject, @MainActor QLPreviewPanelDataSource, @MainActor QLPreviewPanelDelegate {
+final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPreviewPanelDataSource, @MainActor QLPreviewPanelDelegate {
     private var previewURLs: [URL] = []
     private var temporaryDirectory: URL?
 

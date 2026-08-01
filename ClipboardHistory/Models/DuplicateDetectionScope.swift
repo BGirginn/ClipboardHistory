@@ -10,10 +10,10 @@ enum DuplicateDetectionScope: String, Codable, CaseIterable, Identifiable, Senda
 
     var title: String {
         switch self {
-        case .newest: "Newest Item"
-        case .lastTen: "Last 10 Items"
-        case .lastHour: "Last Hour"
-        case .fullHistory: "Full History"
+        case .newest: String(localized: "Newest Item")
+        case .lastTen: String(localized: "Last 10 Items")
+        case .lastHour: String(localized: "Last Hour")
+        case .fullHistory: String(localized: "Full History")
         }
     }
 }

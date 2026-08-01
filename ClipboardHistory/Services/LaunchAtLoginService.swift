@@ -1,27 +1,24 @@
 import Combine
 import Foundation
-import ServiceManagement
 
 @MainActor
 final class LaunchAtLoginService: ObservableObject {
     @Published private(set) var isEnabled = false
     @Published private(set) var errorMessage: String?
+    private let backend: any LaunchAtLoginBackend
 
-    init() {
+    init(backend: any LaunchAtLoginBackend = ServiceManagementLaunchAtLoginBackend()) {
+        self.backend = backend
         refresh()
     }
 
     func refresh() {
-        isEnabled = SMAppService.mainApp.status == .enabled
+        isEnabled = backend.isEnabled
     }
 
     func setEnabled(_ enabled: Bool) {
         do {
-            if enabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
+            try backend.setEnabled(enabled)
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription

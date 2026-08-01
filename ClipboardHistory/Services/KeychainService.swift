@@ -2,26 +2,31 @@ import Foundation
 import Security
 
 enum KeychainService {
-    private static let service = "com.brgirgin.ClipboardHistory.encryption"
     private static let account = "history-master-key-v1"
 
     static func loadOrCreateKey() throws -> Data {
-        if let existing = try loadKey() {
+        try loadOrCreateKey(backend: KeychainMasterKeyProvider.active.backend)
+    }
+
+    static func loadOrCreateKey(backend: KeychainBackend) throws -> Data {
+        if let existing = try loadKey(backend: backend) {
             return existing
         }
 
         let bytes = try generateRandomKey()
 
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: backend.service,
             kSecAttrAccount as String: account,
-            kSecUseDataProtectionKeychain as String: true,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
             kSecValueData as String: bytes
         ]
+        if backend.usesDataProtectionKeychain {
+            query[kSecUseDataProtectionKeychain as String] = true
+            query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        }
         let addStatus = SecItemAdd(query as CFDictionary, nil)
-        if addStatus == errSecDuplicateItem, let existing = try loadKey() {
+        if addStatus == errSecDuplicateItem, let existing = try loadKey(backend: backend) {
             return existing
         }
         guard addStatus == errSecSuccess else {
@@ -31,13 +36,19 @@ enum KeychainService {
     }
 
     static func rotateKey(with newKey: Data) throws {
+        try rotateKey(with: newKey, backend: KeychainMasterKeyProvider.active.backend)
+    }
+
+    static func rotateKey(with newKey: Data, backend: KeychainBackend) throws {
         guard newKey.count == 32 else { throw EncryptionServiceError.invalidKey }
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecUseDataProtectionKeychain as String: true
+            kSecAttrService as String: backend.service,
+            kSecAttrAccount as String: account
         ]
+        if backend.usesDataProtectionKeychain {
+            query[kSecUseDataProtectionKeychain as String] = true
+        }
         let attributes: [String: Any] = [kSecValueData as String: newKey]
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         guard status == errSecSuccess else {
@@ -57,15 +68,17 @@ enum KeychainService {
         return bytes
     }
 
-    private static func loadKey() throws -> Data? {
-        let query: [String: Any] = [
+    private static func loadKey(backend: KeychainBackend) throws -> Data? {
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: backend.service,
             kSecAttrAccount as String: account,
-            kSecUseDataProtectionKeychain as String: true,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
+        if backend.usesDataProtectionKeychain {
+            query[kSecUseDataProtectionKeychain as String] = true
+        }
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound {
@@ -79,4 +92,5 @@ enum KeychainService {
         }
         return data
     }
+
 }

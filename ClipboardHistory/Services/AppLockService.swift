@@ -1,25 +1,43 @@
 import AppKit
 import Combine
 import Foundation
-import LocalAuthentication
 
 @MainActor
 final class AppLockService: NSObject, ObservableObject {
-    @Published private(set) var isLocked = false
+    @Published private(set) var state: ApplicationLockState = .disabled
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isAuthenticating = false
 
     private var option: AutoLockOption = .never
     private var inactivityTask: Task<Void, Never>?
+    private let authenticator: any SystemAuthenticating
+    private let sleepClock: any SleepClock
+    private let lockNotificationCenter: NotificationCenter
 
-    override init() {
+    override convenience init() {
+        self.init(
+            authenticator: LocalSystemAuthenticator(),
+            sleepClock: SystemSleepClock(),
+            lockNotificationCenter: NSWorkspace.shared.notificationCenter
+        )
+    }
+
+    init(
+        authenticator: any SystemAuthenticating,
+        sleepClock: any SleepClock = SystemSleepClock(),
+        lockNotificationCenter: NotificationCenter = NSWorkspace.shared.notificationCenter
+    ) {
+        self.authenticator = authenticator
+        self.sleepClock = sleepClock
+        self.lockNotificationCenter = lockNotificationCenter
         super.init()
-        NSWorkspace.shared.notificationCenter.addObserver(
+        lockNotificationCenter.addObserver(
             self,
             selector: #selector(sessionDidResignActive),
             name: NSWorkspace.sessionDidResignActiveNotification,
             object: nil
         )
-        NSWorkspace.shared.notificationCenter.addObserver(
+        lockNotificationCenter.addObserver(
             self,
             selector: #selector(screensDidSleep),
             name: NSWorkspace.screensDidSleepNotification,
@@ -27,45 +45,83 @@ final class AppLockService: NSObject, ObservableObject {
         )
     }
 
-    func configure(option: AutoLockOption) {
+    var isEnabled: Bool {
+        state.isEnabled
+    }
+
+    var isLocked: Bool {
+        state.isLocked
+    }
+
+    func configure(
+        enabled: Bool,
+        option: AutoLockOption,
+        startsLocked: Bool = false
+    ) {
         self.option = option
+        if !enabled {
+            state = .disabled
+        } else if startsLocked {
+            state = .locked
+        } else if state == .disabled {
+            state = .unlocked
+        }
         scheduleInactivityLock()
     }
 
     func recordActivity() {
-        guard !isLocked else { return }
+        guard state == .unlocked else { return }
         scheduleInactivityLock()
     }
 
     func lock() {
+        guard state.isEnabled else { return }
         inactivityTask?.cancel()
-        isLocked = true
+        state = .locked
         errorMessage = nil
     }
 
     func unlock() async {
-        let context = LAContext()
-        var evaluationError: NSError?
-        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &evaluationError) else {
-            errorMessage = evaluationError?.localizedDescription ?? "System authentication is unavailable."
+        guard state == .locked else { return }
+        guard await authenticate(reason: String(localized: "Unlock Clipboard History")) else {
             return
         }
+        state = .unlocked
+        scheduleInactivityLock()
+    }
+
+    @discardableResult
+    func authenticateAndSetEnabled(_ enabled: Bool) async -> Bool {
+        guard enabled != state.isEnabled else { return true }
+        let reason = enabled
+            ? String(localized: "Enable Clipboard History application lock")
+            : String(localized: "Disable Clipboard History application lock")
+        guard await authenticate(reason: reason) else { return false }
+        state = enabled ? .unlocked : .disabled
+        scheduleInactivityLock()
+        return true
+    }
+
+    private func authenticate(reason: String) async -> Bool {
+        guard !isAuthenticating else { return false }
+        isAuthenticating = true
+        defer { isAuthenticating = false }
         do {
-            let success = try await context.evaluatePolicy(
-                .deviceOwnerAuthentication,
-                localizedReason: "Unlock Clipboard History"
+            let success = try await authenticator.authenticate(
+                reason: reason
             )
             if success {
-                isLocked = false
                 errorMessage = nil
-                scheduleInactivityLock()
+                return true
             }
+            errorMessage = String(localized: "System authentication was cancelled.")
         } catch {
             errorMessage = error.localizedDescription
             AppLog.lifecycle.error(
-                "Unlock failed; category=\(String(describing: type(of: error)), privacy: .public)"
+                "System authentication failed; category=\(String(describing: type(of: error)), privacy: .public)"
             )
         }
+        return false
     }
 
     @objc private func sessionDidResignActive() {
@@ -82,10 +138,11 @@ final class AppLockService: NSObject, ObservableObject {
 
     private func scheduleInactivityLock() {
         inactivityTask?.cancel()
-        guard let duration = option.inactivityDuration else { return }
+        guard state == .unlocked,
+              let duration = option.inactivityDuration else { return }
         inactivityTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: duration)
+                try await self?.sleepClock.sleep(for: duration)
                 guard !Task.isCancelled else { return }
                 self?.lock()
             } catch {
@@ -96,6 +153,6 @@ final class AppLockService: NSObject, ObservableObject {
 
     deinit {
         inactivityTask?.cancel()
-        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        lockNotificationCenter.removeObserver(self)
     }
 }

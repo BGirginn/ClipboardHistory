@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import Foundation
 import XCTest
 @testable import ClipboardHistory
@@ -7,13 +8,14 @@ import XCTest
 final class PrivacySecurityTests: XCTestCase {
     func testSecretDetectorRecognizesHighConfidencePatterns() {
         let detector = SecretDetectionService()
+        let privateKeyMarker = ["-----BEGIN", "OPENSSH", "PRIVATE", "KEY-----"].joined(separator: " ")
         let samples = [
             "Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345",
-            "github_token=ghp_abcdefghijklmnopqrstuvwxyz123456",
-            "OPENAI_API_KEY=sk-abcdefghijklmnopqrstuvwxyz123456",
-            "SLACK_TOKEN=xoxb-1234567890-abcdefghijklmnopqrstuvwxyz",
-            "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE",
-            "-----BEGIN OPENSSH PRIVATE KEY-----\nabc\n-----END OPENSSH PRIVATE KEY-----",
+            "github_token=" + "ghp" + "_abcdefghijklmnopqrstuvwxyz123456",
+            "OPENAI_API_KEY=" + "sk" + "-abcdefghijklmnopqrstuvwxyz123456",
+            "SLACK_TOKEN=" + "xoxb" + "-1234567890-abcdefghijklmnopqrstuvwxyz",
+            "AWS_ACCESS_KEY_ID=" + "AKIA" + "IOSFODNN7EXAMPLE",
+            privateKeyMarker + "\nabc\n" + privateKeyMarker.replacingOccurrences(of: "BEGIN", with: "END"),
             "postgres://admin:highentropysecret@localhost/database",
             "4111 1111 1111 1111",
             "Recovery codes:\nABCD-1234\nEFGH-5678"
@@ -71,7 +73,7 @@ final class PrivacySecurityTests: XCTestCase {
 
     func testScreenLockNotificationAutomaticallyLocks() {
         let lockService = AppLockService()
-        lockService.configure(option: .whenMacLocks)
+        lockService.configure(enabled: true, option: .whenMacLocks)
 
         NSWorkspace.shared.notificationCenter.post(
             name: NSWorkspace.sessionDidResignActiveNotification,
@@ -89,6 +91,30 @@ final class PrivacySecurityTests: XCTestCase {
 
         monitor.setEnabled(false)
         XCTAssertNil(monitor.registrationError)
+    }
+
+    @MainActor
+    func testGlobalShortcutPressReleaseIsDebouncedAndMissingKeyUpCanBeCancelled() {
+        var presses = 0
+        var releases = 0
+        let monitor = GlobalShortcutMonitor(
+            action: { presses += 1 },
+            releaseAction: { releases += 1 }
+        )
+
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyPressed))
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyPressed))
+        XCTAssertEqual(presses, 1)
+        XCTAssertTrue(monitor.isPressed)
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyReleased))
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyReleased))
+        XCTAssertEqual(releases, 1)
+        XCTAssertFalse(monitor.isPressed)
+
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyPressed))
+        monitor.cancelHeldShortcut()
+        monitor.handleHotKeyEvent(kind: UInt32(kEventHotKeyReleased))
+        XCTAssertEqual(releases, 1)
     }
 
     func testPasswordArchiveUsesAuthenticatedEncryption() throws {
@@ -225,6 +251,7 @@ final class PrivacySecurityTests: XCTestCase {
         defer { cleanup(context) }
         await context.viewModel.insert(.text(value: "locked", hash: "locked"))
         let item = try XCTUnwrap(context.viewModel.items.first)
+        context.viewModel.lockService.configure(enabled: true, option: .never)
         context.viewModel.lock()
 
         await context.viewModel.restoreAndWait(item)

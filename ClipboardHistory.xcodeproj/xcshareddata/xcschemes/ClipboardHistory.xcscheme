@@ -25,6 +25,20 @@
             buildForRunning = "NO"
             buildForProfiling = "NO"
             buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D50000000000000000000001"
+               BuildableName = "ClipboardHistoryUITests.xctest"
+               BlueprintName = "ClipboardHistoryUITests"
+               ReferencedContainer = "container:ClipboardHistory.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
@@ -48,6 +62,15 @@
                BlueprintIdentifier = "A50000000000000000000002"
                BuildableName = "ClipboardHistoryTests.xctest"
                BlueprintName = "ClipboardHistoryTests"
+               ReferencedContainer = "container:ClipboardHistory.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference skipped = "NO" parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D50000000000000000000001"
+               BuildableName = "ClipboardHistoryUITests.xctest"
+               BlueprintName = "ClipboardHistoryUITests"
                ReferencedContainer = "container:ClipboardHistory.xcodeproj">
             </BuildableReference>
          </TestableReference>

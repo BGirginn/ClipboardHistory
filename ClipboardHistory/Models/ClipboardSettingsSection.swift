@@ -11,11 +11,11 @@ enum ClipboardSettingsSection: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: "General"
-        case .privacy: "Privacy"
-        case .security: "Security"
-        case .storage: "Storage"
-        case .advanced: "Advanced"
+        case .general: String(localized: "General")
+        case .privacy: String(localized: "Privacy")
+        case .security: String(localized: "Security")
+        case .storage: String(localized: "Storage")
+        case .advanced: String(localized: "Advanced")
         }
     }
 

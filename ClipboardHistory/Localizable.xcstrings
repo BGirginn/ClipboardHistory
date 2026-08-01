@@ -1,0 +1,2760 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%arg %arg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg %2$arg"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg %2$arg"
+          }
+        }
+      }
+    },
+    "%arg images": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg görsel"
+          }
+        }
+      }
+    },
+    "%arg is already registered by another application.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg başka bir uygulama tarafından zaten kaydedilmiş."
+          }
+        }
+      }
+    },
+    "%arg seconds": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg saniye"
+          }
+        }
+      }
+    },
+    "%arg selected": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg seçildi"
+          }
+        }
+      }
+    },
+    "15 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 Dakika"
+          }
+        }
+      }
+    },
+    "5 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 Dakika"
+          }
+        }
+      }
+    },
+    "60 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 Dakika"
+          }
+        }
+      }
+    },
+    "A clipboard item change could not be saved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğesindeki değişiklik kaydedilemedi."
+          }
+        }
+      }
+    },
+    "A database value could not be bound.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir veritabanı değeri bağlanamadı."
+          }
+        }
+      }
+    },
+    "A managed asset filename is unsafe.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yönetilen varlık dosya adı güvenli değil."
+          }
+        }
+      }
+    },
+    "A password is required for this encrypted archive.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu şifreli arşiv için parola gerekiyor."
+          }
+        }
+      }
+    },
+    "Accessibility permission is required only for Paste to Active App. The item was copied; grant access in System Settings and try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik izni yalnız Etkin Uygulamaya Yapıştır için gereklidir. Öğe kopyalandı; Sistem Ayarları'ndan izin verip yeniden deneyin."
+          }
+        }
+      }
+    },
+    "Action": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eylem"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekle"
+          }
+        }
+      }
+    },
+    "Add Selected to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilenleri Yapıştırma Yığınına Ekle"
+          }
+        }
+      }
+    },
+    "Add selected items to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçili öğeleri Yapıştırma Yığınına ekle"
+          }
+        }
+      }
+    },
+    "Add to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınına Ekle"
+          }
+        }
+      }
+    },
+    "Advanced": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İleri Düzey"
+          }
+        }
+      }
+    },
+    "After 1 Minute": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Dakika Sonra"
+          }
+        }
+      }
+    },
+    "After 15 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 Dakika Sonra"
+          }
+        }
+      }
+    },
+    "After 5 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 Dakika Sonra"
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tümü"
+          }
+        }
+      }
+    },
+    "All Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Öğeler"
+          }
+        }
+      }
+    },
+    "Allowed applications override exclusions. Excluded clipboard content is never read or stored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İzin verilen uygulamalar dışlamaları geçersiz kılar. Dışlanan pano içeriği hiçbir zaman okunmaz veya saklanmaz."
+          }
+        }
+      }
+    },
+    "Always allowed bundle identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her zaman izin verilen paket kimlikleri"
+          }
+        }
+      }
+    },
+    "Application Lock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama Kilidi"
+          }
+        }
+      }
+    },
+    "Application Rules": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama Kuralları"
+          }
+        }
+      }
+    },
+    "Application lock error: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama kilidi hatası: %arg"
+          }
+        }
+      }
+    },
+    "Archive password": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv parolası"
+          }
+        }
+      }
+    },
+    "Ask Before Saving": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetmeden Önce Sor"
+          }
+        }
+      }
+    },
+    "Authenticate and Unlock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kimlik Doğrula ve Kilidi Aç"
+          }
+        }
+      }
+    },
+    "Authenticate with Touch ID or your Mac login password to view, copy, or paste saved items.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmiş öğeleri görüntülemek, kopyalamak veya yapıştırmak için Touch ID ya da Mac oturum açma parolanızla kimliğinizi doğrulayın."
+          }
+        }
+      }
+    },
+    "Automatic lock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik kilit"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri"
+          }
+        }
+      }
+    },
+    "Back to Clipboard History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History'ye Dön"
+          }
+        }
+      }
+    },
+    "Behavior": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Davranış"
+          }
+        }
+      }
+    },
+    "Bottom": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal"
+          }
+        }
+      }
+    },
+    "Capture PDFs": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF'leri yakala"
+          }
+        }
+      }
+    },
+    "Capture files and folders": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya ve klasörleri yakala"
+          }
+        }
+      }
+    },
+    "Capture rich text and HTML": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zengin metin ve HTML yakala"
+          }
+        }
+      }
+    },
+    "Choose Duration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Süre Seç"
+          }
+        }
+      }
+    },
+    "Clean HTML": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temiz HTML"
+          }
+        }
+      }
+    },
+    "Clean History by Age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişi Yaşa Göre Temizle"
+          }
+        }
+      }
+    },
+    "Clean unpinned history by age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmemiş geçmişi yaşa göre temizle"
+          }
+        }
+      }
+    },
+    "Clear All History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Geçmişi Temizle"
+          }
+        }
+      }
+    },
+    "Clear History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişi Temizle"
+          }
+        }
+      }
+    },
+    "Clear Search": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aramayı Temizle"
+          }
+        }
+      }
+    },
+    "Clear all clipboard history?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm pano geçmişi temizlensin mi?"
+          }
+        }
+      }
+    },
+    "Clipboard Formats": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Biçimleri"
+          }
+        }
+      }
+    },
+    "Clipboard History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History"
+          }
+        }
+      }
+    },
+    "Clipboard History Locked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History Kilitli"
+          }
+        }
+      }
+    },
+    "Clipboard History cannot access its encryption key. Recording is stopped to protect your data. Restore Keychain access, then relaunch the app.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History şifreleme anahtarına erişemiyor. Verilerinizi korumak için kayıt durduruldu. Anahtar Zinciri erişimini geri yükleyip uygulamayı yeniden açın."
+          }
+        }
+      }
+    },
+    "Clipboard History could not create a paste keyboard event.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History yapıştırma klavye olayı oluşturamadı."
+          }
+        }
+      }
+    },
+    "Clipboard content could not be saved. Recording continues, but this item was not added.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano içeriği kaydedilemedi. Kayıt sürüyor ancak bu öğe eklenmedi."
+          }
+        }
+      }
+    },
+    "Close panel after copying": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyaladıktan sonra paneli kapat"
+          }
+        }
+      }
+    },
+    "Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon"
+          }
+        }
+      }
+    },
+    "Collection could not be deleted.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon silinemedi."
+          }
+        }
+      }
+    },
+    "Collection could not be saved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon kaydedilemedi."
+          }
+        }
+      }
+    },
+    "Collection names and item tags are encrypted at rest.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon adları ve öğe etiketleri diskte şifrelenir."
+          }
+        }
+      }
+    },
+    "Collections": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyonlar"
+          }
+        }
+      }
+    },
+    "Command-Shift-V registration can fail if another application reserves it. The native Carbon hot key does not require Accessibility permission.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-Shift-V başka bir uygulama tarafından ayrılmışsa kaydedilemeyebilir. Yerel Carbon kısayolu Erişilebilirlik izni gerektirmez."
+          }
+        }
+      }
+    },
+    "Continue recording while locked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilitliyken kayda devam et"
+          }
+        }
+      }
+    },
+    "Control": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denetim"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyalandı"
+          }
+        }
+      }
+    },
+    "Copies this item back to the clipboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu öğeyi yeniden panoya kopyalar"
+          }
+        }
+      }
+    },
+    "Copy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyala"
+          }
+        }
+      }
+    },
+    "Copy As": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı Kopyala"
+          }
+        }
+      }
+    },
+    "Copy text or take a screenshot to begin.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlamak için metin kopyalayın veya ekran görüntüsü alın."
+          }
+        }
+      }
+    },
+    "Custom UTI identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel UTI tanımlayıcıları"
+          }
+        }
+      }
+    },
+    "Database": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı"
+          }
+        }
+      }
+    },
+    "Database operation failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı işlemi başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Database statement failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı deyimi başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Database unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Default filter": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan filtre"
+          }
+        }
+      }
+    },
+    "Default sort": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan sıralama"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sil"
+          }
+        }
+      }
+    },
+    "Delete %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg öğesini sil"
+          }
+        }
+      }
+    },
+    "Delete Matching Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eşleşen Öğeleri Sil"
+          }
+        }
+      }
+    },
+    "Delete Selected": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilenleri Sil"
+          }
+        }
+      }
+    },
+    "Delete selected items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçili öğeleri sil"
+          }
+        }
+      }
+    },
+    "Delete unpinned items in this time range?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu zaman aralığındaki sabitlenmemiş öğeler silinsin mi?"
+          }
+        }
+      }
+    },
+    "Detachable Keyboard Panel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrılabilir Klavye Paneli"
+          }
+        }
+      }
+    },
+    "Detect secrets locally": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli bilgileri yerel olarak algıla"
+          }
+        }
+      }
+    },
+    "Detection is local and may produce false positives. Temporary content is excluded from disk and search.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algılama yereldir ve hatalı sonuç verebilir. Geçici içerik diske ve aramaya dahil edilmez."
+          }
+        }
+      }
+    },
+    "Disable Clipboard History application lock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History uygulama kilidini devre dışı bırak"
+          }
+        }
+      }
+    },
+    "Documents": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belgeler"
+          }
+        }
+      }
+    },
+    "Duplicate Detection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yinelenen Algılama"
+          }
+        }
+      }
+    },
+    "Enable Clipboard History application lock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History uygulama kilidini etkinleştir"
+          }
+        }
+      }
+    },
+    "Enable global shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayolu etkinleştir"
+          }
+        }
+      }
+    },
+    "Encrypted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli"
+          }
+        }
+      }
+    },
+    "Encrypted Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli Dışa Aktarım"
+          }
+        }
+      }
+    },
+    "Encrypted Storage Unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli Depolama Kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Encrypted clipboard data is invalid.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli pano verisi geçersiz."
+          }
+        }
+      }
+    },
+    "Encrypted storage is currently unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli depolama şu anda kullanılamıyor."
+          }
+        }
+      }
+    },
+    "Encrypted storage is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli depolama kullanılamıyor."
+          }
+        }
+      }
+    },
+    "Encryption": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreleme"
+          }
+        }
+      }
+    },
+    "Excluded application, %arg, %arg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Excluded application, %1$arg, %2$arg"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışlanan uygulama, %1$arg, %2$arg"
+          }
+        }
+      }
+    },
+    "Excluded bundle identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışlanan paket kimlikleri"
+          }
+        }
+      }
+    },
+    "Export As JPEG…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG Olarak Dışa Aktar…"
+          }
+        }
+      }
+    },
+    "Export As PNG…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PNG Olarak Dışa Aktar…"
+          }
+        }
+      }
+    },
+    "Export Unencrypted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifresiz Dışa Aktar"
+          }
+        }
+      }
+    },
+    "Export clipboard content without encryption?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano içeriği şifrelenmeden dışa aktarılsın mı?"
+          }
+        }
+      }
+    },
+    "Export completed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma tamamlandı."
+          }
+        }
+      }
+    },
+    "Export failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Filter": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtre"
+          }
+        }
+      }
+    },
+    "Filter by app:, type:, tag:, collection:, ocr:, after:, or before:": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "app:, type:, tag:, collection:, ocr:, after: veya before: ile filtreleyin:"
+          }
+        }
+      }
+    },
+    "First In, First Out": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İlk Giren, İlk Çıkar"
+          }
+        }
+      }
+    },
+    "Full History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Geçmiş"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel"
+          }
+        }
+      }
+    },
+    "Global Shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel Kısayol"
+          }
+        }
+      }
+    },
+    "Global shortcut registration failed (%arg).": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayol kaydı başarısız (%arg)."
+          }
+        }
+      }
+    },
+    "History age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş yaşı"
+          }
+        }
+      }
+    },
+    "History limit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş sınırı"
+          }
+        }
+      }
+    },
+    "Hold mode requests Accessibility permission only when release triggers Paste to Active App.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basılı tutma modu Erişilebilirlik iznini yalnız bırakma etkin uygulamaya yapıştırmayı tetiklediğinde ister."
+          }
+        }
+      }
+    },
+    "Hold, Select, Release to Paste": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basılı Tut, Seç, Yapıştırmak İçin Bırak"
+          }
+        }
+      }
+    },
+    "Ignore Next Copy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonraki Kopyayı Yok Say"
+          }
+        }
+      }
+    },
+    "Ignore Universal Clipboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evrensel Pano'yu Yok Say"
+          }
+        }
+      }
+    },
+    "Ignored Pasteboard Types": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yok Sayılan Pano Türleri"
+          }
+        }
+      }
+    },
+    "Image age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel yaşı"
+          }
+        }
+      }
+    },
+    "Image export failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel dışa aktarılamadı: %arg"
+          }
+        }
+      }
+    },
+    "Images": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görseller"
+          }
+        }
+      }
+    },
+    "Import Migration Archive…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçiş Arşivini İçe Aktar…"
+          }
+        }
+      }
+    },
+    "Import failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İçe aktarma başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Imported %arg items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg öğe içe aktarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Imported %arg; skipped %arg duplicates.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Imported %1$arg; skipped %2$arg duplicates."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg içe aktarıldı; %2$arg yinelenen atlandı."
+          }
+        }
+      }
+    },
+    "Include file references": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya başvurularını dahil et"
+          }
+        }
+      }
+    },
+    "Include images and documents": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel ve belgeleri dahil et"
+          }
+        }
+      }
+    },
+    "Item Details": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğe Ayrıntıları"
+          }
+        }
+      }
+    },
+    "Keep Temporarily": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici Olarak Tut"
+          }
+        }
+      }
+    },
+    "Keep as Snippet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snippet Olarak Tut"
+          }
+        }
+      }
+    },
+    "Keychain operation failed with status %arg.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtar Zinciri işlemi %arg durumuyla başarısız oldu."
+          }
+        }
+      }
+    },
+    "Keys are stored in the macOS Data Protection Keychain. Item type, dates, sizes, hashes, and source application remain visible as metadata.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtarlar macOS Veri Koruma Anahtar Zinciri'nde saklanır. Öğe türü, tarihler, boyutlar, karmalar ve kaynak uygulama meta veri olarak görünür kalır."
+          }
+        }
+      }
+    },
+    "Keys are stored in the macOS login Keychain and access is bound to the stable Community Beta signing identity. Item type, dates, sizes, hashes, and source application remain visible as metadata.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtarlar macOS giriş Anahtar Zinciri'nde saklanır ve erişim sabit Community Beta imzalama kimliğine bağlanır. Öğe türü, tarihler, boyutlar, karmalar ve kaynak uygulama meta veri olarak görünür kalır."
+          }
+        }
+      }
+    },
+    "Last 10 Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son 10 Öğe"
+          }
+        }
+      }
+    },
+    "Last Hour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Saat"
+          }
+        }
+      }
+    },
+    "Last In, First Out": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Giren, İlk Çıkar"
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oturum açılışında başlat"
+          }
+        }
+      }
+    },
+    "Left": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sol"
+          }
+        }
+      }
+    },
+    "Local Archive": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yerel Arşiv"
+          }
+        }
+      }
+    },
+    "Lock Now": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şimdi Kilitle"
+          }
+        }
+      }
+    },
+    "Locked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilitli"
+          }
+        }
+      }
+    },
+    "Lowercase": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük Harf"
+          }
+        }
+      }
+    },
+    "Maximum storage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En fazla depolama"
+          }
+        }
+      }
+    },
+    "Menu Bar Popover": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğu Açılır Paneli"
+          }
+        }
+      }
+    },
+    "Merge Import": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birleştirerek İçe Aktar"
+          }
+        }
+      }
+    },
+    "Metadata Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meta Veri Dışa Aktarımı"
+          }
+        }
+      }
+    },
+    "Migrate from Apple Development Build": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Development Yapısından Geçiş Yap"
+          }
+        }
+      }
+    },
+    "Migration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçiş"
+          }
+        }
+      }
+    },
+    "Migration failed without replacing the previous database: %arg. Quit and reopen Clipboard History.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önceki veritabanı değiştirilmeden geçiş başarısız oldu: %arg. Clipboard History'yi kapatıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Move to Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyona Taşı"
+          }
+        }
+      }
+    },
+    "Never": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asla"
+          }
+        }
+      }
+    },
+    "Never Save": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asla Kaydetme"
+          }
+        }
+      }
+    },
+    "New collection name": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni koleksiyon adı"
+          }
+        }
+      }
+    },
+    "New items remain encrypted. Viewing, copying, and pasting stay blocked until you unlock.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni öğeler şifreli kalır. Kilidi açana kadar görüntüleme, kopyalama ve yapıştırma engellenir."
+          }
+        }
+      }
+    },
+    "Newest First": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önce En Yeni"
+          }
+        }
+      }
+    },
+    "Newest Item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En Yeni Öğe"
+          }
+        }
+      }
+    },
+    "Next item: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonraki öğe: %arg"
+          }
+        }
+      }
+    },
+    "No Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon Yok"
+          }
+        }
+      }
+    },
+    "No clipboard items yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz pano öğesi yok"
+          }
+        }
+      }
+    },
+    "Not checked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denetlenmedi"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapalı"
+          }
+        }
+      }
+    },
+    "Older Than 1 Day": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Günden Eski"
+          }
+        }
+      }
+    },
+    "Older Than 1 Hour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Saatten Eski"
+          }
+        }
+      }
+    },
+    "Older Than 1 Week": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Haftadan Eski"
+          }
+        }
+      }
+    },
+    "Older Than 30 Days": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Günden Eski"
+          }
+        }
+      }
+    },
+    "Oldest First": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önce En Eski"
+          }
+        }
+      }
+    },
+    "Order": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıra"
+          }
+        }
+      }
+    },
+    "Organize and Edit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düzenle ve Organize Et"
+          }
+        }
+      }
+    },
+    "Original": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özgün"
+          }
+        }
+      }
+    },
+    "Panel style": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel biçimi"
+          }
+        }
+      }
+    },
+    "Paste As": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste Next": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonrakini Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığını"
+          }
+        }
+      }
+    },
+    "Paste Stack: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığını: %arg"
+          }
+        }
+      }
+    },
+    "Paste as Plain Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düz Metin Olarak Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste the next stack item to the active app": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yığındaki sonraki öğeyi etkin uygulamaya yapıştır"
+          }
+        }
+      }
+    },
+    "Paste to Active App": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin Uygulamaya Yapıştır"
+          }
+        }
+      }
+    },
+    "Pause recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı duraklat"
+          }
+        }
+      }
+    },
+    "Paused": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duraklatıldı"
+          }
+        }
+      }
+    },
+    "Pinned": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş"
+          }
+        }
+      }
+    },
+    "Pinned items and all associated files and thumbnails will also be removed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş öğeler ile ilişkili tüm dosya ve küçük resimler de kaldırılır."
+          }
+        }
+      }
+    },
+    "Pinned items are preserved. This cannot be undone.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş öğeler korunur. Bu işlem geri alınamaz."
+          }
+        }
+      }
+    },
+    "Plain Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düz Metin"
+          }
+        }
+      }
+    },
+    "Presentation": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunum"
+          }
+        }
+      }
+    },
+    "Press Space for Quick Look": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı Bakış için Boşluk tuşuna basın"
+          }
+        }
+      }
+    },
+    "Press to Open or Close": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açmak veya Kapatmak İçin Bas"
+          }
+        }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizlilik"
+          }
+        }
+      }
+    },
+    "Private": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel"
+          }
+        }
+      }
+    },
+    "Private Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel Mod"
+          }
+        }
+      }
+    },
+    "RTF": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RTF"
+          }
+        }
+      }
+    },
+    "Recently Used": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Kullanılan"
+          }
+        }
+      }
+    },
+    "Recognize text in images on device": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsellerdeki metni aygıtta tanı"
+          }
+        }
+      }
+    },
+    "Recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt"
+          }
+        }
+      }
+    },
+    "Remove an item after it is pasted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırıldıktan sonra öğeyi çıkar"
+          }
+        }
+      }
+    },
+    "Remove from Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınından Çıkar"
+          }
+        }
+      }
+    },
+    "Removed %arg items and reclaimed %arg.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Removed %1$arg items and reclaimed %2$arg."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg öğe kaldırıldı ve %2$arg alan geri kazanıldı."
+          }
+        }
+      }
+    },
+    "Reset Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınını Sıfırla"
+          }
+        }
+      }
+    },
+    "Reset after %arg minutes (0 means never)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg dakika sonra sıfırla (0 hiçbir zaman demektir)"
+          }
+        }
+      }
+    },
+    "Resume": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sürdür"
+          }
+        }
+      }
+    },
+    "Resume Recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Sürdür"
+          }
+        }
+      }
+    },
+    "Retention": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saklama"
+          }
+        }
+      }
+    },
+    "Reveal in Finder": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finder'da Göster"
+          }
+        }
+      }
+    },
+    "Right": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sağ"
+          }
+        }
+      }
+    },
+    "Run Cleanup": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temizliği Çalıştır"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; JSON migration complete": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; JSON geçişi tamamlandı"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; legacy migration preserved after failure": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; eski geçiş başarısızlık sonrası korundu"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; no legacy migration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; eski geçiş yok"
+          }
+        }
+      }
+    },
+    "Save Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikleri Kaydet"
+          }
+        }
+      }
+    },
+    "Save Encrypted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli Kaydet"
+          }
+        }
+      }
+    },
+    "Save detected sensitive content?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algılanan hassas içerik kaydedilsin mi?"
+          }
+        }
+      }
+    },
+    "Scope": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapsam"
+          }
+        }
+      }
+    },
+    "Screen edge": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kenarı"
+          }
+        }
+      }
+    },
+    "Search history or use field filters…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişte ara veya alan filtrelerini kullan…"
+          }
+        }
+      }
+    },
+    "Security": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Güvenlik"
+          }
+        }
+      }
+    },
+    "Select the password-protected full archive exported by the Apple Development build. The current database is retained as a rollback backup until the import is verified.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Development yapısından dışa aktarılan parola korumalı tam arşivi seçin. İçe aktarma doğrulanana kadar mevcut veritabanı geri dönüş yedeği olarak tutulur."
+          }
+        }
+      }
+    },
+    "Sensitive Content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas İçerik"
+          }
+        }
+      }
+    },
+    "Sensitive Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas Öğeler"
+          }
+        }
+      }
+    },
+    "Sensitive content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas içerik"
+          }
+        }
+      }
+    },
+    "Sensitive content could not be saved securely.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas içerik güvenli biçimde kaydedilemedi."
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar"
+          }
+        }
+      }
+    },
+    "Settings Section": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar Bölümü"
+          }
+        }
+      }
+    },
+    "Shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kısayol"
+          }
+        }
+      }
+    },
+    "Show Details": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrıntıları Göster"
+          }
+        }
+      }
+    },
+    "Snippets": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parçacıklar"
+          }
+        }
+      }
+    },
+    "Sort": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sırala"
+          }
+        }
+      }
+    },
+    "Sort Order": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıralama Düzeni"
+          }
+        }
+      }
+    },
+    "Start in Private Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel Modda Başlat"
+          }
+        }
+      }
+    },
+    "Startup": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlangıç"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depolama"
+          }
+        }
+      }
+    },
+    "System authentication is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem kimlik doğrulaması kullanılamıyor."
+          }
+        }
+      }
+    },
+    "System authentication was cancelled.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem kimlik doğrulaması iptal edildi."
+          }
+        }
+      }
+    },
+    "Tags, separated by commas": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiketler, virgülle ayırın"
+          }
+        }
+      }
+    },
+    "Temporary mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici mod"
+          }
+        }
+      }
+    },
+    "Temporary retention": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici saklama süresi"
+          }
+        }
+      }
+    },
+    "Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metin"
+          }
+        }
+      }
+    },
+    "The app that was active before Clipboard History opened is no longer available.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History açılmadan önce etkin olan uygulama artık kullanılamıyor."
+          }
+        }
+      }
+    },
+    "The archive contains an unsafe asset path.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv güvenli olmayan bir varlık yolu içeriyor."
+          }
+        }
+      }
+    },
+    "The archive exceeds the safe import limit.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv güvenli içe aktarma sınırını aşıyor."
+          }
+        }
+      }
+    },
+    "The archive is missing required content.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşivde gerekli içerik eksik."
+          }
+        }
+      }
+    },
+    "The encryption key is invalid.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreleme anahtarı geçersiz."
+          }
+        }
+      }
+    },
+    "The export can contain clipboard text and document data in readable form.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma, pano metni ve belge verilerini okunabilir biçimde içerebilir."
+          }
+        }
+      }
+    },
+    "The history database failed its integrity check.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı bütünlük denetiminden geçemedi."
+          }
+        }
+      }
+    },
+    "The history database is closed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı kapalı."
+          }
+        }
+      }
+    },
+    "The migration archive password is required.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçiş arşivi parolası gerekiyor."
+          }
+        }
+      }
+    },
+    "The preview is hidden.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önizleme gizlendi."
+          }
+        }
+      }
+    },
+    "The selected file is not a valid Clipboard History archive.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen dosya geçerli bir Clipboard History arşivi değil."
+          }
+        }
+      }
+    },
+    "This Clipboard History archive version is unsupported.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu Clipboard History arşiv sürümü desteklenmiyor."
+          }
+        }
+      }
+    },
+    "Thumbnail cache": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük resim önbelleği"
+          }
+        }
+      }
+    },
+    "Thumbnails": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük resimler"
+          }
+        }
+      }
+    },
+    "Title Case": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baş Harfleri Büyük"
+          }
+        }
+      }
+    },
+    "Top": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üst"
+          }
+        }
+      }
+    },
+    "Transform Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metni Dönüştür"
+          }
+        }
+      }
+    },
+    "Transient, concealed, and auto-generated pasteboard types are always ignored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici, gizli ve otomatik oluşturulan pano türleri her zaman yok sayılır."
+          }
+        }
+      }
+    },
+    "Trim Surrounding Whitespace": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çevre Boşluklarını Kırp"
+          }
+        }
+      }
+    },
+    "Try another search term.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başka bir arama terimi deneyin."
+          }
+        }
+      }
+    },
+    "Unable to install the global shortcut handler (%arg).": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayol işleyicisi yüklenemedi (%arg)."
+          }
+        }
+      }
+    },
+    "Unable to open the history database: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı açılamadı: %arg"
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Unencrypted Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifresiz Dışa Aktarım"
+          }
+        }
+      }
+    },
+    "Unlock Clipboard History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History Kilidini Aç"
+          }
+        }
+      }
+    },
+    "Unlock Clipboard History before restoring an item.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir öğeyi geri yüklemeden önce Clipboard History kilidini açın."
+          }
+        }
+      }
+    },
+    "Unlocked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilidi Açık"
+          }
+        }
+      }
+    },
+    "Uppercase": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Büyük Harf"
+          }
+        }
+      }
+    },
+    "Usage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanım"
+          }
+        }
+      }
+    },
+    "Uses Touch ID or your Mac login password. Clipboard History does not create a separate password.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touch ID veya Mac oturum açma parolanızı kullanır. Clipboard History ayrı bir parola oluşturmaz."
+          }
+        }
+      }
+    },
+    "Uses system authentication. Clipboard History does not store a separate password.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem kimlik doğrulamasını kullanır. Clipboard History ayrı bir parola saklamaz."
+          }
+        }
+      }
+    },
+    "Visible name": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünen ad"
+          }
+        }
+      }
+    },
+    "When Mac Locks": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac Kilitlendiğinde"
+          }
+        }
+      }
+    },
+    "When enabled, new clipboard items are encrypted and saved while the application is locked.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkinleştirildiğinde, uygulama kilitliyken yeni pano öğeleri şifrelenip kaydedilir."
+          }
+        }
+      }
+    },
+    "•": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "•"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.2"
+}

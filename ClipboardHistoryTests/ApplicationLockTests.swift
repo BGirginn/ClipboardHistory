@@ -1,0 +1,284 @@
+import AppKit
+import Foundation
+import XCTest
+@testable import ClipboardHistory
+
+@MainActor
+final class ApplicationLockTests: XCTestCase {
+    func testDisabledStateIgnoresManualAndMacLockEvents() {
+        let notifications = NotificationCenter()
+        let authenticator = StubSystemAuthenticator { _ in true }
+        let service = AppLockService(
+            authenticator: authenticator,
+            lockNotificationCenter: notifications
+        )
+
+        service.configure(enabled: false, option: .whenMacLocks)
+        service.lock()
+        notifications.post(name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+
+        XCTAssertEqual(service.state, .disabled)
+    }
+
+    func testEnabledLaunchStartsLocked() {
+        let service = AppLockService(authenticator: StubSystemAuthenticator { _ in true })
+
+        service.configure(enabled: true, option: .whenMacLocks, startsLocked: true)
+
+        XCTAssertEqual(service.state, .locked)
+    }
+
+    func testEnableUnlockAndDisableRequireSuccessfulAuthentication() async {
+        let authenticator = StubSystemAuthenticator { _ in true }
+        let service = AppLockService(authenticator: authenticator)
+
+        let didEnable = await service.authenticateAndSetEnabled(true)
+        XCTAssertTrue(didEnable)
+        XCTAssertEqual(service.state, .unlocked)
+        service.lock()
+        XCTAssertEqual(service.state, .locked)
+        await service.unlock()
+        XCTAssertEqual(service.state, .unlocked)
+        let didDisable = await service.authenticateAndSetEnabled(false)
+        XCTAssertTrue(didDisable)
+        XCTAssertEqual(service.state, .disabled)
+        XCTAssertEqual(authenticator.reasons.count, 3)
+    }
+
+    func testCancelledAuthenticationLeavesStateUnchanged() async {
+        let service = AppLockService(
+            authenticator: StubSystemAuthenticator { _ in false }
+        )
+
+        let didEnable = await service.authenticateAndSetEnabled(true)
+        XCTAssertFalse(didEnable)
+
+        XCTAssertEqual(service.state, .disabled)
+        XCTAssertNotNil(service.errorMessage)
+    }
+
+    func testUnavailableAuthenticationLeavesStateUnchanged() async {
+        let service = AppLockService(
+            authenticator: StubSystemAuthenticator { _ in
+                throw SystemAuthenticationError.unavailable("Unavailable in test")
+            }
+        )
+
+        let didEnable = await service.authenticateAndSetEnabled(true)
+        XCTAssertFalse(didEnable)
+
+        XCTAssertEqual(service.state, .disabled)
+        XCTAssertEqual(service.errorMessage, "Unavailable in test")
+    }
+
+    func testEveryInactivityOptionSchedulesItsExactDurationAndLocks() async {
+        let expectations: [(AutoLockOption, Duration)] = [
+            (.oneMinute, .seconds(60)),
+            (.fiveMinutes, .seconds(300)),
+            (.fifteenMinutes, .seconds(900))
+        ]
+
+        for (option, expectedDuration) in expectations {
+            let clock = RecordingSleepClock()
+            let service = AppLockService(
+                authenticator: StubSystemAuthenticator { _ in true },
+                sleepClock: clock
+            )
+            service.configure(enabled: true, option: option)
+            await waitUntilLocked(service)
+
+            XCTAssertEqual(service.state, .locked, "Failed option: \(option.rawValue)")
+            let recordedDurations = await clock.recordedDurations()
+            XCTAssertEqual(recordedDurations, [expectedDuration])
+        }
+    }
+
+    func testNeverDoesNotScheduleAndMacLockUsesNotification() async {
+        let notifications = NotificationCenter()
+        let clock = RecordingSleepClock()
+        let service = AppLockService(
+            authenticator: StubSystemAuthenticator { _ in true },
+            sleepClock: clock,
+            lockNotificationCenter: notifications
+        )
+
+        service.configure(enabled: true, option: .never)
+        await Task.yield()
+        XCTAssertEqual(service.state, .unlocked)
+        let recordedDurations = await clock.recordedDurations()
+        XCTAssertTrue(recordedDurations.isEmpty)
+
+        service.configure(enabled: true, option: .whenMacLocks)
+        notifications.post(name: NSWorkspace.screensDidSleepNotification, object: nil)
+        XCTAssertEqual(service.state, .locked)
+    }
+
+    func testSuccessfulEnableDefaultsToMacLockAndNextLaunchStartsLocked() async throws {
+        let fixture = try makeFixture(authenticator: StubSystemAuthenticator { _ in true })
+        defer { fixture.cleanup() }
+
+        let didEnable = await fixture.viewModel.setApplicationLockEnabledAndWait(true)
+        XCTAssertTrue(didEnable)
+        XCTAssertTrue(fixture.settings.applicationLockEnabled)
+        XCTAssertEqual(fixture.settings.autoLockOption, .whenMacLocks)
+        XCTAssertEqual(fixture.viewModel.lockService.state, .unlocked)
+
+        let reopenedSettings = AppSettings(defaults: fixture.defaults)
+        let reopened = ClipboardHistoryViewModel(
+            storage: fixture.storage,
+            monitor: ClipboardMonitor(pasteboard: fixture.pasteboard),
+            restorePasteboard: fixture.pasteboard,
+            settings: reopenedSettings,
+            lockService: AppLockService(authenticator: StubSystemAuthenticator { _ in true }),
+            startsAutomatically: false
+        )
+        XCTAssertEqual(reopened.lockService.state, .locked)
+        reopened.prepareForShutdown()
+    }
+
+    func testFailedEnableDoesNotChangePersistentSetting() async throws {
+        let fixture = try makeFixture(authenticator: StubSystemAuthenticator { _ in false })
+        defer { fixture.cleanup() }
+
+        let didEnable = await fixture.viewModel.setApplicationLockEnabledAndWait(true)
+        XCTAssertFalse(didEnable)
+        XCTAssertFalse(fixture.settings.applicationLockEnabled)
+        XCTAssertEqual(fixture.viewModel.lockService.state, .disabled)
+    }
+
+    func testLockedCapturePreferenceEncryptsOrDropsNewItems() async throws {
+        let capturing = try makeFixture(
+            authenticator: StubSystemAuthenticator { _ in true },
+            lockEnabled: true,
+            captureWhileLocked: true
+        )
+        defer { capturing.cleanup() }
+        XCTAssertEqual(capturing.viewModel.lockService.state, .locked)
+
+        await capturing.viewModel.insert(.text(value: "captured locked", hash: "locked-capture"))
+
+        XCTAssertEqual(capturing.viewModel.items.count, 1)
+        XCTAssertEqual(capturing.viewModel.items.first?.isEncrypted, true)
+        let capturedHistory = await capturing.storage.loadHistory()
+        XCTAssertEqual(capturedHistory.first?.isEncrypted, true)
+
+        let dropping = try makeFixture(
+            authenticator: StubSystemAuthenticator { _ in true },
+            lockEnabled: true,
+            captureWhileLocked: false
+        )
+        defer { dropping.cleanup() }
+
+        await dropping.viewModel.insert(.text(value: "dropped locked", hash: "locked-drop"))
+        await dropping.viewModel.lockService.unlock()
+
+        XCTAssertTrue(dropping.viewModel.items.isEmpty)
+        let droppedHistory = await dropping.storage.loadHistory()
+        XCTAssertTrue(droppedHistory.isEmpty)
+    }
+
+    func testPrivateModeTakesPriorityOverLockedCapture() async throws {
+        let fixture = try makeFixture(
+            authenticator: StubSystemAuthenticator { _ in true },
+            lockEnabled: true,
+            captureWhileLocked: true
+        )
+        defer { fixture.cleanup() }
+        fixture.viewModel.setPrivateModeEnabled(true)
+
+        await fixture.viewModel.insert(.text(value: "private wins", hash: "private-wins"))
+
+        XCTAssertTrue(fixture.viewModel.items.isEmpty)
+    }
+
+    func testSensitiveAskIsDeferredInMemoryUntilUnlock() async throws {
+        let fixture = try makeFixture(
+            authenticator: StubSystemAuthenticator { _ in true },
+            lockEnabled: true,
+            captureWhileLocked: true
+        )
+        defer { fixture.cleanup() }
+        fixture.settings.sensitiveStoragePolicy = .ask
+        let secret = "Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345"
+
+        await fixture.viewModel.insert(
+            .text(value: secret, hash: HashUtility.sha256(text: secret))
+        )
+
+        XCTAssertEqual(fixture.viewModel.items.first?.isSensitive, true)
+        XCTAssertFalse(fixture.viewModel.isShowingSensitiveSaveConfirmation)
+        let persistedHistory = await fixture.storage.loadHistory()
+        XCTAssertTrue(persistedHistory.isEmpty)
+
+        await fixture.viewModel.unlockAndWait()
+
+        XCTAssertEqual(fixture.viewModel.lockService.state, .unlocked)
+        XCTAssertTrue(fixture.viewModel.isShowingSensitiveSaveConfirmation)
+    }
+
+    func testLockedRestoreAndPasteNeverWriteOrSendAccessibilityEvent() async throws {
+        let pasteService = StubActiveApplicationPasteService()
+        let fixture = try makeFixture(
+            authenticator: StubSystemAuthenticator { _ in true },
+            lockEnabled: true,
+            captureWhileLocked: true,
+            pasteService: pasteService
+        )
+        defer { fixture.cleanup() }
+        await fixture.viewModel.insert(.text(value: "blocked interaction", hash: "blocked"))
+        let item = try XCTUnwrap(fixture.viewModel.items.first)
+        let initialChangeCount = fixture.pasteboard.changeCount
+
+        await fixture.viewModel.restoreAndWait(item)
+        await fixture.viewModel.pasteAndWait(item)
+
+        XCTAssertEqual(fixture.pasteboard.changeCount, initialChangeCount)
+        XCTAssertEqual(pasteService.pasteCount, 0)
+    }
+
+    private func waitUntilLocked(_ service: AppLockService) async {
+        for _ in 0..<20 where service.state != .locked {
+            await Task.yield()
+        }
+    }
+
+    private func makeFixture(
+        authenticator: StubSystemAuthenticator,
+        lockEnabled: Bool = false,
+        captureWhileLocked: Bool = true,
+        pasteService: StubActiveApplicationPasteService = StubActiveApplicationPasteService()
+    ) throws -> ApplicationLockFixture {
+        let directory = FileManager.default.temporaryDirectory.appending(
+            path: "ApplicationLockTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let suite = "ApplicationLockDefaults-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defaults.set(1, forKey: "applicationLockMigrationVersion")
+        defaults.set(lockEnabled, forKey: "applicationLockEnabled")
+        defaults.set(captureWhileLocked, forKey: "captureWhileLocked")
+        let settings = AppSettings(defaults: defaults)
+        let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
+        let pasteboard = NSPasteboard(
+            name: .init("ApplicationLockPasteboard-\(UUID().uuidString)")
+        )
+        let viewModel = ClipboardHistoryViewModel(
+            storage: storage,
+            monitor: ClipboardMonitor(pasteboard: pasteboard),
+            restorePasteboard: pasteboard,
+            pasteService: pasteService,
+            settings: settings,
+            lockService: AppLockService(authenticator: authenticator),
+            startsAutomatically: false
+        )
+        return ApplicationLockFixture(
+            directory: directory,
+            suite: suite,
+            defaults: defaults,
+            settings: settings,
+            storage: storage,
+            pasteboard: pasteboard,
+            viewModel: viewModel
+        )
+    }
+}

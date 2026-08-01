@@ -9,9 +9,9 @@ enum SensitiveStoragePolicy: String, Codable, CaseIterable, Identifiable, Sendab
 
     var title: String {
         switch self {
-        case .neverSave: "Never Save"
-        case .encrypted: "Save Encrypted"
-        case .ask: "Ask Before Saving"
+        case .neverSave: String(localized: "Never Save")
+        case .encrypted: String(localized: "Save Encrypted")
+        case .ask: String(localized: "Ask Before Saving")
         }
     }
 }

@@ -10,12 +10,12 @@ enum ExportImportError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .passwordRequired: "A password is required for this encrypted archive."
-        case .invalidArchive: "The selected file is not a valid Clipboard History archive."
-        case .unsupportedVersion: "This Clipboard History archive version is unsupported."
-        case .unsafePath: "The archive contains an unsafe asset path."
-        case .archiveTooLarge: "The archive exceeds the safe import limit."
-        case .missingAsset: "The archive is missing required content."
+        case .passwordRequired: String(localized: "A password is required for this encrypted archive.")
+        case .invalidArchive: String(localized: "The selected file is not a valid Clipboard History archive.")
+        case .unsupportedVersion: String(localized: "This Clipboard History archive version is unsupported.")
+        case .unsafePath: String(localized: "The archive contains an unsafe asset path.")
+        case .archiveTooLarge: String(localized: "The archive exceeds the safe import limit.")
+        case .missingAsset: String(localized: "The archive is missing required content.")
         }
     }
 }

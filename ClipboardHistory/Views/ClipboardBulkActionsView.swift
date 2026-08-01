@@ -1,0 +1,27 @@
+import SwiftUI
+
+struct ClipboardBulkActionsView: View {
+    @ObservedObject var viewModel: ClipboardHistoryViewModel
+
+    var body: some View {
+        HStack {
+            Text("\(viewModel.selectedItemIDs.count) selected")
+                .font(.caption.weight(.medium))
+            Spacer()
+            Button("Add Selected to Paste Stack", systemImage: "square.stack.3d.up") {
+                viewModel.selectedItems.forEach(viewModel.addToPasteStack)
+            }
+            .labelStyle(.iconOnly)
+            .help("Add selected items to Paste Stack")
+            Button("Delete Selected", systemImage: "trash", role: .destructive) {
+                viewModel.deleteSelectedItems()
+            }
+            .labelStyle(.iconOnly)
+            .help("Delete selected items")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .background(Color.accentColor.opacity(0.1))
+        .accessibilityIdentifier("bulkActions.bar")
+    }
+}
