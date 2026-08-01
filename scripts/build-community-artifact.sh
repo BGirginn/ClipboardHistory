@@ -63,7 +63,10 @@ zip="$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.zip"
 dmg="$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.dmg"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
 hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname 'ClipboardHistory 1.0.0-beta.1' "$dmg"
-syft "dir:$artifact_app" -o "spdx-json=$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json"
+syft scan "dir:$artifact_app" \
+  --source-name ClipboardHistory \
+  --source-version 1.0.0-beta.1 \
+  -o "spdx-json=$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json"
 shasum -a 256 "$zip" "$dmg" "$output_directory/ClipboardHistory-1.0.0-beta.1-arm64.spdx.json" > "$output_directory/SHA256SUMS"
 codesign -d -r- "$artifact_app" 2> "$output_directory/designated-requirement.txt"
 security find-certificate -c "$identity" -p \
