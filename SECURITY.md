@@ -4,6 +4,6 @@ ClipboardHistory handles sensitive local data. Please do not disclose a suspecte
 
 Include the affected commit or version, macOS version and architecture, reproduction steps, expected impact, and whether the report involves clipboard data, archive parsing, Keychain access, code signing, or filesystem traversal. Do not attach real secrets or a production clipboard database; use synthetic fixtures.
 
-Only versions listed as supported in the latest release receive fixes. There is currently no published `v1.0.0-beta.1`; the working tree is pre-release and must not be treated as a supported binary.
+Only versions listed as supported in the latest release receive fixes. The currently supported prerelease is `v1.0.0-beta.2`; earlier beta builds should be upgraded before reporting a defect.
 
 The project will not ask reporters to weaken Gatekeeper, remove quarantine attributes, publish private keys, or upload a real clipboard history. See [the threat model](docs/PRIVACY_AND_THREAT_MODEL.md) for security boundaries and non-goals.

@@ -12,11 +12,11 @@
   <a href="README_TR.md">Türkçe</a>
 </p>
 
-ClipboardHistory keeps searchable clipboard history locally on your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no networking, telemetry, account system, cloud service, or third-party runtime dependency.
+ClipboardHistory keeps clipboard history locally on your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no networking, telemetry, account system, cloud service, or third-party runtime dependency.
 
 ## Current status
 
-- Current Community beta: [`v1.0.0-beta.1`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) (`1.0.0`, build `10001`)
+- Current Community beta: [`v1.0.0-beta.2`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) (`1.0.0`, build `10002`)
 - Supported platform: Apple silicon (`arm64`) with macOS 14 Sonoma or later
 - The source on `main` is public and current
 - The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
@@ -47,7 +47,7 @@ Normal uninstall preserves clipboard history and preferences. `brew uninstall --
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1).
+The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2).
 
 ## Features
 
@@ -146,7 +146,7 @@ Project documentation:
 
 ## Distribution
 
-`v1.0.0-beta.1` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
+`v1.0.0-beta.2` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
 
 ## License
 

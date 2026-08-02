@@ -12,11 +12,11 @@
   <a href="README.md">English</a>
 </p>
 
-ClipboardHistory, aranabilir pano geçmişini yalnızca Mac'inizde tutar. Swift 6, SwiftUI ve AppKit ile yazılmıştır; ağ bağlantısı, telemetri, hesap sistemi, bulut servisi veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
+ClipboardHistory, pano geçmişini yalnızca Mac'inizde tutar. Swift 6, SwiftUI ve AppKit ile yazılmıştır; ağ bağlantısı, telemetri, hesap sistemi, bulut servisi veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
 
 ## Güncel durum
 
-- Güncel Community beta: [`v1.0.0-beta.1`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) (`1.0.0`, build `10001`)
+- Güncel Community beta: [`v1.0.0-beta.2`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) (`1.0.0`, build `10002`)
 - Desteklenen platform: macOS 14 Sonoma veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
 - İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
@@ -47,7 +47,7 @@ Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall -
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, ClipboardHistory üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.1) sayfasından da indirilebilir.
+ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) sayfasından da indirilebilir.
 
 ## Özellikler
 
@@ -146,7 +146,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-`v1.0.0-beta.1`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
+`v1.0.0-beta.2`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
 
 ## Lisans
 
