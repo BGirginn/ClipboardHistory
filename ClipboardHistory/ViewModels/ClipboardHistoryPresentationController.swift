@@ -5,8 +5,12 @@ import UniformTypeIdentifiers
 
 extension ClipboardHistoryViewModel {
     func prepareForPanelPresentation() {
-        isShowingSettings = false
-        detailItem = nil
+        if isShowingSettings {
+            isShowingSettings = false
+        }
+        if detailItem != nil {
+            detailItem = nil
+        }
         if !searchText.isEmpty {
             searchText = ""
         }

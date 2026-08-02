@@ -54,9 +54,10 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         }
 
         popover.behavior = .applicationDefined
-        popover.animates = false
+        popover.animates = true
         popover.delegate = self
         popover.contentSize = NSSize(width: 380, height: 500)
+        preparePopoverContent()
         panelCloseCoordinator = PanelCloseCoordinator(
             eventMonitor: panelEventMonitor,
             isPanelShown: { [weak self] in self?.popover.isShown == true },
@@ -132,7 +133,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             return
         }
         guard let anchor = popoverAnchor?() ?? statusItem.button else { return }
-        ensurePopoverContent()
+        preparePopoverContent()
         viewModel.capturePasteTargetApplication()
         NSApp.activate()
         popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
@@ -240,6 +241,15 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         popover.contentViewController = NSHostingController(
             rootView: ClipboardPanelView(viewModel: viewModel)
         )
+    }
+
+    private func preparePopoverContent() {
+        ensurePopoverContent()
+        guard let contentView = popover.contentViewController?.view else { return }
+        if contentView.frame.size != popover.contentSize {
+            contentView.setFrameSize(popover.contentSize)
+        }
+        contentView.layoutSubtreeIfNeeded()
     }
 
     private func ensureDetachablePanel() -> NSPanel {
