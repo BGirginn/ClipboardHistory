@@ -17,6 +17,44 @@ No single layer is sufficient. A beta tag requires retained evidence from the ex
 | Compatibility | arm64 on macOS 14, 15, and 26 | macOS 26.5 arm64 passed locally; macOS 14/15 and exact release-commit matrix evidence pending |
 | Distribution | Stable self-signed certificate and encrypted backup, quarantined clean-user install, checksums, SPDX SBOM, Cask audit/install/upgrade/uninstall | Stable Community identity and `syft` 1.50.0 arm64 are installed; signed ZIP/DMG, checksums, SPDX SBOM, requirement, and fingerprint were produced and verified locally. Encrypted `.p12` backup, clean-machine evidence, tag, Release, and Cask are absent |
 
+For normal feature work, use the bounded development-test cache instead of a
+new `-derivedDataPath` for every run:
+
+```sh
+scripts/run-development-tests.sh
+scripts/run-development-tests.sh ClipboardHistoryTests/PasteStackTests
+scripts/run-development-tests.sh --clean
+```
+
+The script reuses `.build/DevelopmentTests`, replaces the previous result
+bundle, and enforces a 2 GiB cache limit before and after each run. Xcode's
+default DerivedData is also reusable; avoid UUID-based DerivedData paths for
+routine testing.
+
+The shared Xcode scheme runs the repository's artifact maintenance before and
+after builds. It removes only recognized, rebuildable ClipboardHistory test and
+build paths. The automatic policy removes temporary artifacts older than 24
+hours, trims recognized temporary output above 2 GiB after a 30-minute safety
+window, removes a development cache unused for seven days or larger than 2 GiB,
+and trims ClipboardHistory's Xcode DerivedData above 4 GiB or after seven days.
+Paths mentioned by a running process are kept. Source snapshots, release
+artifacts, `ClipboardHistoryUI`, application data, and other projects' Xcode
+data are outside the deletion rules.
+
+Inspect or run the same maintenance manually:
+
+```sh
+scripts/cleanup-build-artifacts.sh --dry-run
+scripts/cleanup-build-artifacts.sh --prune
+scripts/cleanup-build-artifacts.sh --clean
+```
+
+`--dry-run` is the default and does not delete anything. `--prune` applies the
+age and size policy. `--clean` immediately removes only the recognized
+rebuildable artifacts and is intended for an explicit full cache reset. A
+failed or cancelled build is picked up by the next scheme pre-action even when
+its post-action could not run.
+
 Run unit and UI coverage separately and merge their `.xccovreport`/`.xccovarchive` evidence:
 
 ```sh
@@ -24,6 +62,8 @@ scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
 ```
 
 The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty production entitlement file. UI launches use Debug-only switches for an isolated temporary database, named pasteboard, UserDefaults suite, and ephemeral test key. Release and CommunityRelease do not compile those switches.
+
+The suite retains compact unit/UI JSON summaries and the merged coverage report/archive, then removes successful raw `.xcresult` bundles, transient DerivedData, and exported intermediate coverage directories on exit. Set `CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS=1` only when raw result bundles are required as release evidence. Failed runs retain their raw `.xcresult` bundles for diagnosis. Each UI test creates its isolated database under the test runner's temporary directory and removes that root plus its UserDefaults suite during teardown. This keeps reproducible evidence without accumulating rebuildable multi-gigabyte test trees in temporary storage.
 
 The self-signed UI attempt is a separate diagnostic. It requires the stable Community identity but no Apple account or provisioning profile:
 

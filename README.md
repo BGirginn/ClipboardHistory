@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="README_TR.md">Türkçe</a>
+  <a href="docs/README_TR.md">Türkçe</a>
 </p>
 
 ClipboardHistory keeps clipboard history locally on your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no networking, telemetry, account system, cloud service, or third-party runtime dependency.
@@ -141,8 +141,9 @@ Project documentation:
 - [Testing](docs/TESTING.md)
 - [Performance](docs/PERFORMANCE.md)
 - [Distribution](docs/DISTRIBUTION.md)
-- [Security Policy](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Security Policy](.github/SECURITY.md)
+- [Contributing](.github/CONTRIBUTING.md)
 
 ## Distribution
 

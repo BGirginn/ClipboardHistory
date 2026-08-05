@@ -14,6 +14,22 @@ if [[ -e "$evidence_root" ]]; then
 fi
 mkdir -p "$evidence_root"
 
+suite_succeeded=0
+retain_raw_results=${CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS:-0}
+cleanup_transient_build_data() {
+  rm -rf -- \
+    "$evidence_root/UnitDerivedData" \
+    "$evidence_root/UIDerivedData" \
+    "$evidence_root/UnitCoverage" \
+    "$evidence_root/UICoverage"
+  if (( suite_succeeded == 1 )) && [[ "$retain_raw_results" != 1 ]]; then
+    rm -rf -- \
+      "$evidence_root/Unit.xcresult" \
+      "$evidence_root/UI.xcresult"
+  fi
+}
+trap cleanup_transient_build_data EXIT
+
 cd "$repository_root"
 xcodebuild -quiet \
   -project ClipboardHistory.xcodeproj \
@@ -70,6 +86,8 @@ xcrun xccov merge \
 
 unit_summary=$(xcrun xcresulttool get test-results summary --path "$evidence_root/Unit.xcresult")
 ui_summary=$(xcrun xcresulttool get test-results summary --path "$evidence_root/UI.xcresult")
+print -r -- "$unit_summary" > "$evidence_root/UnitSummary.json"
+print -r -- "$ui_summary" > "$evidence_root/UISummary.json"
 unit_count=$(jq -r '.passedTests' <<<"$unit_summary")
 ui_count=$(jq -r '.passedTests' <<<"$ui_summary")
 [[ "$(jq -r '.result' <<<"$unit_summary")" == "Passed" ]]
@@ -77,3 +95,4 @@ ui_count=$(jq -r '.passedTests' <<<"$ui_summary")
 print "coverage suite: unit=$unit_count ui=$ui_count"
 
 scripts/verify-coverage.sh "$evidence_root/Combined.xccovreport"
+suite_succeeded=1

@@ -1081,16 +1081,6 @@
         }
       }
     },
-    "Filter by app:, type:, tag:, collection:, ocr:, after:, or before:": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "app:, type:, tag:, collection:, ocr:, after: veya before: ile filtreleyin:"
-          }
-        }
-      }
-    },
     "First In, First Out": {
       "localizations": {
         "tr": {

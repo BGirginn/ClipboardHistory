@@ -17,25 +17,25 @@ run_mutation() {
 
   case "$name" in
     pasteboard_identity)
-      perl -0pi -e 's/guard currentIdentity == identity else/guard currentIdentity != identity else/' "$checkout/ClipboardHistory/Services/ClipboardMonitor.swift"
+      perl -0pi -e 's/guard currentIdentity == identity else/guard currentIdentity != identity else/' "$checkout/ClipboardHistory/Services/Clipboard/ClipboardMonitor.swift"
       ;;
     retention_boundary)
-      perl -0pi -e 's/if item\.creationDate < generalCutoff/if item.creationDate > generalCutoff/' "$checkout/ClipboardHistory/Services/StorageMaintenanceService.swift"
+      perl -0pi -e 's/if item\.creationDate < generalCutoff/if item.creationDate > generalCutoff/' "$checkout/ClipboardHistory/Services/Storage/StorageMaintenanceService.swift"
       ;;
     authenticated_decryption)
-      perl -0pi -e 's/return try AES\.GCM\.open\(box, using: key\)/return box.ciphertext/' "$checkout/ClipboardHistory/Services/EncryptionCryptoBackend.swift"
+      perl -0pi -e 's/return try AES\.GCM\.open\(box, using: key\)/return box.ciphertext/' "$checkout/ClipboardHistory/Services/Security/SystemEncryptionCryptoBackend.swift"
       ;;
     search_conjunction)
       perl -0pi -e 's/terms\.allSatisfy \{ term in/terms.contains { term in/' "$checkout/ClipboardHistory/Models/ClipboardSearchQuery.swift"
       ;;
     archive_manifest)
-      perl -0pi -e 's/archive\.itemHashes\[item\.id\.uuidString\.lowercased\(\)\] == \(try itemChecksum\(item\)\)/archive.itemHashes[item.id.uuidString.lowercased()] != (try itemChecksum(item))/' "$checkout/ClipboardHistory/Services/ExportImportService.swift"
+      perl -0pi -e 's/archive\.itemHashes\[item\.id\.uuidString\.lowercased\(\)\] == \(try itemChecksum\(item\)\)/archive.itemHashes[item.id.uuidString.lowercased()] != (try itemChecksum(item))/' "$checkout/ClipboardHistory/Services/Storage/ExportImportService.swift"
       ;;
     lock_capture)
       perl -0pi -e 's/guard !isLocked \|\| settings\.captureWhileLocked else/guard isLocked || settings.captureWhileLocked else/' "$checkout/ClipboardHistory/ViewModels/ClipboardHistoryMutationController.swift"
       ;;
     key_rotation)
-      perl -0pi -e 's/\} else \{\n            encryption = \.ephemeral\(\)\n        \}/} else {\n            return\n        }/' "$checkout/ClipboardHistory/Services/StorageRecoveryAndEncryptionRotation.swift"
+      perl -0pi -e 's/\} else \{\n            encryption = \.ephemeral\(\)\n        \}/} else {\n            return\n        }/' "$checkout/ClipboardHistory/Services/Storage/StorageRecoveryAndEncryptionRotation.swift"
       ;;
   esac
 

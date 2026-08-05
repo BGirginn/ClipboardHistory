@@ -27,7 +27,7 @@ while IFS= read -r source; do
     print -u2 "static gate: $source has $line_count lines; maximum is 500"
     failed_structure=1
   fi
-  type_count=$(rg -c '^(private )?(struct|class|enum|actor) ' "$source" || true)
+  type_count=$(rg -c '^(private )?(final )?(struct|class|enum|actor|protocol) ' "$source" || true)
   if (( type_count > 1 )); then
     print -u2 "static gate: $source declares $type_count top-level types"
     failed_structure=1

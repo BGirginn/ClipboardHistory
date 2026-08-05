@@ -262,7 +262,6 @@
   "Transform Text": "Metni Dönüştür",
   "Trim Surrounding Whitespace": "Çevre Boşluklarını Kırp",
   "Uppercase": "Büyük Harf",
-  "Filter by app:, type:, tag:, collection:, ocr:, after:, or before:": "app:, type:, tag:, collection:, ocr:, after: veya before: ile filtreleyin:",
   "Search history or use field filters…": "Geçmişte ara veya alan filtrelerini kullan…",
   "Application lock error: %arg": "Uygulama kilidi hatası: %arg",
   "Authenticate with Touch ID or your Mac login password to view, copy, or paste saved items.": "Kaydedilmiş öğeleri görüntülemek, kopyalamak veya yapıştırmak için Touch ID ya da Mac oturum açma parolanızla kimliğinizi doğrulayın.",
@@ -275,5 +274,6 @@
   "Unlock Clipboard History": "Clipboard History Kilidini Aç",
   "Uses Touch ID or your Mac login password. Clipboard History does not create a separate password.": "Touch ID veya Mac oturum açma parolanızı kullanır. Clipboard History ayrı bir parola oluşturmaz.",
   "Uses system authentication. Clipboard History does not store a separate password.": "Sistem kimlik doğrulamasını kullanır. Clipboard History ayrı bir parola saklamaz.",
-  "When enabled, new clipboard items are encrypted and saved while the application is locked.": "Etkinleştirildiğinde, uygulama kilitliyken yeni pano öğeleri şifrelenip kaydedilir."
+  "When enabled, new clipboard items are encrypted and saved while the application is locked.": "Etkinleştirildiğinde, uygulama kilitliyken yeni pano öğeleri şifrelenip kaydedilir.",
+  "Quit ClipboardHistory": "ClipboardHistory'den Çık"
 }

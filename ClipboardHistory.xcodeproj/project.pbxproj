@@ -213,7 +213,8 @@ objectVersion = 77;
 			};
 			explicitFolders = (
 			);
-			path = ClipboardHistoryTests;
+			name = ClipboardHistoryTests;
+			path = Tests/Unit;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000009 /* Products */ = {
@@ -232,7 +233,8 @@ objectVersion = 77;
 			};
 			explicitFolders = (
 			);
-			path = ClipboardHistoryUITests;
+			name = ClipboardHistoryUITests;
+			path = Tests/UI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

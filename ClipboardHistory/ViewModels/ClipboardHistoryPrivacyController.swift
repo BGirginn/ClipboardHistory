@@ -1,26 +1,6 @@
 import AppKit
 import Combine
 import Foundation
-
-@MainActor
-protocol WorkspaceRevealing {
-    func reveal(_ urls: [URL])
-}
-
-@MainActor
-struct SystemWorkspaceRevealer: WorkspaceRevealing {
-    private let revealAction: ([URL]) -> Void
-
-    init(
-        revealAction: @escaping ([URL]) -> Void = NSWorkspace.shared.activateFileViewerSelecting
-    ) {
-        self.revealAction = revealAction
-    }
-
-    func reveal(_ urls: [URL]) {
-        revealAction(urls)
-    }
-}
 import UniformTypeIdentifiers
 
 extension ClipboardHistoryViewModel {
