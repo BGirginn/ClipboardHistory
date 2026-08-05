@@ -4,15 +4,18 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
     private let fileSystem: any MigrationFileSystem
     private let exportImportService: ExportImportService
     private let keyProvider: any MasterKeyProvider
+    private let noteKeyProvider: any MasterKeyProvider
 
     init(
         fileSystem: any MigrationFileSystem = LocalMigrationFileSystem(),
         exportImportService: ExportImportService = ExportImportService(),
-        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active
+        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active,
+        noteKeyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.notes
     ) {
         self.fileSystem = fileSystem
         self.exportImportService = exportImportService
         self.keyProvider = keyProvider
+        self.noteKeyProvider = noteKeyProvider
     }
 
     func migrate(
@@ -24,7 +27,8 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
             encryptedArchive: encryptedArchive,
             password: password,
             to: destinationDirectory,
-            keyProvider: keyProvider
+            keyProvider: keyProvider,
+            noteKeyProvider: noteKeyProvider
         )
     }
 
@@ -32,7 +36,8 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
         encryptedArchive: URL,
         password: String,
         to destinationDirectory: URL,
-        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active
+        keyProvider: any MasterKeyProvider = KeychainMasterKeyProvider.active,
+        noteKeyProvider: (any MasterKeyProvider)? = nil
     ) async throws -> StorageRecoveryImportResult {
         guard !password.isEmpty else { throw ExportImportError.passwordRequired }
         let destination = destinationDirectory.standardizedFileURL
@@ -59,7 +64,8 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
         do {
             let stagingStorage = StorageService(
                 baseDirectory: staging,
-                keyProvider: keyProvider
+                keyProvider: keyProvider,
+                noteKeyProvider: noteKeyProvider ?? keyProvider
             )
             let report: ImportReport
             do {
@@ -91,6 +97,7 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
             }
             return StorageRecoveryImportResult(
                 importedItemCount: report.importedCount,
+                importedNoteCount: report.importedNoteCount,
                 rollbackBackupURL: movedExistingData ? backup : nil
             )
         } catch {

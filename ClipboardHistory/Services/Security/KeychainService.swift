@@ -4,12 +4,16 @@ import Security
 struct KeychainService: @unchecked Sendable {
     static let service = "com.brgirgin.ClipboardHistory.encryption"
     static let account = "history-master-key-v1"
-    static let live = KeychainService(client: SystemKeychainSecurityClient())
+    static let notesAccount = "notes-master-key-v1"
+    static let live = KeychainService(client: SystemKeychainSecurityClient(), account: account)
+    static let notes = KeychainService(client: SystemKeychainSecurityClient(), account: notesAccount)
 
     private let client: any KeychainSecurityClient
+    private let account: String
 
-    init(client: any KeychainSecurityClient) {
+    init(client: any KeychainSecurityClient, account: String = Self.account) {
         self.client = client
+        self.account = account
     }
 
     func loadOrCreateKey() throws -> Data {
@@ -22,7 +26,7 @@ struct KeychainService: @unchecked Sendable {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,
-            kSecAttrAccount as String: Self.account,
+            kSecAttrAccount as String: account,
             kSecValueData as String: bytes
         ]
         let addStatus = client.add(query)
@@ -40,7 +44,7 @@ struct KeychainService: @unchecked Sendable {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,
-            kSecAttrAccount as String: Self.account
+            kSecAttrAccount as String: account
         ]
         let attributes: [String: Any] = [kSecValueData as String: newKey]
         let status = client.update(query, attributes: attributes)
@@ -68,7 +72,7 @@ struct KeychainService: @unchecked Sendable {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,
-            kSecAttrAccount as String: Self.account,
+            kSecAttrAccount as String: account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]

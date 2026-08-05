@@ -363,6 +363,35 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(ClipboardPanelView(viewModel: context.viewModel), named: "panel-storage-failure", colorScheme: .dark)
             context.viewModel.isStorageAvailable = true
 
+            let note = Note(
+                title: "Rendered note",
+                body: "A locally encrypted note body",
+                createdAt: Date(timeIntervalSince1970: 100),
+                updatedAt: Date(timeIntervalSince1970: 200)
+            )
+            context.viewModel.noteController.notes = [note]
+            context.viewModel.noteController.showList()
+            try render(
+                NotesContainerView(viewModel: context.viewModel),
+                named: "notes-list",
+                colorScheme: .light
+            )
+            context.viewModel.noteController.openEditor(for: note)
+            try render(
+                NotesContainerView(viewModel: context.viewModel),
+                named: "notes-editor",
+                colorScheme: .dark
+            )
+            context.viewModel.panelSection = .notes
+            context.viewModel.lockService.configure(enabled: true, option: .never, startsLocked: true)
+            try render(
+                ClipboardPanelView(viewModel: context.viewModel),
+                named: "notes-hidden-while-locked",
+                colorScheme: .dark
+            )
+            context.viewModel.lockService.configure(enabled: false, option: .never)
+            context.viewModel.panelSection = .history
+
             context.viewModel.isPrivateMode = true
             context.viewModel.privateModeUntil = .now.addingTimeInterval(60)
             try render(ClipboardPanelStatusView(viewModel: context.viewModel), named: "status-private", colorScheme: .light)

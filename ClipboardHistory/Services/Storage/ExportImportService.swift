@@ -23,6 +23,7 @@ actor ExportImportService {
         includeImagesAndDocuments: Bool,
         includeFileReferences: Bool = true,
         collections: [ClipboardCollection] = [],
+        notes: [Note] = [],
         password: String? = nil
     ) async throws {
         let eligible = items.filter { item in
@@ -48,6 +49,7 @@ actor ExportImportService {
             }
         }
 
+        let archiveNotes = mode == .metadataOnly ? [] : notes
         let archive = ClipboardArchive(
             version: ClipboardArchive.currentVersion,
             createdAt: .now,
@@ -55,6 +57,7 @@ actor ExportImportService {
             items: archiveItems,
             assets: assets,
             collections: collections,
+            notes: archiveNotes,
             itemHashes: try Dictionary(
                 uniqueKeysWithValues: archiveItems.map {
                     ($0.id.uuidString.lowercased(), try itemChecksum($0))
@@ -65,6 +68,11 @@ actor ExportImportService {
                 uniqueKeysWithValues: collections.map {
                     ($0.id.uuidString.lowercased(), try collectionChecksum($0))
                 }
+            ),
+            noteHashes: try Dictionary(
+                uniqueKeysWithValues: archiveNotes.map {
+                    ($0.id.uuidString.lowercased(), try noteChecksum($0))
+                }
             )
         )
         let encoder = JSONEncoder()
@@ -74,7 +82,7 @@ actor ExportImportService {
             ? try PasswordArchiveCrypto.encrypt(encoded, password: password ?? "")
             : encoded
         try output.write(to: destination, options: .atomic)
-        AppLog.storage.notice("Archive export completed; mode=\(mode.rawValue); items=\(archiveItems.count)")
+        AppLog.storage.notice("Archive export completed; mode=\(mode.rawValue); items=\(archiveItems.count); notes=\(archiveNotes.count)")
     }
 
     func importArchive(
@@ -110,6 +118,7 @@ actor ExportImportService {
         }
         guard archive.mode != .metadataOnly else { throw ExportImportError.invalidArchive }
         guard archive.items.count <= maximumItemCount else { throw ExportImportError.archiveTooLarge }
+        guard archive.notes.count <= maximumItemCount else { throw ExportImportError.archiveTooLarge }
         try validateAssetPaths(archive.assets.keys)
         try validateArchiveIntegrity(archive)
         try await storage.upsertCollectionsBatchThrowing(archive.collections)
@@ -140,8 +149,41 @@ actor ExportImportService {
                 rejected += 1
             }
         }
-        AppLog.storage.notice("Archive import completed; imported=\(imported); duplicates=\(duplicates); rejected=\(rejected)")
-        return ImportReport(importedCount: imported, duplicateCount: duplicates, rejectedCount: rejected)
+
+        let existingNotes = try await storage.loadNotesThrowing()
+        var noteFingerprints = Set(try existingNotes.map(noteContentChecksum))
+        var noteIDs = Set(existingNotes.map(\.id))
+        var importedNotes = 0
+        var duplicateNotes = 0
+        var rejectedNotes = 0
+        for archivedNote in archive.notes {
+            do {
+                let fingerprint = try noteContentChecksum(archivedNote)
+                guard noteFingerprints.insert(fingerprint).inserted else {
+                    duplicateNotes += 1
+                    continue
+                }
+                var importedNote = archivedNote
+                if !noteIDs.insert(importedNote.id).inserted {
+                    importedNote.id = UUID()
+                    noteIDs.insert(importedNote.id)
+                }
+                try validateNote(importedNote)
+                try await storage.upsertNoteThrowing(importedNote)
+                importedNotes += 1
+            } catch {
+                rejectedNotes += 1
+            }
+        }
+        AppLog.storage.notice("Archive import completed; imported=\(imported); duplicates=\(duplicates); rejected=\(rejected); notes=\(importedNotes)")
+        return ImportReport(
+            importedCount: imported,
+            duplicateCount: duplicates,
+            rejectedCount: rejected,
+            importedNoteCount: importedNotes,
+            duplicateNoteCount: duplicateNotes,
+            rejectedNoteCount: rejectedNotes
+        )
     }
 
     func importArchiveAtomically(
@@ -166,12 +208,15 @@ actor ExportImportService {
             }
             try await storage.importBatchThrowing(
                 items: materializedItems,
-                collections: archive.collections
+                collections: archive.collections,
+                notes: archive.notes
             )
             let stored = try await storage.loadHistoryThrowing()
             let storedCollections = try await storage.loadCollectionsThrowing()
+            let storedNotes = try await storage.loadNotesThrowing()
             guard Set(stored.map(\.hash)) == Set(materializedItems.map(\.hash)),
                   stored.count == materializedItems.count,
+                  storedNotes == archive.notes.sorted(by: { $0.updatedAt > $1.updatedAt }),
                   storedCollections.sorted(by: { $0.sortOrder < $1.sortOrder })
                     == archive.collections.sorted(by: { $0.sortOrder < $1.sortOrder }) else {
                 throw ExportImportError.invalidArchive
@@ -179,10 +224,14 @@ actor ExportImportService {
             return ImportReport(
                 importedCount: materializedItems.count,
                 duplicateCount: 0,
-                rejectedCount: 0
+                rejectedCount: 0,
+                importedNoteCount: archive.notes.count
             )
         } catch {
             try? await storage.deleteBatchThrowing(ids: materializedItems.map(\.id))
+            for note in archive.notes {
+                try? await storage.deleteNoteThrowing(id: note.id)
+            }
             await storage.deleteImages(for: materializedItems)
             throw error
         }
@@ -265,6 +314,16 @@ actor ExportImportService {
                 throw ExportImportError.invalidArchive
             }
         }
+        guard archive.version >= 3 else { return }
+        guard archive.noteHashes.count == archive.notes.count else {
+            throw ExportImportError.invalidArchive
+        }
+        for note in archive.notes {
+            try validateNote(note)
+            guard archive.noteHashes[note.id.uuidString.lowercased()] == (try noteChecksum(note)) else {
+                throw ExportImportError.invalidArchive
+            }
+        }
     }
 
     private func decodeAndValidateArchive(
@@ -287,7 +346,8 @@ actor ExportImportService {
         decoder.dateDecodingStrategy = .millisecondsSince1970
         let archive = try decoder.decode(ClipboardArchive.self, from: encoded)
         guard archive.version == ClipboardArchive.currentVersion,
-              archive.items.count <= maximumItemCount else {
+              archive.items.count <= maximumItemCount,
+              archive.notes.count <= maximumItemCount else {
             throw ExportImportError.unsupportedVersion
         }
         try validateAssetPaths(archive.assets.keys)
@@ -307,6 +367,32 @@ actor ExportImportService {
         encoder.dateEncodingStrategy = .millisecondsSince1970
         encoder.outputFormatting = [.sortedKeys]
         return HashUtility.sha256(data: try encoder.encode(collection))
+    }
+
+    private func noteChecksum(_ note: Note) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        encoder.outputFormatting = [.sortedKeys]
+        return HashUtility.sha256(data: try encoder.encode(note))
+    }
+
+    private func noteContentChecksum(_ note: Note) throws -> String {
+        struct Content: Encodable {
+            let title: String?
+            let body: String
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return HashUtility.sha256(
+            data: try encoder.encode(Content(title: note.normalizedTitle, body: note.body))
+        )
+    }
+
+    private func validateNote(_ note: Note) throws {
+        guard (note.title?.count ?? 0) <= Note.maximumTitleLength,
+              Data(note.body.utf8).count <= Note.maximumBodyBytes else {
+            throw ExportImportError.invalidArchive
+        }
     }
 
     private func materialize(

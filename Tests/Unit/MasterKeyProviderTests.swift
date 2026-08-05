@@ -8,6 +8,8 @@ final class MasterKeyProviderTests: XCTestCase {
     func testAllConfigurationsUseStableLoginKeychainService() {
         XCTAssertEqual(KeychainService.service, "com.brgirgin.ClipboardHistory.encryption")
         XCTAssertEqual(KeychainService.account, "history-master-key-v1")
+        XCTAssertEqual(KeychainService.notesAccount, "notes-master-key-v1")
+        XCTAssertNotEqual(KeychainService.account, KeychainService.notesAccount)
     }
 
     @MainActor

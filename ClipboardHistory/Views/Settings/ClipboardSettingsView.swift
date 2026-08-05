@@ -41,6 +41,6 @@ struct ClipboardSettingsView: View {
     }
 
     func closeSettings() {
-        viewModel.isShowingSettings = false
+        viewModel.showHistory()
     }
 }

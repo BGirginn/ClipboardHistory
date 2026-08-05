@@ -834,6 +834,15 @@ final class FacadeActionCoverageTests: XCTestCase {
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 76)))
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 49)))
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 1)))
+        context.viewModel.panelSection = .notes
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 36)))
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 45, modifiers: .command, characters: "n")))
+        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 1, modifiers: .command, characters: "s")))
+        context.viewModel.panelSection = .settings
+        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
+        context.viewModel.panelSection = .history
         context.viewModel.lockService.lock()
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
 

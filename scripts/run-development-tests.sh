@@ -8,7 +8,7 @@ result_bundle="$development_root/Latest.xcresult"
 maximum_cache_kib=$(( 2 * 1024 * 1024 ))
 
 enforce_cache_limit() {
-  [[ -d "$development_root" ]] || return
+  [[ -d "$development_root" ]] || return 0
   local current_cache_kib
   current_cache_kib=$(du -sk "$development_root" | awk '{print $1}')
   if (( current_cache_kib > maximum_cache_kib )); then

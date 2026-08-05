@@ -35,6 +35,7 @@ extension ClipboardHistoryViewModel {
             allowedTypes: [.data]
         ) else { return }
         do {
+            let notes = try await storage.loadNotesThrowing()
             try await exportImportService.exportArchive(
                 items: items,
                 storage: storage,
@@ -43,6 +44,7 @@ extension ClipboardHistoryViewModel {
                 includeImagesAndDocuments: includeImagesAndDocuments,
                 includeFileReferences: includeFileReferences,
                 collections: collections,
+                notes: notes,
                 password: password
             )
             archiveStatusMessage = String(localized: "Export completed.")
@@ -65,8 +67,9 @@ extension ClipboardHistoryViewModel {
             )
             let temporary = items.filter { temporaryContent[$0.id] != nil }
             items = temporary + (await storage.loadHistory())
+            await noteController.reload()
             refreshDisplayedItems()
-            archiveStatusMessage = String(localized: "Imported \(report.importedCount); skipped \(report.duplicateCount) duplicates.")
+            archiveStatusMessage = String(localized: "Imported \(report.importedCount) clipboard items and \(report.importedNoteCount) notes; skipped \(report.duplicateCount + report.duplicateNoteCount) duplicates.")
         } catch {
             archiveStatusMessage = String(localized: "Import failed: \(error.localizedDescription)")
         }
@@ -90,7 +93,7 @@ extension ClipboardHistoryViewModel {
                 to: StorageService.defaultBaseDirectory()
             )
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
+            archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) clipboard items and \(result.importedNoteCount) notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
         } catch {
             isStorageAvailable = false
             archiveStatusMessage = String(localized: "Recovery failed without replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")

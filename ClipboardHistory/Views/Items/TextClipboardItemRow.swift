@@ -61,6 +61,7 @@ private extension ClipboardContentSubtype {
     }
 }
 
+#if DEBUG
 #Preview {
     TextClipboardItemRow(
         item: ClipboardItem(
@@ -73,3 +74,4 @@ private extension ClipboardContentSubtype {
     .frame(width: 360)
     .padding()
 }
+#endif

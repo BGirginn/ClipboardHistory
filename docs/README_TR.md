@@ -55,13 +55,14 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 - Tür/tarih/kaynak filtreleri, sıralama, koleksiyonlar, etiketler, sabitlenen öğeler ve parçacıklar
 - Kopyalama, geri yükleme, etkin uygulamaya yapıştırma, farklı biçimde yapıştırma, Quick Look, sürükle-bırak ve toplu işlemler
 - FIFO/LIFO Yapıştırma Yığını ve klavye odaklı gezinme
+- Anında düzenleme, yerel arama ve otomatik kayıt sunan menü çubuğu notları
 - Sistem, Açık ve Koyu görünüm seçenekleri
 - Private Mode, geçici kayıt duraklatma, uygulama hariç tutma ve Sonraki Kopyalamayı Yoksay seçimi
 - Menü çubuğu ikonuna sol tıklayarak paneli, sağ tıklayarak Çık seçenekli menüyü açma
 - Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
 - Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
-- Keychain anahtarlı AES-GCM geçmiş şifrelemesi ve plaintext'e düşmeyen hata davranışı
-- Parola korumalı yerel arşiv dışa/içe aktarma
+- Ayrı Keychain anahtarlarıyla AES-GCM geçmiş ve not şifrelemesi, plaintext'e düşmeyen hata davranışı
+- Notları da içeren parola korumalı yerel arşiv dışa/içe aktarma
 - Cihaz üzerinde Vision OCR, QR tanıma ve renk analizi
 - İngilizce ve Türkçe yerelleştirme
 

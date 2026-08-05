@@ -11,6 +11,7 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     private let menuBarControllerFactory: MenuBarControllerFactory
     private var viewModel: ClipboardHistoryViewModel?
     private var menuBarController: MenuBarController?
+    private var terminationTask: Task<Void, Never>?
     #if DEBUG
     private var uiTestAnchorWindow: NSWindow?
     #endif
@@ -129,8 +130,23 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     }
     #endif
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let viewModel else { return .terminateNow }
+        guard terminationTask == nil else { return .terminateLater }
+        terminationTask = Task { [weak self, weak sender] in
+            await viewModel.shutdown()
+            self?.menuBarController?.stop()
+            sender?.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
-        viewModel?.prepareForShutdown()
+        if terminationTask == nil {
+            viewModel?.prepareForShutdown()
+        }
+        terminationTask?.cancel()
+        terminationTask = nil
         menuBarController?.stop()
         menuBarController = nil
         #if DEBUG

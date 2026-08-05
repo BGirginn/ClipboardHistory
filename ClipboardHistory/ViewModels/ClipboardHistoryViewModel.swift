@@ -13,7 +13,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published var selectedItemID: UUID?
     @Published var selectedItemIDs: Set<UUID> = []
     @Published var searchText = "" { didSet { refreshDisplayedItems() } }
-    @Published var isShowingSettings = false
+    @Published var panelSection: PanelSection = .history
     @Published var copiedItemID: UUID?
     @Published var detailItem: ClipboardItem?
     @Published var isPrivateMode: Bool
@@ -38,6 +38,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published var isStorageAvailable = true
 
     let storage: StorageService
+    let noteController: NoteController
     var settings: AppSettings
     let launchAtLoginService: LaunchAtLoginService
     let lockService: AppLockService
@@ -103,6 +104,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         startsAutomatically: Bool = true
     ) {
         self.storage = storage
+        noteController = NoteController(storage: storage)
         self.monitor = monitor
         self.clipboardWriter = clipboardWriter ?? ClipboardPasteboardWriter(
             pasteboard: restorePasteboard
@@ -168,6 +170,36 @@ final class ClipboardHistoryViewModel: ObservableObject {
         lockService.isLocked
     }
 
+    var isShowingSettings: Bool {
+        get { panelSection == .settings }
+        set {
+            if newValue {
+                panelSection = .settings
+            } else if panelSection == .settings {
+                panelSection = .history
+            }
+        }
+    }
+
+    func showNotesQuickEditor() {
+        panelSection = .notes
+        detailItem = nil
+        noteController.openQuickEditor()
+    }
+
+    func showNoteList() {
+        panelSection = .notes
+        detailItem = nil
+        noteController.showList()
+        Task { [weak self] in
+            await self?.noteController.loadIfNeeded()
+        }
+    }
+
+    func showHistory() {
+        panelSection = .history
+    }
+
     var isApplicationLockEnabled: Bool {
         lockService.isEnabled
     }
@@ -228,6 +260,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     /// Completes the lifecycle boundary used by tests and controlled relaunches.
     /// Actor serialization ensures pending SQLite work has yielded before close.
     func shutdown() async {
+        await noteController.flushPendingSave()
         prepareForShutdown()
         await storage.close()
     }

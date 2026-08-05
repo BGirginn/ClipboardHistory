@@ -31,6 +31,16 @@ struct ClipboardPanelHeaderView: View {
                 }
 
                 ClipboardHeaderActionButton(
+                    title: String(localized: "Open Notes"),
+                    systemImage: "note.text",
+                    helpText: String(localized: "Open a new note"),
+                    accessibilityIdentifier: "header.notes",
+                    accessibilityValue: viewModel.isLocked ? "Unavailable" : "Available",
+                    isDisabled: viewModel.isLocked,
+                    action: viewModel.showNotesQuickEditor
+                )
+
+                ClipboardHeaderActionButton(
                     title: viewModel.isPrivateMode ? "Disable Private Mode" : "Enable Private Mode",
                     systemImage: viewModel.isPrivateMode ? "eye.slash.fill" : "eye",
                     helpText: viewModel.isPrivateMode
@@ -104,7 +114,7 @@ struct ClipboardPanelHeaderView: View {
     }
 
     func showSettings() {
-        viewModel.isShowingSettings = true
+        viewModel.panelSection = .settings
     }
 
     func cleanOlderThanOneHour() {

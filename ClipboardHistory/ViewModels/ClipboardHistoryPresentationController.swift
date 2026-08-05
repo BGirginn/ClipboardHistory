@@ -5,8 +5,8 @@ import UniformTypeIdentifiers
 
 extension ClipboardHistoryViewModel {
     func prepareForPanelPresentation() {
-        if isShowingSettings {
-            isShowingSettings = false
+        if panelSection != .history {
+            panelSection = .history
         }
         if detailItem != nil {
             detailItem = nil

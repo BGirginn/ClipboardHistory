@@ -55,13 +55,14 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 - Type/date/source filters, sorting, collections, tags, pinned items, and snippets
 - Copy, restore, paste to the active app, Paste As, Quick Look, drag and drop, and bulk actions
 - FIFO/LIFO Paste Stack and keyboard-oriented navigation
+- Menu-bar notes with instant editing, local search, and automatic saving
 - System, Light, and Dark appearance options
 - Private Mode, temporary recording pause, app exclusions, and Ignore Next Copy toggle
 - Left-click the menu-bar icon to open the panel or right-click it to open a menu with Quit
 - Optional application lock using Touch ID or the Mac login password
 - Local secret detection and temporary handling for sensitive clipboard items
-- AES-GCM history encryption with a Keychain-backed key and no plaintext fallback
-- Password-protected local archive export/import
+- AES-GCM history and note encryption with separate Keychain-backed keys and no plaintext fallback
+- Password-protected local archive export/import, including notes
 - Local Vision OCR, QR recognition, and color analysis
 - English and Turkish localization
 

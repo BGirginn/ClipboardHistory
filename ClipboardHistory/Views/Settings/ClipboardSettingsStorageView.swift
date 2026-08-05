@@ -141,13 +141,13 @@ struct ClipboardSettingsStorageView: View {
         }
         .formStyle(.grouped)
         .confirmationDialog(
-            "Export clipboard content without encryption?",
+            "Export clipboard content and notes without encryption?",
             isPresented: $confirmUnencryptedExport
         ) {
             Button("Export Unencrypted", action: exportUnencrypted)
             Button("Cancel", role: .cancel, action: cancelDialog)
         } message: {
-            Text("The export can contain clipboard text and document data in readable form.")
+            Text("The export can contain clipboard text, note content, and document data in readable form.")
         }
         .accessibilityIdentifier("settings.storage")
     }

@@ -141,6 +141,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func closePopover() {
+        viewModel.noteController.saveImmediately()
         shortcutMonitor.cancelHeldShortcut()
         quickLookService.close()
         popover.performClose(nil)

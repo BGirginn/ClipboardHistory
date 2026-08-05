@@ -16,40 +16,14 @@ struct ClipboardPanelView: View {
         VStack(spacing: 0) {
             if !viewModel.isStorageAvailable {
                 ClipboardStorageRecoveryView(viewModel: viewModel)
-            } else if viewModel.isShowingSettings {
-                ClipboardSettingsView(viewModel: viewModel)
             } else if viewModel.isLocked {
                 VStack(spacing: 0) {
                     ClipboardPanelHeaderView(viewModel: viewModel)
                     Divider()
                     ClipboardLockedHistoryView(unlock: viewModel.unlock)
                 }
-            } else if let item = viewModel.detailItem {
-                ClipboardDetailView(item: item, viewModel: viewModel)
             } else {
-                ClipboardPanelHeaderView(viewModel: viewModel)
-                ClipboardFilterBar(viewModel: viewModel)
-                if viewModel.selectedItemIDs.count > 1 {
-                    ClipboardBulkActionsView(viewModel: viewModel)
-                }
-                if !viewModel.pasteStackItems.isEmpty {
-                    ClipboardPasteStackView(viewModel: viewModel)
-                }
-                Divider()
-                ClipboardHistoryListView(
-                    isHistoryEmpty: viewModel.items.isEmpty,
-                    pinnedItems: viewModel.pinnedItems,
-                    recentItems: viewModel.recentItems,
-                    selectedItemID: viewModel.selectedItemID,
-                    selectedItemIDs: viewModel.selectedItemIDs,
-                    copiedItemID: viewModel.copiedItemID,
-                    hasSearch: false,
-                    isLocked: viewModel.isLocked,
-                    storage: viewModel.storage,
-                    thumbnailService: viewModel.thumbnailService,
-                    actions: itemActions,
-                    reduceMotion: reduceMotion
-                )
+                panelContent
             }
         }
         .frame(
@@ -64,7 +38,11 @@ struct ClipboardPanelView: View {
             reduceTransparency ? AnyShapeStyle(Color(nsColor: .windowBackgroundColor)) : AnyShapeStyle(.regularMaterial)
         )
         .background(KeyboardEventMonitorView(handler: handleKeyEvent))
-        .background(quickSelectionShortcuts)
+        .background {
+            if viewModel.panelSection == .history {
+                quickSelectionShortcuts
+            }
+        }
         .preferredColorScheme(settings.appearance.colorScheme)
         .confirmationDialog(
             "Clear all clipboard history?",
@@ -120,13 +98,65 @@ struct ClipboardPanelView: View {
         )
     }
 
+    @ViewBuilder
+    private var panelContent: some View {
+        switch viewModel.panelSection {
+        case .history:
+            if let item = viewModel.detailItem {
+                ClipboardDetailView(item: item, viewModel: viewModel)
+            } else {
+                ClipboardPanelHeaderView(viewModel: viewModel)
+                ClipboardFilterBar(viewModel: viewModel)
+                if viewModel.selectedItemIDs.count > 1 {
+                    ClipboardBulkActionsView(viewModel: viewModel)
+                }
+                if !viewModel.pasteStackItems.isEmpty {
+                    ClipboardPasteStackView(viewModel: viewModel)
+                }
+                Divider()
+                ClipboardHistoryListView(
+                    isHistoryEmpty: viewModel.items.isEmpty,
+                    pinnedItems: viewModel.pinnedItems,
+                    recentItems: viewModel.recentItems,
+                    selectedItemID: viewModel.selectedItemID,
+                    selectedItemIDs: viewModel.selectedItemIDs,
+                    copiedItemID: viewModel.copiedItemID,
+                    hasSearch: false,
+                    isLocked: viewModel.isLocked,
+                    storage: viewModel.storage,
+                    thumbnailService: viewModel.thumbnailService,
+                    actions: itemActions,
+                    reduceMotion: reduceMotion
+                )
+            }
+        case .notes:
+            NotesContainerView(viewModel: viewModel)
+        case .settings:
+            ClipboardSettingsView(viewModel: viewModel)
+        }
+    }
+
     func handleKeyEvent(_ event: NSEvent) -> Bool {
-        guard !viewModel.isLocked else { return false }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if event.keyCode == 53 {
             viewModel.closePanel()
             return true
         }
+        guard !viewModel.isLocked else { return false }
+
+        if viewModel.panelSection == .notes, modifiers == .command {
+            switch event.charactersIgnoringModifiers?.lowercased() {
+            case "n":
+                viewModel.noteController.requestNewNote()
+                return true
+            case "s":
+                viewModel.noteController.saveImmediately()
+                return true
+            default:
+                return false
+            }
+        }
+        guard viewModel.panelSection == .history else { return false }
 
         if modifiers.contains(.command), event.keyCode == 51 {
             if modifiers.contains(.shift) {

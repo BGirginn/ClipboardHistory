@@ -120,6 +120,49 @@ final class ClipboardHistoryUITests: XCTestCase {
         application.menuItems["Uppercase"].click()
     }
 
+    func testNoteCanBeCreatedReopenedEditedAndDeleted() {
+        let application = launchApplication()
+        defer { application.terminate() }
+
+        application.buttons["Open Notes"].click()
+        let body = application.descendants(matching: .any)["notes.editor.body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 2))
+        application.typeText("First note body")
+        application.typeKey("s", modifierFlags: .command)
+        XCTAssertTrue(application.staticTexts["Saved"].waitForExistence(timeout: 2))
+        application.buttons["Back to Notes"].click()
+
+        let rows = application.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'notes.row.'")
+        )
+        XCTAssertEqual(rows.count, 1)
+        rows.firstMatch.click()
+        XCTAssertTrue(body.waitForExistence(timeout: 2))
+        body.click()
+        application.typeKey("a", modifierFlags: .command)
+        application.typeText("Updated note body")
+        application.typeKey("s", modifierFlags: .command)
+        XCTAssertTrue(application.staticTexts["Saved"].waitForExistence(timeout: 2))
+        application.buttons["Back to Notes"].click()
+        let updatedRow = NSPredicate(format: "label CONTAINS[c] 'Updated note body'")
+        expectation(for: updatedRow, evaluatedWith: rows.firstMatch)
+        waitForExpectations(timeout: 2)
+
+        rows.firstMatch.click()
+        let deleteButton = application.descendants(matching: .any)["notes.delete"]
+        XCTAssertTrue(deleteButton.waitForExistence(timeout: 2))
+        expectation(
+            for: NSPredicate(format: "hittable == true"),
+            evaluatedWith: deleteButton
+        )
+        waitForExpectations(timeout: 2)
+        deleteButton.click()
+        let confirmDelete = application.descendants(matching: .any)["notes.delete.confirm"]
+        XCTAssertTrue(confirmDelete.waitForExistence(timeout: 2))
+        confirmDelete.click()
+        XCTAssertTrue(application.staticTexts["No Notes Yet"].waitForExistence(timeout: 2))
+    }
+
     private func launchApplication(language: String? = nil) -> XCUIApplication {
         continueAfterFailure = false
         let application = XCUIApplication()

@@ -3,6 +3,12 @@
   "strings": {
     "%arg %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg %2$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -261,6 +267,16 @@
         }
       }
     },
+    "Appearance": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünüm"
+          }
+        }
+      }
+    },
     "Application Lock": {
       "localizations": {
         "tr": {
@@ -287,16 +303,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uygulama kilidi hatası: %arg"
-          }
-        }
-      }
-    },
-    "Appearance": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Görünüm"
           }
         }
       }
@@ -367,6 +373,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Clipboard History'ye Dön"
+          }
+        }
+      }
+    },
+    "Back to Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlara Dön"
           }
         }
       }
@@ -701,6 +717,16 @@
         }
       }
     },
+    "Create a note without leaving the menu bar.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü çubuğundan ayrılmadan bir not oluşturun."
+          }
+        }
+      }
+    },
     "Custom UTI identifiers": {
       "localizations": {
         "tr": {
@@ -811,6 +837,16 @@
         }
       }
     },
+    "Delete Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu Sil"
+          }
+        }
+      }
+    },
     "Delete Selected": {
       "localizations": {
         "tr": {
@@ -827,6 +863,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seçili öğeleri sil"
+          }
+        }
+      }
+    },
+    "Delete this note?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu not silinsin mi?"
           }
         }
       }
@@ -897,6 +943,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Yinelenen Algılama"
+          }
+        }
+      }
+    },
+    "Empty note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boş not"
           }
         }
       }
@@ -993,6 +1049,12 @@
     },
     "Excluded application, %arg, %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Excluded application, %1$arg, %2$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -1041,12 +1103,12 @@
         }
       }
     },
-    "Export clipboard content without encryption?": {
+    "Export clipboard content and notes without encryption?": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pano içeriği şifrelenmeden dışa aktarılsın mı?"
+            "value": "Pano içeriği ve notlar şifrelenmeden dışa aktarılsın mı?"
           }
         }
       }
@@ -1251,12 +1313,18 @@
         }
       }
     },
-    "Imported %arg; skipped %arg duplicates.": {
+    "Imported %arg clipboard items and %arg notes; skipped %arg duplicates.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Imported %1$arg clipboard items and %2$arg notes; skipped %3$arg duplicates."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$arg içe aktarıldı; %2$arg yinelenen atlandı."
+            "value": "%1$arg pano öğesi ve %2$arg not içe aktarıldı; %3$arg yinelenen atlandı."
           }
         }
       }
@@ -1511,6 +1579,26 @@
         }
       }
     },
+    "New Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni Not"
+          }
+        }
+      }
+    },
+    "New Note (Command-N)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni Not (Command-N)"
+          }
+        }
+      }
+    },
     "New collection name": {
       "localizations": {
         "tr": {
@@ -1571,6 +1659,16 @@
         }
       }
     },
+    "No Notes Yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz Not Yok"
+          }
+        }
+      }
+    },
     "No clipboard items yet": {
       "localizations": {
         "tr": {
@@ -1587,6 +1685,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "Denetlenmedi"
+          }
+        }
+      }
+    },
+    "Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not"
+          }
+        }
+      }
+    },
+    "Note Body": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Gövdesi"
+          }
+        }
+      }
+    },
+    "Note Title": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Başlığı"
+          }
+        }
+      }
+    },
+    "Note could not be deleted: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not silinemedi: %arg"
+          }
+        }
+      }
+    },
+    "Note could not be saved: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not kaydedilemedi: %arg"
+          }
+        }
+      }
+    },
+    "Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlar"
+          }
+        }
+      }
+    },
+    "Notes could not be loaded: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlar yüklenemedi: %arg"
           }
         }
       }
@@ -1647,6 +1815,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Önce En Eski"
+          }
+        }
+      }
+    },
+    "Open Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notları Aç"
+          }
+        }
+      }
+    },
+    "Open a new note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni bir not aç"
+          }
+        }
+      }
+    },
+    "Optional Title": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İsteğe Bağlı Başlık"
           }
         }
       }
@@ -1882,7 +2080,6 @@
       }
     },
     "Quit ClipboardHistory": {
-      "extractionState": "manual",
       "localizations": {
         "tr": {
           "stringUnit": {
@@ -1942,12 +2139,18 @@
         }
       }
     },
-    "Recovered %arg items. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
+    "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%arg öğe kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
+            "value": "%1$arg pano öğesi ve %2$arg not kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
           }
         }
       }
@@ -1984,6 +2187,12 @@
     },
     "Removed %arg items and reclaimed %arg.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Removed %1$arg items and reclaimed %2$arg."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2132,6 +2341,36 @@
         }
       }
     },
+    "Save failed": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başarısız"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi"
+          }
+        }
+      }
+    },
+    "Saving…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydediliyor…"
+          }
+        }
+      }
+    },
     "Scope": {
       "localizations": {
         "tr": {
@@ -2148,6 +2387,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ekran kenarı"
+          }
+        }
+      }
+    },
+    "Search Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlarda Ara"
           }
         }
       }
@@ -2288,6 +2537,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Özel Modda Başlat"
+          }
+        }
+      }
+    },
+    "Start typing…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazmaya başlayın…"
           }
         }
       }
@@ -2442,12 +2701,12 @@
         }
       }
     },
-    "The export can contain clipboard text and document data in readable form.": {
+    "The export can contain clipboard text, note content, and document data in readable form.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dışa aktarma, pano metni ve belge verilerini okunabilir biçimde içerebilir."
+            "value": "Dışa aktarılan dosya pano metnini, not içeriğini ve belge verilerini okunabilir biçimde içerebilir."
           }
         }
       }
@@ -2468,6 +2727,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geçmiş veritabanı kapalı."
+          }
+        }
+      }
+    },
+    "The note body cannot exceed 1 MiB.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not gövdesi 1 MiB sınırını aşamaz."
+          }
+        }
+      }
+    },
+    "The note title cannot exceed 200 characters.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not başlığı 200 karakter sınırını aşamaz."
           }
         }
       }
@@ -2508,6 +2787,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bu Clipboard History arşiv sürümü desteklenmiyor."
+          }
+        }
+      }
+    },
+    "This cannot be undone.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu işlem geri alınamaz."
           }
         }
       }
@@ -2662,6 +2951,16 @@
         }
       }
     },
+    "Untitled Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlıksız Not"
+          }
+        }
+      }
+    },
     "Uppercase": {
       "localizations": {
         "tr": {
@@ -2728,6 +3027,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Etkinleştirildiğinde, uygulama kilitliyken yeni pano öğeleri şifrelenip kaydedilir."
+          }
+        }
+      }
+    },
+    "note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not"
+          }
+        }
+      }
+    },
+    "notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not"
           }
         }
       }

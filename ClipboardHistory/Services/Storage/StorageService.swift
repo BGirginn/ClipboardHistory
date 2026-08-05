@@ -5,7 +5,7 @@ actor StorageService {
     typealias SQLiteTextBinder = @Sendable (OpaquePointer, Int32, String) -> Int32
 
     static let maximumHistoryCount = 100
-    static let schemaVersion = 3
+    static let schemaVersion = 4
 
     nonisolated let baseDirectory: URL
     nonisolated let imagesDirectory: URL
@@ -24,6 +24,8 @@ actor StorageService {
     let sqliteTextBinder: SQLiteTextBinder
     var encryption: EncryptionService?
     let keyProvider: (any MasterKeyProvider)?
+    var noteEncryption: EncryptionService?
+    let noteKeyProvider: (any MasterKeyProvider)?
     nonisolated(unsafe) var database: OpaquePointer?
     var isInitialized = false
     var isClosed = false
@@ -33,6 +35,8 @@ actor StorageService {
         fileManager: FileManager = .default,
         encryptionService: EncryptionService? = nil,
         keyProvider: (any MasterKeyProvider)? = nil,
+        noteEncryptionService: EncryptionService? = nil,
+        noteKeyProvider: (any MasterKeyProvider)? = nil,
         migrationFailureInjector: (@Sendable () throws -> Void)? = nil,
         operationFailureInjector: (@Sendable (StorageOperation) throws -> Void)? = nil,
         databaseIntegrityCheckOverride: (@Sendable () throws -> Bool)? = nil,
@@ -67,6 +71,19 @@ actor StorageService {
         } else {
             encryption = EncryptionService.ephemeral()
             self.keyProvider = nil
+        }
+        if let noteEncryptionService {
+            noteEncryption = noteEncryptionService
+            self.noteKeyProvider = nil
+        } else if let noteKeyProvider {
+            noteEncryption = nil
+            self.noteKeyProvider = noteKeyProvider
+        } else if baseDirectory.standardizedFileURL == Self.defaultBaseDirectory().standardizedFileURL {
+            noteEncryption = nil
+            self.noteKeyProvider = KeychainMasterKeyProvider.notes
+        } else {
+            noteEncryption = EncryptionService.ephemeral()
+            self.noteKeyProvider = nil
         }
     }
 
@@ -257,7 +274,8 @@ actor StorageService {
 
     func importBatchThrowing(
         items: [ClipboardItem],
-        collections: [ClipboardCollection]
+        collections: [ClipboardCollection],
+        notes: [Note] = []
     ) throws {
         guard items.allSatisfy({ !$0.isSensitive || $0.isEncrypted }) else {
             throw DatabaseError.executionFailed("sensitive batch item is not encrypted")
@@ -273,6 +291,9 @@ actor StorageService {
             let encoder = JSONEncoder()
             for item in items {
                 try insertOrReplace(item, using: statement, encoder: encoder)
+            }
+            for note in notes {
+                try insertOrReplace(note)
             }
             try execute("COMMIT")
         } catch {

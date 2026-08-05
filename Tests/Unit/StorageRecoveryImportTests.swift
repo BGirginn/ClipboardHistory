@@ -31,7 +31,14 @@ final class StorageRecoveryImportTests: XCTestCase {
             hash: "migrated-hash",
             collectionID: collection.id
         )
+        let note = Note(
+            title: "Recovered note",
+            body: "Encrypted recovery keeps notes",
+            createdAt: Date(timeIntervalSince1970: 100),
+            updatedAt: Date(timeIntervalSince1970: 200)
+        )
         try await sourceStorage.upsertThrowing(item)
+        try await sourceStorage.upsertNoteThrowing(note)
         let archiveURL = root.appending(path: "migration.clipboardarchive")
         try await ExportImportService().exportArchive(
             items: [item],
@@ -40,12 +47,17 @@ final class StorageRecoveryImportTests: XCTestCase {
             mode: .encrypted,
             includeImagesAndDocuments: true,
             collections: [collection],
+            notes: [note],
             password: "migration-password"
         )
         await sourceStorage.close()
 
         let keyProvider = FixedMasterKeyProvider(key: Data(repeating: 0x47, count: 32))
-        let result = try await StorageRecoveryImportService(keyProvider: keyProvider).migrate(
+        let noteKeyProvider = FixedMasterKeyProvider(key: Data(repeating: 0x48, count: 32))
+        let result = try await StorageRecoveryImportService(
+            keyProvider: keyProvider,
+            noteKeyProvider: noteKeyProvider
+        ).migrate(
             encryptedArchive: archiveURL,
             password: "migration-password",
             to: destination
@@ -53,13 +65,20 @@ final class StorageRecoveryImportTests: XCTestCase {
 
         let backup = try XCTUnwrap(result.rollbackBackupURL)
         XCTAssertEqual(result.importedItemCount, 1)
+        XCTAssertEqual(result.importedNoteCount, 1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: backup.appending(path: marker.lastPathComponent).path))
-        let migratedStorage = StorageService(baseDirectory: destination, keyProvider: keyProvider)
+        let migratedStorage = StorageService(
+            baseDirectory: destination,
+            keyProvider: keyProvider,
+            noteKeyProvider: noteKeyProvider
+        )
         let history = try await migratedStorage.loadHistoryThrowing()
         let collections = try await migratedStorage.loadCollectionsThrowing()
+        let notes = try await migratedStorage.loadNotesThrowing()
         XCTAssertEqual(history.first?.text, item.text)
         XCTAssertTrue(history.first?.isEncrypted == true)
         XCTAssertEqual(collections.first?.name, collection.name)
+        XCTAssertEqual(notes, [note])
         await migratedStorage.close()
     }
 

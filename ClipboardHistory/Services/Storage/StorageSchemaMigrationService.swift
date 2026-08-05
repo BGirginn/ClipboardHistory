@@ -121,6 +121,7 @@ extension StorageService {
         }
         try migrateToSchemaVersion2IfNeeded()
         try migrateToSchemaVersion3IfNeeded()
+        try migrateToSchemaVersion4IfNeeded()
     }
 
     func migrateToSchemaVersion2IfNeeded() throws {
@@ -160,6 +161,31 @@ extension StorageService {
             try execute("""
                 INSERT INTO SchemaMigrations(version, appliedAt)
                 VALUES (3, strftime('%s','now'))
+                """)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
+    }
+
+    func migrateToSchemaVersion4IfNeeded() throws {
+        guard try !hasSchemaMigration(version: 4) else { return }
+        try execute("BEGIN IMMEDIATE TRANSACTION")
+        do {
+            try execute("""
+                CREATE TABLE Notes (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    protectedTitle BLOB NOT NULL,
+                    protectedBody BLOB NOT NULL,
+                    createdAt REAL NOT NULL,
+                    updatedAt REAL NOT NULL
+                )
+                """)
+            try execute("CREATE INDEX idx_notes_updated ON Notes(updatedAt DESC)")
+            try execute("""
+                INSERT INTO SchemaMigrations(version, appliedAt)
+                VALUES (4, strftime('%s','now'))
                 """)
             try execute("COMMIT")
         } catch {

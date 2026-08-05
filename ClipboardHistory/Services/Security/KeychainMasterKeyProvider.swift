@@ -2,6 +2,7 @@ import Foundation
 
 struct KeychainMasterKeyProvider: MasterKeyProvider {
     static let active = KeychainMasterKeyProvider()
+    static let notes = KeychainMasterKeyProvider(service: .notes)
     private let service: KeychainService
 
     init(service: KeychainService = .live) {

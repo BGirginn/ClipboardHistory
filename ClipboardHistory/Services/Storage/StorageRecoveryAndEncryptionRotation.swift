@@ -22,6 +22,14 @@ extension StorageService {
         return liveEncryption
     }
 
+    func noteEncryptionService() throws -> EncryptionService {
+        if let noteEncryption { return noteEncryption }
+        guard let noteKeyProvider else { throw DatabaseError.encryptionUnavailable }
+        let liveEncryption = try EncryptionService(keyData: noteKeyProvider.loadOrCreateKey())
+        noteEncryption = liveEncryption
+        return liveEncryption
+    }
+
     func deleteLogicalFile(_ filename: String, from directory: URL) {
         guard let filename = ManagedFilename(filename) else { return }
         for encrypted in [false, true] {
