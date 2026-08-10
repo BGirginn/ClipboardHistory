@@ -1,0 +1,11 @@
+{
+  "extensionName": { "message": "ClipboardHistory Ses Mikseri" },
+  "extensionDescription": { "message": "Açıkça seçtiğiniz tarayıcı sekmelerini ClipboardHistory ses mikserine ekler." },
+  "actionTitle": { "message": "Sekmeyi ClipboardHistory Mikserine Ekle" },
+  "addButton": { "message": "Bu Sekmeyi Miksere Ekle" },
+  "noActiveTab": { "message": "Kullanılabilir etkin sekme yok." },
+  "privateTab": { "message": "Gizli sekmeler miksere eklenmez." },
+  "browserTab": { "message": "Tarayıcı Sekmesi" },
+  "captureFailed": { "message": "Sekmenin sesi yakalanamadı." },
+  "addedStatus": { "message": "Eklendi. Karıştırma sırasında eklentiyi açık tutun." }
+}

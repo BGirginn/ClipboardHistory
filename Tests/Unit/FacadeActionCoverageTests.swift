@@ -46,17 +46,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.requestClosePanel = { closeCount += 1 }
         context.viewModel.closePanel()
         XCTAssertEqual(closeCount, 1)
-        context.viewModel.toggleIgnoreNextCopy()
-        XCTAssertTrue(context.viewModel.isIgnoringNextCopy)
-        context.viewModel.toggleIgnoreNextCopy()
-        XCTAssertFalse(context.viewModel.isIgnoringNextCopy)
-        context.viewModel.toggleIgnoreNextCopy()
-        XCTAssertTrue(context.viewModel.isIgnoringNextCopy)
-        context.pasteboard.clearContents()
-        context.pasteboard.setString("ignored by request", forType: .string)
-        await context.viewModel.monitor.pollNowAndWait()
-        XCTAssertFalse(context.viewModel.isIgnoringNextCopy)
-
         context.viewModel.selectOnly(first)
         context.viewModel.restoreSelected()
         await waitUntil("restore selected") {
@@ -376,19 +365,28 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.pasteStackItemIDs = [restorable.id]
         pasteStack.reset()
         XCTAssertTrue(context.viewModel.pasteStackItemIDs.isEmpty)
-        context.viewModel.isShowingSettings = true
-        ClipboardSettingsView(viewModel: context.viewModel).closeSettings()
-        XCTAssertFalse(context.viewModel.isShowingSettings)
-        let generalSettings = ClipboardSettingsGeneralView(viewModel: context.viewModel)
+        context.appModel.router.openSettings()
+        ClipboardSettingsView(
+            viewModel: context.appModel.settingsFeature,
+            close: context.appModel.closeSettings
+        ).closeSettings()
+        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
+        let generalSettings = ClipboardSettingsGeneralView(
+            viewModel: context.appModel.settingsFeature
+        )
         _ = generalSettings.launchAtLoginBinding.wrappedValue
         generalSettings.launchAtLoginBinding.wrappedValue = true
         XCTAssertTrue(context.viewModel.launchAtLoginService.isEnabled)
-        let privacySettings = ClipboardSettingsPrivacyView(viewModel: context.viewModel)
+        let privacySettings = ClipboardSettingsPrivacyView(
+            viewModel: context.appModel.settingsFeature
+        )
         _ = privacySettings.privateModeBinding.wrappedValue
         privacySettings.privateModeBinding.wrappedValue = true
         XCTAssertTrue(context.viewModel.isPrivateMode)
         privacySettings.privateModeBinding.wrappedValue = false
-        let securitySettings = ClipboardSettingsSecurityView(viewModel: context.viewModel)
+        let securitySettings = ClipboardSettingsSecurityView(
+            viewModel: context.appModel.settingsFeature
+        )
         securitySettings.changeApplicationLockSetting()
         await waitUntil { context.viewModel.isApplicationLockEnabled }
         securitySettings.toggleLock()
@@ -398,7 +396,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         securitySettings.changeApplicationLockSetting()
         await waitUntil { !context.viewModel.isApplicationLockEnabled }
         let advancedSettings = ClipboardSettingsAdvancedView(
-            viewModel: context.viewModel,
+            viewModel: context.appModel.settingsFeature,
             newCollectionName: "View Actions"
         )
         advancedSettings.addCollection()
@@ -407,7 +405,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             context.viewModel.collections.first { $0.name == "View Actions" }
         )
         ClipboardCollectionSettingsRow(
-            viewModel: context.viewModel,
+            viewModel: context.appModel.settingsFeature,
             collection: addedCollection
         ).deleteCollection()
         await waitUntil { !context.viewModel.collections.contains { $0.id == addedCollection.id } }
@@ -750,7 +748,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             actions: rowActions
         ).body
         _ = ClipboardCollectionSettingsRow(
-            viewModel: context.viewModel,
+            viewModel: context.appModel.settingsFeature,
             collection: collection
         ).body
         _ = ClipboardSettingsMessage(message: nil, color: .red).body
@@ -767,13 +765,13 @@ final class FacadeActionCoverageTests: XCTestCase {
         ).body
         _ = ClipboardRecordingStatusView(isPrivateMode: false, pauseUntil: nil).body
         XCTAssertTrue(
-            ClipboardSettingsSecurityView(viewModel: context.viewModel)
+            ClipboardSettingsSecurityView(viewModel: context.appModel.settingsFeature)
                 .applicationLockAccessibilityLabel("failure")
                 .contains("failure")
         )
 
         let storageSettings = ClipboardSettingsStorageView(
-            viewModel: context.viewModel,
+            viewModel: context.appModel.settingsFeature,
             archivePassword: "password",
             includeArchiveAssets: false,
             includeArchiveFileReferences: false
@@ -786,7 +784,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         storageSettings.importArchive()
         storageSettings.cancelDialog()
         ClipboardStorageRecoveryView(
-            viewModel: context.viewModel,
+            viewModel: context.appModel.settingsFeature,
             archivePassword: "password"
         ).importArchive()
         await drainTasks()
@@ -794,30 +792,37 @@ final class FacadeActionCoverageTests: XCTestCase {
         ClipboardQuickSelectionButton(viewModel: context.viewModel, index: 0).restore()
         await drainTasks()
 
-        let header = ClipboardPanelHeaderView(viewModel: context.viewModel)
-        header.cleanOlderThanOneHour()
+        var didOpenSettings = false
+        let header = ClipboardPanelHeaderView(
+            viewModel: context.viewModel,
+            backToHome: {},
+            openSettings: { didOpenSettings = true }
+        )
+        let historyActions = ClipboardHistoryActionsMenu(viewModel: context.viewModel)
+        historyActions.requestAgeCleanup(3_600)
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 3_600)
-        header.cleanOlderThanOneDay()
+        historyActions.requestAgeCleanup(86_400)
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 86_400)
-        header.cleanOlderThanOneWeek()
+        historyActions.requestAgeCleanup(604_800)
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 604_800)
-        header.cleanOlderThanThirtyDays()
+        historyActions.requestAgeCleanup(2_592_000)
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 2_592_000)
-        header.showSettings()
-        XCTAssertTrue(context.viewModel.isShowingSettings)
-        context.viewModel.isShowingSettings = false
+        header.openSettings()
+        XCTAssertTrue(didOpenSettings)
         context.viewModel.setApplicationLockEnabled(true)
         await waitUntil { context.viewModel.isApplicationLockEnabled }
-        let lockControls = ClipboardApplicationLockControls(viewModel: context.viewModel)
+        let lockControls = ClipboardApplicationLockControls(
+            viewModel: context.appModel.settingsFeature
+        )
         _ = lockControls.body
         lockControls.toggleLock()
         XCTAssertTrue(context.viewModel.isLocked)
         _ = lockControls.body
         lockControls.toggleLock()
         await waitUntil { !context.viewModel.isLocked }
-        header.toggleLock()
+        historyActions.toggleLock()
         XCTAssertTrue(context.viewModel.isLocked)
-        header.toggleLock()
+        historyActions.toggleLock()
         await waitUntil { !context.viewModel.isLocked }
 
         let panel = ClipboardPanelView(viewModel: context.viewModel)
@@ -834,15 +839,13 @@ final class FacadeActionCoverageTests: XCTestCase {
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 76)))
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 49)))
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 1)))
-        context.viewModel.panelSection = .notes
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 36)))
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
-        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 45, modifiers: .command, characters: "n")))
-        XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 1, modifiers: .command, characters: "s")))
-        context.viewModel.panelSection = .settings
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 51, modifiers: .command)))
-        context.viewModel.panelSection = .history
+        context.appModel.showKeyboardCleaning()
+        XCTAssertEqual(context.appModel.router.activeFeature, .keyboardCleaning)
+        context.appModel.openSettings()
+        XCTAssertEqual(context.appModel.router.activeFeature, .settings)
+        context.appModel.closeSettings()
+        XCTAssertEqual(context.appModel.router.activeFeature, .keyboardCleaning)
+        context.appModel.showClipboard()
         context.viewModel.lockService.lock()
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
 
@@ -931,6 +934,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         let pasteService: StubActiveApplicationPasteService
         let panels: FacadeArchivePanelStub
         let workspaceRevealer: FacadeWorkspaceRevealer
+        let appModel: AppModel
         let viewModel: ClipboardHistoryViewModel
     }
 
@@ -955,7 +959,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         let pasteService = StubActiveApplicationPasteService()
         let panels = FacadeArchivePanelStub()
         let workspaceRevealer = FacadeWorkspaceRevealer()
-        let viewModel = ClipboardHistoryViewModel(
+        let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
@@ -978,12 +982,13 @@ final class FacadeActionCoverageTests: XCTestCase {
             pasteService: pasteService,
             panels: panels,
             workspaceRevealer: workspaceRevealer,
-            viewModel: viewModel
+            appModel: appModel,
+            viewModel: appModel.clipboard
         )
     }
 
     private func cleanup(_ context: Context) async {
-        context.viewModel.prepareForShutdown()
+        context.appModel.prepareForShutdown()
         await context.storage.close()
         UserDefaults.standard.removePersistentDomain(forName: context.suite)
         try? FileManager.default.removeItem(at: context.directory)

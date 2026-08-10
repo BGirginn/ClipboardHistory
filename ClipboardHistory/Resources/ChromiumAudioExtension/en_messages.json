@@ -1,0 +1,11 @@
+{
+  "extensionName": { "message": "ClipboardHistory Audio Mixer" },
+  "extensionDescription": { "message": "Adds explicitly selected browser tabs to the ClipboardHistory audio mixer." },
+  "actionTitle": { "message": "Add tab to ClipboardHistory Mixer" },
+  "addButton": { "message": "Add this tab to Mixer" },
+  "noActiveTab": { "message": "No active tab is available." },
+  "privateTab": { "message": "Private tabs are not added to the mixer." },
+  "browserTab": { "message": "Browser Tab" },
+  "captureFailed": { "message": "The tab could not be captured." },
+  "addedStatus": { "message": "Added. Keep the extension enabled while mixing." }
+}

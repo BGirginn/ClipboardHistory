@@ -144,36 +144,25 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         }
     }
 
-    func testIgnoreNextCopyConsumesExactlyOneChange() async {
+    func testValidChangesAreAlwaysDeliveredToCapturePolicy() async {
         prepareMonitor()
-        var ignoredChangeCount = 0
-        monitor.didIgnoreNextChange = { ignoredChangeCount += 1 }
-        monitor.ignoreNextCopy()
-        monitor.cancelIgnoringNextCopy()
         pasteboard.clearContents()
-        pasteboard.setString("captured after cancellation", forType: .string)
+        pasteboard.setString("first valid copy", forType: .string)
         await monitor.pollNowAndWait()
-        guard case let .text(cancelledValue, _, _, _, _, _) = receivedContent else {
-            return XCTFail("Expected the change after cancellation to be captured")
+        guard case let .text(firstValue, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected the first valid change to be captured")
         }
-        XCTAssertEqual(cancelledValue, "captured after cancellation")
+        XCTAssertEqual(firstValue, "first valid copy")
 
         receivedContent = nil
-        monitor.ignoreNextCopy()
         pasteboard.clearContents()
-        pasteboard.setString("ignored once", forType: .string)
-        await monitor.pollNowAndWait()
-        XCTAssertNil(receivedContent)
-        XCTAssertEqual(ignoredChangeCount, 1)
-
-        pasteboard.clearContents()
-        pasteboard.setString("captured next", forType: .string)
+        pasteboard.setString("second valid copy", forType: .string)
         await monitor.pollNowAndWait()
 
         guard case let .text(value, _, _, _, _, _) = receivedContent else {
             return XCTFail("Expected the second change to be captured")
         }
-        XCTAssertEqual(value, "captured next")
+        XCTAssertEqual(value, "second valid copy")
     }
 
     func testStartStopAndPollWrapperUseInjectedScheduler() async {

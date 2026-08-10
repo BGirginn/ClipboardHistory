@@ -23,7 +23,7 @@ This Community beta is self-signed and is not Apple-notarized. If macOS blocks f
 - Native Swift 6 menu-bar clipboard history with local SQLite persistence
 - Text, rich text, images, PDFs, files/folders, search, collections, tags, snippets, and Paste Stack
 - AES-GCM history encryption with a login-Keychain-backed master key and fail-closed errors
-- Optional Touch ID or Mac-login application lock, Private Mode, pause, exclusions, and Ignore Next Copy toggle
+- Optional Touch ID or Mac-login application lock, Private Mode, pause, and exclusions
 - Direct paste, Paste As, Quick Look, drag and drop, import/export, OCR, QR, and color analysis
 - System, Light, and Dark themes plus English and Turkish localization
 - Apple silicon-only build with a macOS 14 minimum and a new black ClipboardHistory app icon

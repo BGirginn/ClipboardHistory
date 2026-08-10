@@ -8,14 +8,12 @@ final class ClipboardMonitor {
 
     weak var delegate: ClipboardMonitorDelegate?
     var shouldCaptureFromApplication: ((String?) -> Bool)?
-    var didIgnoreNextChange: (() -> Void)?
 
     private let pasteboard: any ClipboardPasteboard
     private let processingService: any ClipboardContentProcessing
     private let timerScheduler: any RepeatingTimerScheduling
     private var previousChangeCount: Int
     private var lastDeliveredChangeCount = 0
-    private var ignoresNextChange = false
     private var timer: (any RepeatingTimerToken)?
     var ignoredPasteboardTypes: Set<String> = ClipboardMonitor.alwaysIgnoredPasteboardTypes
 
@@ -57,12 +55,6 @@ final class ClipboardMonitor {
         guard changeCount != previousChangeCount else { return }
         previousChangeCount = changeCount
 
-        if ignoresNextChange {
-            ignoresNextChange = false
-            didIgnoreNextChange?()
-            AppLog.clipboard.notice("Clipboard change ignored once by user request")
-            return
-        }
         let presentTypes = Set(pasteboard.types?.map { $0.rawValue.lowercased() } ?? [])
         guard presentTypes.isDisjoint(with: ignoredPasteboardTypes) else {
             AppLog.clipboard.notice("Clipboard change ignored by pasteboard type policy")
@@ -98,14 +90,6 @@ final class ClipboardMonitor {
 
     var currentIdentity: ClipboardPasteboardIdentity {
         ClipboardPasteboardIdentity(changeCount: pasteboard.changeCount)
-    }
-
-    func ignoreNextCopy() {
-        ignoresNextChange = true
-    }
-
-    func cancelIgnoringNextCopy() {
-        ignoresNextChange = false
     }
 
     func clearCurrentContent(if identity: ClipboardPasteboardIdentity) -> Bool {

@@ -18,6 +18,7 @@ final class PanelCloseCoordinator {
     private(set) var hasDeferredClose = false
     private(set) var menuCommandWasSelected = false
     private(set) var isPanelContextMenuInteraction = false
+    private(set) var isModalInteractionActive = false
 
     init(
         notificationCenter: NotificationCenter = .default,
@@ -68,7 +69,7 @@ final class PanelCloseCoordinator {
                 guard let self else { return false }
                 if self.isPanelEvent(event) {
                     if event.type == .rightMouseDown {
-                        self.prepareForPanelContextMenu()
+                        self.prepareForPanelMenu()
                     }
                     return false
                 }
@@ -100,6 +101,11 @@ final class PanelCloseCoordinator {
 
     func requestCloseForOutsideInteraction() {
         guard isPanelShown() else { return }
+        if isModalInteractionActive {
+            hasDeferredClose = true
+            return
+        }
+        guard !isPanelContextMenuInteraction || menuTrackingDepth > 0 else { return }
         if menuTrackingDepth > 0 {
             hasDeferredClose = true
         } else {
@@ -160,6 +166,23 @@ final class PanelCloseCoordinator {
         deferredCloseTask = nil
     }
 
+    func beginModalInteraction() {
+        isModalInteractionActive = true
+        deferredCloseTask?.cancel()
+        deferredCloseTask = nil
+        hasDeferredClose = false
+    }
+
+    func endModalInteraction() {
+        guard isModalInteractionActive else { return }
+        isModalInteractionActive = false
+        menuCommandWasSelected = true
+        hasDeferredClose = false
+        deferredCloseTask?.cancel()
+        deferredCloseTask = nil
+        prepareForPanelMenu()
+    }
+
     @objc private func applicationDidResignActive() {
         guard !isPanelContextMenuInteraction else { return }
         requestCloseForOutsideInteraction()
@@ -173,7 +196,7 @@ final class PanelCloseCoordinator {
         menuTrackingDidEnd()
     }
 
-    private func prepareForPanelContextMenu() {
+    func prepareForPanelMenu() {
         panelContextMenuGraceTask?.cancel()
         isPanelContextMenuInteraction = true
         panelContextMenuGraceTask = Task { @MainActor [weak self] in
@@ -193,6 +216,7 @@ final class PanelCloseCoordinator {
         hasDeferredClose = false
         menuCommandWasSelected = false
         isPanelContextMenuInteraction = false
+        isModalInteractionActive = false
     }
 
 }

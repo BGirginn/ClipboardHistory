@@ -5,12 +5,13 @@ import SwiftUI
 
 @MainActor
 final class MenuBarController: NSObject, NSPopoverDelegate {
-    private let statusItem: NSStatusItem
+    var statusItems: [MenuBarItemID: NSStatusItem] = [:]
+    var activeAnchorID: MenuBarItemID = .controlCenter
     private let popover: NSPopover
-    private let dependencies: MenuBarControllerDependencies
+    let dependencies: MenuBarControllerDependencies
     private let popoverAnchor: (() -> NSView?)?
     private var detachablePanel: NSPanel?
-    private let viewModel: ClipboardHistoryViewModel
+    let appModel: AppModel
     private let quickLookService: any QuickLookPresenting
     private let shortcutBackend: any GlobalShortcutBackend
     private var shortcutCancellable: AnyCancellable?
@@ -18,6 +19,12 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private var appearanceCancellable: AnyCancellable?
     private var panelEdgeCancellable: AnyCancellable?
     private var shortcutErrorCancellable: AnyCancellable?
+    private var keyboardCleaningCancellable: AnyCancellable?
+    private var scrollReversalCancellable: AnyCancellable?
+    private var menuBarConfigurationCancellable: AnyCancellable?
+    private var systemMetricsCancellable: AnyCancellable?
+    private var audioMixerCancellable: AnyCancellable?
+    private var panelClosingTask: Task<Void, Never>?
     private var panelCloseCoordinator: PanelCloseCoordinator!
     private lazy var shortcutMonitor = GlobalShortcutMonitor(
         action: { [weak self] in self?.shortcutPressed() },
@@ -25,33 +32,24 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         backend: shortcutBackend
     )
 
+    private var viewModel: ClipboardHistoryViewModel { appModel.clipboard }
+
     init(
-        viewModel: ClipboardHistoryViewModel,
+        appModel: AppModel,
         dependencies: MenuBarControllerDependencies = .live,
         panelEventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
         shortcutBackend: any GlobalShortcutBackend = SystemGlobalShortcutBackend(),
         popoverAnchor: (() -> NSView?)? = nil
     ) {
-        self.viewModel = viewModel
+        self.appModel = appModel
         self.dependencies = dependencies
         self.shortcutBackend = shortcutBackend
         self.popoverAnchor = popoverAnchor
-        statusItem = dependencies.makeStatusItem()
         popover = dependencies.makePopover()
         quickLookService = dependencies.quickLookPresenter
         super.init()
 
-        if let button = statusItem.button {
-            button.image = NSImage(
-                systemSymbolName: "clipboard",
-                accessibilityDescription: "Clipboard History"
-            )
-            button.target = self
-            button.action = #selector(handleStatusItemAction)
-            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.setAccessibilityHelp("Left-click to open Clipboard History. Right-click for the app menu.")
-            button.toolTip = "Clipboard History (Command-Shift-V, right-click for menu)"
-        }
+        rebuildStatusItems()
 
         popover.behavior = .applicationDefined
         popover.animates = true
@@ -67,50 +65,72 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             isStatusItemEvent: { [weak self] event in self?.isStatusItemEvent(event) == true },
             closePanel: { [weak self] in self?.closePopover() }
         )
-        viewModel.requestClosePanel = { [weak self] in self?.closePopover() }
-        viewModel.menuCommandDidRun = { [weak self] in
+        appModel.clipboard.requestClosePanel = { [weak self] in self?.closePopover() }
+        appModel.clipboard.menuCommandDidRun = { [weak self] in
             self?.panelCloseCoordinator.menuCommandDidRun()
         }
-        viewModel.requestPreview = { [weak self] item in
-            guard let self else { return }
-            quickLookService.show(item: item, storage: viewModel.storage)
+        appModel.clipboard.beginPanelModalInteraction = { [weak self] in
+            self?.panelCloseCoordinator.beginModalInteraction()
         }
-        viewModel.privateModeDidChange = { [weak self] _ in self?.updateStatusIcon() }
+        appModel.clipboard.endPanelModalInteraction = { [weak self] in
+            self?.panelCloseCoordinator.endModalInteraction()
+        }
+        appModel.clipboard.requestPreview = { [weak self] item in
+            guard let self else { return }
+            quickLookService.show(item: item, storage: appModel.clipboard.storage)
+        }
+        appModel.clipboard.privateModeDidChange = { [weak self] _ in self?.updateStatusIcon() }
 
-        shortcutCancellable = viewModel.settings.$globalShortcutEnabled
+        shortcutCancellable = appModel.settings.$globalShortcutEnabled
             .removeDuplicates()
             .sink { [weak self] enabled in
                 guard let self else { return }
                 shortcutMonitor.setEnabled(
                     enabled,
-                    shortcut: viewModel.settings.globalShortcut
+                    shortcut: appModel.settings.globalShortcut
                 )
             }
-        shortcutPresetCancellable = viewModel.settings.$globalShortcutPresetID
+        shortcutPresetCancellable = appModel.settings.$globalShortcutPresetID
             .removeDuplicates()
             .dropFirst()
             .sink { [weak self] _ in
                 guard let self else { return }
                 shortcutMonitor.setEnabled(
-                    viewModel.settings.globalShortcutEnabled,
-                    shortcut: viewModel.settings.globalShortcut
+                    appModel.settings.globalShortcutEnabled,
+                    shortcut: appModel.settings.globalShortcut
                 )
             }
         shortcutMonitor.setEnabled(
-            viewModel.settings.globalShortcutEnabled,
-            shortcut: viewModel.settings.globalShortcut
+            appModel.settings.globalShortcutEnabled,
+            shortcut: appModel.settings.globalShortcut
         )
         shortcutErrorCancellable = shortcutMonitor.$registrationError
             .removeDuplicates()
-            .sink { [weak viewModel] message in
-                viewModel?.setGlobalShortcutError(message)
+            .sink { [weak appModel] message in
+                appModel?.clipboard.setGlobalShortcutError(message)
             }
-        appearanceCancellable = viewModel.settings.$appearance
+        keyboardCleaningCancellable = appModel.inputTools.keyboardCleaning.$isActive
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.updateStatusIcon() }
+        scrollReversalCancellable = appModel.inputTools.scrollReversal.$isActive
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.updateStatusIcon() }
+        appearanceCancellable = appModel.settings.$appearance
             .removeDuplicates()
             .sink { [weak self] appearance in self?.applyAppearance(appearance) }
-        panelEdgeCancellable = viewModel.settings.$panelScreenEdge
+        panelEdgeCancellable = appModel.settings.$panelScreenEdge
             .removeDuplicates()
             .sink { [weak self] _ in self?.positionDetachablePanel() }
+        menuBarConfigurationCancellable = appModel.controlCenter.$configuration
+            .removeDuplicates()
+            .sink { [weak self] configuration in
+                self?.rebuildStatusItems(configuration: configuration)
+            }
+        systemMetricsCancellable = appModel.systemMetrics.$snapshot
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.updateStatusIcon() }
+        audioMixerCancellable = appModel.audioMixer.$applications
+            .sink { [weak self] _ in self?.updateStatusIcon() }
         updateStatusIcon()
     }
 
@@ -127,21 +147,110 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func showPopover() {
-        viewModel.prepareForPanelPresentation()
-        if viewModel.settings.panelPresentationMode == .detachable {
+        showPopover(destination: .controlCenter, anchorID: .controlCenter)
+    }
+
+    func showControlCenter() {
+        showPopover(destination: .controlCenter, anchorID: .controlCenter)
+    }
+
+    func openFeature(
+        _ feature: AppFeature,
+        anchorID: MenuBarItemID? = nil,
+        preparesDestination: Bool = true
+    ) {
+        Task { [weak self] in
+            guard let self else { return }
+            if appModel.router.activeFeature == .notes, feature != .notes {
+                let outcome = await appModel.notes.flushPendingSave()
+                guard outcome.allowsTransition else { return }
+            }
+            if isPopoverShown {
+                if let anchorID,
+                   activeAnchorID != anchorID,
+                   appModel.settings.panelPresentationMode == .popover {
+                    popover.performClose(nil)
+                    activeAnchorID = anchorID
+                    showPopover(
+                        destination: feature,
+                        anchorID: anchorID,
+                        preparesDestination: preparesDestination
+                    )
+                } else if preparesDestination {
+                    prepare(destination: feature)
+                }
+            } else {
+                showPopover(
+                    destination: feature,
+                    anchorID: anchorID,
+                    preparesDestination: preparesDestination
+                )
+            }
+        }
+    }
+
+    private func prepare(destination: AppFeature) {
+        switch destination {
+        case .controlCenter:
+            appModel.prepareForNormalPresentation()
+        case .clipboard:
+            appModel.prepareForClipboardShortcut()
+        case .notes:
+            appModel.showNoteList()
+        case .keyboardCleaning:
+            appModel.showKeyboardCleaning()
+        case .scrollReverse:
+            appModel.showScrollReverse()
+        case .systemMonitor:
+            appModel.showSystemMonitor()
+        case .audioMixer:
+            appModel.showAudioMixer()
+        case .menuBarCustomization:
+            appModel.showMenuBarCustomization()
+        case .settings:
+            appModel.openSettings()
+        }
+    }
+
+    private func showPopover(
+        destination: AppFeature,
+        anchorID: MenuBarItemID? = nil,
+        preparesDestination: Bool = true
+    ) {
+        if preparesDestination { prepare(destination: destination) }
+        if let anchorID { activeAnchorID = anchorID }
+        if appModel.settings.panelPresentationMode == .detachable {
             showDetachablePanel()
             return
         }
-        guard let anchor = popoverAnchor?() ?? statusItem.button else { return }
+        guard let anchor = popoverAnchor?()
+            ?? statusItems[activeAnchorID]?.button
+            ?? statusItems.values.first?.button else { return }
         preparePopoverContent()
-        viewModel.capturePasteTargetApplication()
+        appModel.clipboard.capturePasteTargetApplication()
         NSApp.activate()
         popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
-        viewModel.lockService.recordActivity()
+        appModel.lockService.recordActivity()
     }
 
     func closePopover() {
-        viewModel.noteController.saveImmediately()
+        guard panelClosingTask == nil else { return }
+        guard appModel.router.activeFeature == .notes,
+              appModel.notes.hasPendingChanges else {
+            closePopoverNow()
+            return
+        }
+        panelClosingTask = Task { [weak self] in
+            guard let self else { return }
+            let outcome = await appModel.notes.flushPendingSave()
+            if outcome.allowsTransition {
+                closePopoverNow()
+            }
+            panelClosingTask = nil
+        }
+    }
+
+    private func closePopoverNow() {
         shortcutMonitor.cancelHeldShortcut()
         quickLookService.close()
         popover.performClose(nil)
@@ -149,77 +258,60 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     }
 
     func stop() {
+        panelClosingTask?.cancel()
+        panelClosingTask = nil
+        appModel.inputTools.prepareForShutdown()
         panelCloseCoordinator.stop()
         shortcutMonitor.cancelHeldShortcut()
         shortcutMonitor.unregister()
         quickLookService.close()
         popover.close()
         detachablePanel?.close()
-        NSStatusBar.system.removeStatusItem(statusItem)
+        statusItems.values.forEach(dependencies.removeStatusItem)
+        statusItems.removeAll()
     }
 
     func popoverWillShow(_ notification: Notification) {
         panelCloseCoordinator.start()
-        viewModel.lockService.recordActivity()
-    }
-
-    @objc private func handleStatusItemAction() {
-        if dependencies.currentEvent()?.type == .rightMouseUp {
-            showStatusMenu()
-        } else {
-            togglePopover()
-        }
-    }
-
-    private func showStatusMenu() {
-        guard let button = statusItem.button else { return }
-        let menu = NSMenu()
-        let quitItem = NSMenuItem(
-            title: String(localized: "Quit ClipboardHistory"),
-            action: #selector(quitApplication),
-            keyEquivalent: "q"
-        )
-        quitItem.target = self
-        menu.addItem(quitItem)
-        dependencies.presentStatusMenu(menu, button)
-    }
-
-    @objc private func quitApplication() {
-        dependencies.terminateApplication()
+        appModel.lockService.recordActivity()
     }
 
     private func shortcutPressed() {
-        switch viewModel.settings.shortcutActivationMode {
+        switch appModel.settings.shortcutActivationMode {
         case .toggle:
-            togglePopover()
+            if isPopoverShown {
+                closePopover()
+            } else {
+                showPopover(destination: .clipboard)
+            }
         case .hold:
-            if !popover.isShown { showPopover() }
+            if !popover.isShown { showPopover(destination: .clipboard) }
         }
     }
 
     private func shortcutReleased() {
-        guard viewModel.settings.shortcutActivationMode == .hold,
+        guard appModel.settings.shortcutActivationMode == .hold,
               popover.isShown else { return }
-        viewModel.pasteSelectedToActiveApp()
+        appModel.clipboard.pasteSelectedToActiveApp()
     }
 
     private func showDetachablePanel() {
         let panel = ensureDetachablePanel()
-        viewModel.capturePasteTargetApplication()
+        appModel.clipboard.capturePasteTargetApplication()
         NSApp.activate()
         positionDetachablePanel()
         panel.makeKeyAndOrderFront(nil)
-        viewModel.lockService.recordActivity()
+        appModel.lockService.recordActivity()
     }
 
     func isStatusItemEvent(_ event: NSEvent) -> Bool {
-        event.window === statusItem.button?.window
+        statusItems.values.contains { event.window === $0.button?.window }
     }
 
     func positionDetachablePanel() {
         guard let detachablePanel,
               detachablePanel.isVisible || viewModel.settings.panelPresentationMode == .detachable,
-              let screen = statusItem.button?.window?.screen ?? NSScreen.main else { return }
+              let screen = statusItems[activeAnchorID]?.button?.window?.screen ?? NSScreen.main else { return }
         let visible = screen.visibleFrame
         let size = detachablePanel.frame.size
         let margin: CGFloat = 12
@@ -240,7 +332,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private func ensurePopoverContent() {
         guard popover.contentViewController == nil else { return }
         popover.contentViewController = NSHostingController(
-            rootView: ClipboardPanelView(viewModel: viewModel)
+            rootView: AppShellView(model: appModel)
         )
     }
 
@@ -255,7 +347,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
 
     private func ensureDetachablePanel() -> NSPanel {
         if let detachablePanel { return detachablePanel }
-        let panel = dependencies.makePanel(viewModel)
+        let panel = dependencies.makePanel(appModel)
         detachablePanel = panel
         applyAppearance(viewModel.settings.appearance)
         return panel
@@ -273,20 +365,18 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         detachablePanel?.appearance = resolvedAppearance
     }
 
-    private func updateStatusIcon() {
-        let symbol = viewModel.isPrivateMode || viewModel.isPaused ? "eye.slash.fill" : "clipboard"
-        let accessibilityDescription: String
-        if viewModel.isPrivateMode {
-            accessibilityDescription = "Clipboard History Private Mode enabled"
-        } else if viewModel.isPaused {
-            accessibilityDescription = "Clipboard History recording paused"
-        } else {
-            accessibilityDescription = "Clipboard History"
-        }
-        statusItem.button?.image = NSImage(
-            systemSymbolName: symbol,
-            accessibilityDescription: accessibilityDescription
+    func reanchorPopoverIfNeeded(removesActiveAnchor: Bool) {
+        guard removesActiveAnchor,
+              popover.isShown,
+              popoverAnchor == nil,
+              appModel.settings.panelPresentationMode == .popover else { return }
+        let destination = appModel.router.activeFeature
+        popover.performClose(nil)
+        showPopover(
+            destination: destination,
+            anchorID: activeAnchorID,
+            preparesDestination: false
         )
-        statusItem.button?.toolTip = accessibilityDescription + " (Command-Shift-V, right-click for menu)"
     }
+
 }

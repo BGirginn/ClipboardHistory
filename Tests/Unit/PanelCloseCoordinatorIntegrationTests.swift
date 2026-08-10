@@ -58,6 +58,47 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         harness.stop()
     }
 
+    func testPreparedNativeMenuIgnoresInitialResignAndSelectedCommandKeepsPanelOpen() async {
+        let harness = Harness()
+        harness.start()
+        harness.coordinator.prepareForPanelMenu()
+
+        harness.notificationCenter.post(
+            name: NSApplication.didResignActiveNotification,
+            object: NSApp
+        )
+        harness.coordinator.requestCloseForOutsideInteraction()
+        XCTAssertTrue(harness.isPanelShown)
+        harness.notificationCenter.post(name: NSMenu.didBeginTrackingNotification, object: NSMenu())
+        harness.coordinator.requestCloseForOutsideInteraction()
+        harness.coordinator.menuCommandDidRun()
+        harness.notificationCenter.post(name: NSMenu.didEndTrackingNotification, object: NSMenu())
+        try? await Task.sleep(for: .milliseconds(75))
+
+        XCTAssertTrue(harness.isPanelShown)
+        XCTAssertEqual(harness.closeCount, 0)
+        harness.stop()
+    }
+
+    func testModalInteractionDefersEveryOutsideCloseUntilCompletion() {
+        let harness = Harness()
+        harness.start()
+        harness.coordinator.beginModalInteraction()
+
+        harness.notificationCenter.post(
+            name: NSApplication.didResignActiveNotification,
+            object: NSApp
+        )
+        harness.coordinator.requestCloseForOutsideInteraction()
+
+        XCTAssertTrue(harness.isPanelShown)
+        XCTAssertTrue(harness.coordinator.hasDeferredClose)
+        harness.coordinator.endModalInteraction()
+        XCTAssertTrue(harness.isPanelShown)
+        XCTAssertFalse(harness.coordinator.hasDeferredClose)
+        harness.stop()
+    }
+
     func testPanelRightClickBeforeMenuTrackingIgnoresTransientApplicationResign() async throws {
         let notificationCenter = NotificationCenter()
         let monitor = RecordingPanelEventMonitor()

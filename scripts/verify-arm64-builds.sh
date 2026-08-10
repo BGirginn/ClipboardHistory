@@ -25,25 +25,38 @@ for configuration in Debug Release CommunityRelease; do
   fi
 
   app="$derived_data/Build/Products/$configuration/ClipboardHistory.app"
-  executable="$app/Contents/MacOS/ClipboardHistory"
-  architectures=$(lipo -archs "$executable")
-  [[ "$architectures" == "arm64" ]] || {
-    print -u2 "arm64 gate: $configuration architecture mismatch: $architectures"
+  helper="$app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
+  [[ -d "$helper" ]] || {
+    print -u2 "arm64 gate: embedded login helper is missing in $configuration"
     exit 1
   }
-  file "$executable" | rg -q 'Mach-O 64-bit executable arm64' || {
-    print -u2 "arm64 gate: file(1) did not identify an arm64 Mach-O for $configuration"
-    exit 1
-  }
-  otool -hv "$executable" | rg -q 'ARM64' || {
-    print -u2 "arm64 gate: otool did not identify ARM64 for $configuration"
-    exit 1
-  }
+  for executable in \
+      "$app/Contents/MacOS/ClipboardHistory" \
+      "$helper/Contents/MacOS/ClipboardHistoryLoginItem"; do
+    architectures=$(lipo -archs "$executable")
+    [[ "$architectures" == "arm64" ]] || {
+      print -u2 "arm64 gate: $configuration architecture mismatch: $architectures"
+      exit 1
+    }
+    file "$executable" | rg -q 'Mach-O 64-bit executable arm64' || {
+      print -u2 "arm64 gate: file(1) did not identify an arm64 Mach-O for $configuration"
+      exit 1
+    }
+    otool -hv "$executable" | rg -q 'ARM64' || {
+      print -u2 "arm64 gate: otool did not identify ARM64 for $configuration"
+      exit 1
+    }
+  done
   minimum=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$app/Contents/Info.plist")
-  [[ "$minimum" == "14.0" ]] || {
+  [[ "$minimum" == "14.2" ]] || {
     print -u2 "arm64 gate: $configuration minimum macOS is $minimum"
+    exit 1
+  }
+  helper_minimum=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$helper/Contents/Info.plist")
+  [[ "$helper_minimum" == "14.2" ]] || {
+    print -u2 "arm64 gate: $configuration helper minimum macOS is $helper_minimum"
     exit 1
   }
 done
 
-print "arm64 gate: Debug, Release, and CommunityRelease are arm64-only with macOS 14 minimum"
+print "arm64 gate: app and login helper are arm64-only with macOS 14.2 minimum in every configuration"

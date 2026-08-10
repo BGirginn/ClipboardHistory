@@ -5,19 +5,19 @@
 <h1 align="center">ClipboardHistory</h1>
 
 <p align="center">
-  A private, native clipboard manager for the macOS menu bar.
+  A private, native utility hub for the macOS menu bar.
 </p>
 
 <p align="center">
   <a href="docs/README_TR.md">Türkçe</a>
 </p>
 
-ClipboardHistory keeps clipboard history locally on your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no networking, telemetry, account system, cloud service, or third-party runtime dependency.
+ClipboardHistory is a modular menu-bar utility hub whose Clipboard, Notes, Input Tools, System Monitor, and Audio Mixer features stay local to your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no telemetry, account system, cloud service, or third-party runtime dependency.
 
 ## Current status
 
 - Current Community beta: [`v1.0.0-beta.2`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) (`1.0.0`, build `10002`)
-- Supported platform: Apple silicon (`arm64`) with macOS 14 Sonoma or later
+- Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
 - The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
 - The Homebrew Cask is published from [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap)
@@ -56,9 +56,12 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 - Copy, restore, paste to the active app, Paste As, Quick Look, drag and drop, and bulk actions
 - FIFO/LIFO Paste Stack and keyboard-oriented navigation
 - Menu-bar notes with instant editing, local search, and automatic saving
+- Independent Keyboard Cleaning and Scroll Reverse modules, with a 60-second cleaning safety limit and separate vertical/horizontal reversal for line-based and precise scrolling
 - System, Light, and Dark appearance options
-- Private Mode, temporary recording pause, app exclusions, and Ignore Next Copy toggle
-- Left-click the menu-bar icon to open the panel or right-click it to open a menu with Quit
+- Private Mode, temporary recording pause, and app exclusions
+- A unified Control Center plus optional independent menu-bar icons for each module, with configurable left-click actions and right-click safety menus
+- Live CPU/core, RAM/pressure, CPU/SoC die temperature, network, and per-device disk activity with configurable combined or independent menu-bar metrics
+- Per-application 0–100 audio gain on macOS 14.2+, plus authorized Chromium tab capture and directly controllable Safari HTML-media tabs
 - Optional application lock using Touch ID or the Mac login password
 - Local secret detection and temporary handling for sensitive clipboard items
 - AES-GCM history and note encryption with separate Keychain-backed keys and no plaintext fallback
@@ -68,7 +71,7 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 
 ## Privacy model
 
-ClipboardHistory reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network.
+ClipboardHistory reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network. Audio samples, system-metric history, tab titles, URLs, and tab identifiers are never persisted.
 
 History is stored locally in SQLite. Encryption keys live in the macOS login Keychain; Keychain failures are handled fail-closed. The optional application lock is a viewing and interaction privacy layer and is disabled by default.
 
@@ -79,7 +82,7 @@ See [Privacy and Threat Model](docs/PRIVACY_AND_THREAT_MODEL.md) and [Known Limi
 Requirements:
 
 - Apple silicon Mac
-- macOS 14 or later
+- macOS 14.2 or later
 - Xcode with Swift 6 support
 
 Clone the repository and create the local self-signed Community identity. This does not require a paid Apple Developer account:
@@ -112,7 +115,7 @@ The certificate private key remains in the user's login Keychain and must never 
 
 ## Usage
 
-ClipboardHistory runs as a menu-bar application and does not appear in the Dock. Click the clipboard icon or press `Command-Shift-V` to open the panel.
+ClipboardHistory runs as a menu-bar application and does not appear in the Dock. Opening it from Finder presents Control Center. Use **Customize Menu Bar** to place each module in Control Center, on its own menu-bar icon, in both places, or hide it; the last reachable menu-bar icon is always retained. Press `Command-Shift-V` to open Clipboard directly regardless of icon placement. Login launch stays silent through the bundled helper.
 
 Clipboard history and managed assets are stored under:
 
@@ -120,7 +123,7 @@ Clipboard history and managed assets are stored under:
 ~/Library/Application Support/ClipboardHistory/
 ```
 
-Direct paste requests require macOS Accessibility permission. Clipboard capture, panel access, and the global shortcut do not require that permission.
+Direct paste, Keyboard Cleaning Mode, and Scroll Reverse require macOS Accessibility permission. Clipboard capture, panel access, notes, and the global shortcut do not require that permission. Scroll Reverse stays fail-open when permission is unavailable and never opens the system permission prompt automatically at launch.
 
 ## Development
 

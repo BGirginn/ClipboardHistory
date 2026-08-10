@@ -9,6 +9,12 @@ final class LaunchAtLoginService: ObservableObject {
 
     init(backend: any LaunchAtLoginBackend = ServiceManagementLaunchAtLoginBackend()) {
         self.backend = backend
+        do {
+            try backend.migrateLegacyRegistrationIfNeeded()
+        } catch {
+            errorMessage = error.localizedDescription
+            AppLog.lifecycle.error("Launch-at-login migration failed")
+        }
         refresh()
     }
 

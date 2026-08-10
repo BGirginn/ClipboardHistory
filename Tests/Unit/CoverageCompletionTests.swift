@@ -240,6 +240,22 @@ final class CoverageCompletionTests: XCTestCase {
         XCTAssertEqual(service.transitions, [true, false])
     }
 
+    func testServiceManagementLaunchAtLoginMigratesLegacyMainAppToHelper() throws {
+        let helper = CoverageServiceManagementAppService()
+        let legacy = CoverageServiceManagementAppService(status: .enabled)
+        let backend = ServiceManagementLaunchAtLoginBackend(
+            service: helper,
+            legacyMainAppService: legacy
+        )
+
+        XCTAssertTrue(backend.isEnabled)
+        try backend.migrateLegacyRegistrationIfNeeded()
+
+        XCTAssertEqual(helper.transitions, [true])
+        XCTAssertEqual(legacy.transitions, [false])
+        XCTAssertTrue(backend.isEnabled)
+    }
+
     func testSystemRepeatingTimerRunsAndCancellationIsIdempotent() async {
         let fired = expectation(description: "timer fired")
         fired.expectedFulfillmentCount = 2
@@ -487,8 +503,12 @@ private final class CoverageKeychainClient: KeychainSecurityClient {
 
 @MainActor
 private final class CoverageServiceManagementAppService: ServiceManagementAppService {
-    var status: SMAppService.Status = .notRegistered
+    var status: SMAppService.Status
     private(set) var transitions: [Bool] = []
+
+    init(status: SMAppService.Status = .notRegistered) {
+        self.status = status
+    }
 
     func register() throws {
         transitions.append(true)

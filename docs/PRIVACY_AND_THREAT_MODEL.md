@@ -12,7 +12,11 @@ Item type, timestamps, byte sizes, content hashes, source bundle identifier, pin
 
 Pasteboard providers, archives, file URLs/bookmarks, HTML, RTF, PDF, and image decoders are untrusted inputs. Managed filenames reject traversal, separators, NUL, and unreasonable length. Archives enforce authenticated encryption, version, count and size limits, path validation, per-record and per-asset hashes, and atomic staging. HTML is sanitized and never executed.
 
-The app intentionally has no networking, telemetry, analytics, account, sync, remote preview, or AI service. OCR and QR recognition use on-device Apple frameworks. Static checks fail on production network APIs and URL literals.
+The app intentionally has no telemetry, analytics, account, sync, remote preview, or AI service. OCR and QR recognition use on-device Apple frameworks. The Chromium and Safari companion extensions run only inside their browser permission boundaries; they exchange versioned, size-limited control messages with the local application and do not upload browsing data.
+
+System metric samples stay in a time-bounded in-memory ring buffer and are not added to SQLite, archives, logs, or telemetry. Audio processing is real-time and memory-only: samples are not recorded, logged, analyzed, or persisted. Only per-application gain preferences keyed by bundle identifier are stored. Browser tab titles, URLs, identifiers, incognito state, and volume state are memory-only; incognito tabs are rejected by default. Safari lists only pages where the extension can directly modify non-DRM HTML media elements. Chromium tab capture starts only after the user invokes the extension action for that tab.
+
+Input Tools use one local CoreGraphics session event tap after explicit macOS Accessibility approval. Keyboard Cleaning discards key-down, key-up, modifier, and media-key events while active; it does not record, inspect, persist, or log typed content. Mouse and scroll events remain available, the mode automatically releases after 60 seconds, and lock/sleep/termination paths stop it. Scroll Reverse changes only enabled vertical/horizontal delta fields on the incoming event and preserves its phase, momentum, timestamp, and source; it never stores or logs event values or application content. Missing or revoked permission leaves native input unchanged.
 
 ## Keychain and signing
 

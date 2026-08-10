@@ -2,19 +2,43 @@ import ServiceManagement
 
 @MainActor
 final class ServiceManagementLaunchAtLoginBackend: LaunchAtLoginBackend {
-    private let service: any ServiceManagementAppService
+    static let helperIdentifier = "com.brgirgin.ClipboardHistory.LoginItem"
 
-    init(service: any ServiceManagementAppService = SMAppService.mainApp) {
-        self.service = service
+    private let service: any ServiceManagementAppService
+    private let legacyMainAppService: (any ServiceManagementAppService)?
+
+    convenience init() {
+        self.init(
+            service: SMAppService.loginItem(identifier: Self.helperIdentifier),
+            legacyMainAppService: SMAppService.mainApp
+        )
     }
 
-    var isEnabled: Bool { service.status == .enabled }
+    init(
+        service: any ServiceManagementAppService,
+        legacyMainAppService: (any ServiceManagementAppService)? = nil
+    ) {
+        self.service = service
+        self.legacyMainAppService = legacyMainAppService
+    }
+
+    var isEnabled: Bool {
+        service.status == .enabled || legacyMainAppService?.status == .enabled
+    }
+
+    func migrateLegacyRegistrationIfNeeded() throws {
+        guard let legacyMainAppService, legacyMainAppService.status == .enabled else { return }
+        if service.status != .enabled { try service.register() }
+        try legacyMainAppService.unregister()
+    }
 
     func setEnabled(_ enabled: Bool) throws {
         if enabled {
-            try service.register()
+            if service.status != .enabled { try service.register() }
+            if legacyMainAppService?.status == .enabled { try legacyMainAppService?.unregister() }
         } else {
-            try service.unregister()
+            if service.status == .enabled { try service.unregister() }
+            if legacyMainAppService?.status == .enabled { try legacyMainAppService?.unregister() }
         }
     }
 }

@@ -183,6 +183,24 @@ final class RemainingServiceCoverageTests: XCTestCase {
         XCTAssertFalse(trusted.isTrusted(prompt: false))
     }
 
+    func testInputEventTapTrustChecksUseInjectedEvaluatorsWithoutSystemPrompt() {
+        var promptedOptions: CFDictionary?
+        let coordinator = SystemInputEventTapCoordinator(
+            promptedTrustEvaluator: { options in
+                promptedOptions = options
+                return true
+            },
+            trustEvaluator: { false }
+        )
+
+        XCTAssertFalse(coordinator.isTrusted)
+        XCTAssertTrue(coordinator.requestAccessibilityAccess())
+        XCTAssertNotNil(promptedOptions)
+        XCTAssertFalse(coordinator.setKeyboardBlocking(true))
+        XCTAssertTrue(coordinator.maintain())
+        coordinator.stopAll()
+    }
+
     func testLoggerSubsystemIsAvailable() {
         XCTAssertFalse(AppLog.subsystem.isEmpty)
     }
@@ -199,37 +217,79 @@ final class RemainingServiceCoverageTests: XCTestCase {
         settings.globalShortcutEnabled = false
         let storage = StorageService(baseDirectory: root, encryptionService: .ephemeral())
         let pasteboard = NSPasteboard(name: .init("ApplicationDelegateCoverage-\(UUID().uuidString)"))
-        let viewModel = ClipboardHistoryViewModel(
+        let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             settings: settings,
+            controlCenter: ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: defaults)
+            ),
             startsAutomatically: false
         )
-        var viewModelFactoryCount = 0
+        var appModelFactoryCount = 0
         var controllerFactoryCount = 0
+        var createdController: MenuBarController?
         let delegate = ClipboardHistoryAppDelegate(
             environment: [:],
-            viewModelFactory: {
-                viewModelFactoryCount += 1
-                return viewModel
+            appModelFactory: {
+                appModelFactoryCount += 1
+                return appModel
             },
-            menuBarControllerFactory: { providedViewModel in
+            menuBarControllerFactory: { providedAppModel in
                 controllerFactoryCount += 1
-                XCTAssertTrue(providedViewModel === viewModel)
-                return MenuBarController(
-                    viewModel: providedViewModel,
+                XCTAssertTrue(providedAppModel === appModel)
+                let controller = MenuBarController(
+                    appModel: providedAppModel,
                     panelEventMonitor: ApplicationDelegatePanelEventMonitorStub()
                 )
+                createdController = controller
+                return controller
             }
         )
 
+        appModel.showClipboard()
         delegate.applicationDidFinishLaunching(
             Notification(name: NSApplication.didFinishLaunchingNotification)
         )
-        XCTAssertEqual(viewModelFactoryCount, 1)
+        XCTAssertEqual(appModelFactoryCount, 1)
         XCTAssertEqual(controllerFactoryCount, 1)
+        try? await Task.sleep(for: .milliseconds(20))
+        XCTAssertEqual(appModel.router.activeFeature, .controlCenter)
+
+        createdController?.closePopover()
+        appModel.showClipboard()
+        XCTAssertFalse(
+            delegate.applicationShouldHandleReopen(.shared, hasVisibleWindows: false)
+        )
+        try? await Task.sleep(for: .milliseconds(20))
+        XCTAssertEqual(appModel.router.activeFeature, .controlCenter)
         delegate.applicationWillTerminate(
+            Notification(name: NSApplication.willTerminateNotification)
+        )
+
+        var backgroundController: MenuBarController?
+        let backgroundDelegate = ClipboardHistoryAppDelegate(
+            environment: [:],
+            arguments: ["--background-launch"],
+            appModelFactory: { appModel },
+            menuBarControllerFactory: { model in
+                let controller = MenuBarController(
+                    appModel: model,
+                    panelEventMonitor: ApplicationDelegatePanelEventMonitorStub()
+                )
+                backgroundController = controller
+                return controller
+            }
+        )
+        appModel.showClipboard()
+        backgroundDelegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        await Task.yield()
+        XCTAssertFalse(backgroundController?.isPopoverShown == true)
+        XCTAssertEqual(appModel.router.activeFeature, .clipboard)
+        backgroundDelegate.applicationWillTerminate(
             Notification(name: NSApplication.willTerminateNotification)
         )
         await storage.close()

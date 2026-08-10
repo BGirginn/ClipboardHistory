@@ -11,7 +11,7 @@ final class MenuBarControllerTests: XCTestCase {
         let dependencies = MenuBarControllerDependencies.live
         let statusItem = dependencies.makeStatusItem()
         let popover = dependencies.makePopover()
-        let panel = dependencies.makePanel(context.viewModel)
+        let panel = dependencies.makePanel(context.appModel)
 
         XCTAssertNotNil(statusItem.button)
         XCTAssertEqual(panel.title, "Clipboard History")
@@ -44,7 +44,7 @@ final class MenuBarControllerTests: XCTestCase {
             quickLookPresenter: quickLook
         )
         let controller = MenuBarController(
-            viewModel: context.viewModel,
+            appModel: context.appModel,
             dependencies: dependencies,
             panelEventMonitor: MenuPanelEventMonitorStub()
         )
@@ -75,7 +75,10 @@ final class MenuBarControllerTests: XCTestCase {
         context.viewModel.pauseUntil = nil
         context.viewModel.isPrivateMode = false
         context.viewModel.privateModeDidChange?(false)
-        XCTAssertEqual(statusItem.button?.toolTip, "Clipboard History (Command-Shift-V, right-click for menu)")
+        XCTAssertEqual(
+            statusItem.button?.toolTip,
+            "ClipboardHistory Control Center — right-click for options"
+        )
         controller.closePopover()
         XCTAssertFalse(controller.isPopoverShown)
         XCTAssertGreaterThanOrEqual(quickLook.closeCount, 1)
@@ -113,7 +116,7 @@ final class MenuBarControllerTests: XCTestCase {
             terminateApplication: { terminationCount += 1 }
         )
         let controller = MenuBarController(
-            viewModel: context.viewModel,
+            appModel: context.appModel,
             dependencies: dependencies,
             panelEventMonitor: eventMonitor,
             shortcutBackend: shortcutBackend,
@@ -126,12 +129,12 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(shortcutBackend.registerCount, 1)
 
         context.settings.shortcutActivationMode = .toggle
-        context.viewModel.isShowingSettings = true
+        context.appModel.router.openSettings()
         context.viewModel.detailItem = context.viewModel.items.first
         context.viewModel.searchText = "stale presentation"
         shortcutBackend.fire(UInt32(kEventHotKeyPressed))
-        XCTAssertTrue(popover.isShown)
-        XCTAssertFalse(context.viewModel.isShowingSettings)
+        XCTAssertTrue(popover.isShown, "Global shortcut should show the clipboard popover")
+        XCTAssertEqual(context.appModel.router.activeFeature, .clipboard)
         XCTAssertNil(context.viewModel.detailItem)
         XCTAssertEqual(context.viewModel.searchText, "")
         shortcutBackend.fire(UInt32(kEventHotKeyReleased))
@@ -144,7 +147,8 @@ final class MenuBarControllerTests: XCTestCase {
         controller.closePopover()
 
         statusItem.button?.performClick(nil)
-        XCTAssertTrue(popover.isShown)
+        await Task.yield()
+        XCTAssertTrue(popover.isShown, "Control Center status item should show the popover")
         statusItemEvent = NSEvent.mouseEvent(
             with: .rightMouseUp,
             location: .zero,
@@ -157,9 +161,19 @@ final class MenuBarControllerTests: XCTestCase {
             pressure: 0
         )
         statusItem.button?.performClick(nil)
-        XCTAssertEqual(presentedStatusMenu?.items.map(\.title), ["Quit ClipboardHistory"])
+        XCTAssertEqual(
+            presentedStatusMenu?.items.map(\.title),
+            [
+                "Customize Menu Bar",
+                "",
+                "Open Control Center",
+                "Open Settings",
+                "",
+                "Quit ClipboardHistory"
+            ]
+        )
         XCTAssertEqual(terminationCount, 0)
-        presentedStatusMenu?.performActionForItem(at: 0)
+        presentedStatusMenu?.performActionForItem(at: 5)
         XCTAssertEqual(terminationCount, 1)
         statusItemEvent = nil
         let event = try XCTUnwrap(
@@ -181,7 +195,7 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.settings.panelPresentationMode = .detachable
         controller.showPopover()
-        XCTAssertTrue(panel.isVisible)
+        XCTAssertTrue(panel.isVisible, "Detachable presentation should show its panel")
         for edge in PanelScreenEdge.allCases {
             context.settings.panelScreenEdge = edge
             controller.positionDetachablePanel()
@@ -193,11 +207,94 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testConfigurationAddsAndRemovesStandaloneStatusItemsWithoutRestart() async {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        var createdItems: [NSStatusItem] = []
+        var removedItems: [NSStatusItem] = []
+        var currentEvent: NSEvent?
+        var presentedMenu: NSMenu?
+        let popover = MenuPopoverStub()
+        let dependencies = MenuBarControllerDependencies(
+            makeStatusItem: {
+                let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                createdItems.append(item)
+                return item
+            },
+            removeStatusItem: { item in
+                removedItems.append(item)
+                NSStatusBar.system.removeStatusItem(item)
+            },
+            makePopover: { popover },
+            makePanel: { _ in MenuPanelStub() },
+            quickLookPresenter: MenuQuickLookSpy(),
+            currentEvent: { currentEvent },
+            presentStatusMenu: { menu, _ in presentedMenu = menu }
+        )
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: dependencies,
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        XCTAssertEqual(createdItems.count, 1)
+        XCTAssertEqual(createdItems.first?.autosaveName, "ClipboardHistory.ControlCenter")
+
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
+        XCTAssertEqual(createdItems.count, 2)
+        XCTAssertEqual(createdItems.last?.autosaveName, "ClipboardHistory.Feature.notes")
+
+        controller.showControlCenter()
+        XCTAssertTrue(popover.isShown)
+        context.appModel.controlCenter.setControlCenterItemVisible(false)
+        XCTAssertTrue(popover.isShown)
+        XCTAssertEqual(controller.activeAnchorID, .feature(.notes))
+        XCTAssertEqual(removedItems.count, 1)
+
+        currentEvent = NSEvent.mouseEvent(
+            with: .rightMouseUp,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            eventNumber: 0,
+            clickCount: 1,
+            pressure: 0
+        )
+        createdItems.last?.button?.performClick(nil)
+        XCTAssertEqual(
+            presentedMenu?.items.map(\.title),
+            [
+                "Open Module",
+                "New Note",
+                "",
+                "Notes",
+                "",
+                "Open Control Center",
+                "Open Settings",
+                "",
+                "Quit ClipboardHistory"
+            ]
+        )
+
+        context.appModel.controlCenter.setStandaloneItemVisible(false, for: .notes)
+        XCTAssertEqual(removedItems.count, 2)
+        XCTAssertEqual(createdItems.count, 3)
+        XCTAssertEqual(controller.activeAnchorID, .controlCenter)
+        XCTAssertTrue(popover.isShown)
+
+        controller.stop()
+        XCTAssertEqual(removedItems.count, 3)
+        await cleanup(context)
+    }
+
     private struct Context {
         let directory: URL
         let suite: String
         let storage: StorageService
         let settings: AppSettings
+        let appModel: AppModel
         let viewModel: ClipboardHistoryViewModel
     }
 
@@ -210,12 +307,15 @@ final class MenuBarControllerTests: XCTestCase {
         let settings = AppSettings(defaults: UserDefaults(suiteName: suite)!)
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         let pasteboard = NSPasteboard(name: .init("MenuBarController-\(UUID().uuidString)"))
-        let viewModel = ClipboardHistoryViewModel(
+        let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             pasteService: MenuPasteServiceStub(),
             settings: settings,
+            controlCenter: ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: UserDefaults(suiteName: suite)!)
+            ),
             startsAutomatically: false
         )
         return Context(
@@ -223,12 +323,13 @@ final class MenuBarControllerTests: XCTestCase {
             suite: suite,
             storage: storage,
             settings: settings,
-            viewModel: viewModel
+            appModel: appModel,
+            viewModel: appModel.clipboard
         )
     }
 
     private func cleanup(_ context: Context) async {
-        context.viewModel.prepareForShutdown()
+        context.appModel.prepareForShutdown()
         await context.storage.close()
         UserDefaults.standard.removePersistentDomain(forName: context.suite)
         try? FileManager.default.removeItem(at: context.directory)

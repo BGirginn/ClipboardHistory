@@ -103,6 +103,11 @@ final class AppSettingsMigrationTests: XCTestCase {
             settings.appearance = .dark
             settings.panelPresentationMode = .detachable
             settings.panelScreenEdge = .left
+            settings.scrollReversalEnabled = true
+            settings.reverseDiscreteScrollVertical = false
+            settings.reverseDiscreteScrollHorizontal = false
+            settings.reversePreciseScrollVertical = true
+            settings.reversePreciseScrollHorizontal = true
 
             XCTAssertEqual(
                 settings.allowedBundleIdentifiers,
@@ -133,6 +138,23 @@ final class AppSettingsMigrationTests: XCTestCase {
             XCTAssertEqual(reopened.appearance, .dark)
             XCTAssertEqual(reopened.panelPresentationMode, .detachable)
             XCTAssertEqual(reopened.panelScreenEdge, .left)
+            XCTAssertTrue(reopened.scrollReversalEnabled)
+            XCTAssertFalse(reopened.reverseDiscreteScrollVertical)
+            XCTAssertFalse(reopened.reverseDiscreteScrollHorizontal)
+            XCTAssertTrue(reopened.reversePreciseScrollVertical)
+            XCTAssertTrue(reopened.reversePreciseScrollHorizontal)
+        }
+    }
+
+    func testScrollReversalUsesSafeDefaults() {
+        withDefaults { defaults in
+            let settings = AppSettings(defaults: defaults)
+
+            XCTAssertFalse(settings.scrollReversalEnabled)
+            XCTAssertTrue(settings.reverseDiscreteScrollVertical)
+            XCTAssertTrue(settings.reverseDiscreteScrollHorizontal)
+            XCTAssertFalse(settings.reversePreciseScrollVertical)
+            XCTAssertFalse(settings.reversePreciseScrollHorizontal)
         }
     }
 

@@ -1,6 +1,6 @@
 # Community beta distribution
 
-`v1.0.0-beta.2` is distributed as an explicitly pre-release Community build for Apple silicon Macs running macOS 14 or later. It is self-signed, is not Apple-notarized, and must not be described as a production or Developer ID release.
+`v1.0.0-beta.2` is distributed as an explicitly pre-release Community build for Apple silicon Macs running macOS 14.2 or later. It is self-signed, is not Apple-notarized, and must not be described as a production or Developer ID release.
 
 ## Stable signing identity
 

@@ -22,5 +22,5 @@ All notable changes are documented here. The project follows semantic versioning
 - Added English/Turkish String Catalog, isolated UI-test target, deterministic fuzzing, static/localization/coverage gates, and release documentation.
 - Added optional Touch ID or Mac-login application lock with encrypted capture controls.
 - Added persistent System/Light/Dark appearance and a black macOS application icon.
-- Fixed panel restoration, first-click context menus, Private Mode controls, and cancellation of Ignore Next Copy.
+- Fixed panel restoration, first-click context menus, and Private Mode controls.
 - Restricted the Community release to arm64 with a macOS 14 minimum.

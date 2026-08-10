@@ -3,13 +3,14 @@ import Foundation
 
 @MainActor
 final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
-    typealias ViewModelFactory = @MainActor () -> ClipboardHistoryViewModel
-    typealias MenuBarControllerFactory = @MainActor (ClipboardHistoryViewModel) -> MenuBarController
+    typealias AppModelFactory = @MainActor () -> AppModel
+    typealias MenuBarControllerFactory = @MainActor (AppModel) -> MenuBarController
 
     private let environment: [String: String]
-    private let viewModelFactory: ViewModelFactory
+    private let arguments: [String]
+    private let appModelFactory: AppModelFactory
     private let menuBarControllerFactory: MenuBarControllerFactory
-    private var viewModel: ClipboardHistoryViewModel?
+    private var appModel: AppModel?
     private var menuBarController: MenuBarController?
     private var terminationTask: Task<Void, Never>?
     #if DEBUG
@@ -19,18 +20,21 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     override convenience init() {
         self.init(
             environment: ProcessInfo.processInfo.environment,
-            viewModelFactory: { ClipboardHistoryViewModel() },
-            menuBarControllerFactory: { MenuBarController(viewModel: $0) }
+            arguments: ProcessInfo.processInfo.arguments,
+            appModelFactory: { AppModel() },
+            menuBarControllerFactory: { MenuBarController(appModel: $0) }
         )
     }
 
     init(
         environment: [String: String],
-        viewModelFactory: @escaping ViewModelFactory,
+        arguments: [String] = [],
+        appModelFactory: @escaping AppModelFactory,
         menuBarControllerFactory: @escaping MenuBarControllerFactory
     ) {
         self.environment = environment
-        self.viewModelFactory = viewModelFactory
+        self.arguments = arguments
+        self.appModelFactory = appModelFactory
         self.menuBarControllerFactory = menuBarControllerFactory
         super.init()
     }
@@ -48,10 +52,25 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         #endif
-        let viewModel = viewModelFactory()
-        self.viewModel = viewModel
-        menuBarController = menuBarControllerFactory(viewModel)
+        let appModel = appModelFactory()
+        self.appModel = appModel
+        let controller = menuBarControllerFactory(appModel)
+        menuBarController = controller
+        if !arguments.contains("--background-launch") {
+            Task { @MainActor in
+                await Task.yield()
+                controller.showControlCenter()
+            }
+        }
         AppLog.lifecycle.notice("Application launched; interface=menu-bar")
+    }
+
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        menuBarController?.showControlCenter()
+        return false
     }
 
     #if DEBUG
@@ -74,31 +93,34 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         let pasteboard = NSPasteboard(
             name: .init("ClipboardHistory.UITesting.\(UUID().uuidString)")
         )
-        let viewModel = ClipboardHistoryViewModel(
+        let appModel = AppModel(
             storage: StorageService(baseDirectory: root, encryptionService: .ephemeral()),
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             settings: AppSettings(defaults: defaults),
+            controlCenter: ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: defaults)
+            ),
             startsAutomatically: false
         )
-        self.viewModel = viewModel
+        self.appModel = appModel
         let anchorWindow = makeUITestAnchorWindow()
         uiTestAnchorWindow = anchorWindow
-        let controller = MenuBarController(viewModel: viewModel) { [weak anchorWindow] in
+        let controller = MenuBarController(appModel: appModel) { [weak anchorWindow] in
             anchorWindow?.contentView
         }
         menuBarController = controller
         Task {
-            await viewModel.loadHistory()
-            if viewModel.items.isEmpty {
-                await viewModel.insert(.text(value: "Alpha clipboard item", hash: "ui-alpha"))
-                await viewModel.insert(.text(value: "Beta clipboard item", hash: "ui-beta"))
-                await viewModel.insert(.text(value: "Gamma clipboard item", hash: "ui-gamma"))
+            await appModel.clipboard.loadHistory()
+            if appModel.clipboard.items.isEmpty {
+                await appModel.clipboard.insert(.text(value: "Alpha clipboard item", hash: "ui-alpha"))
+                await appModel.clipboard.insert(.text(value: "Beta clipboard item", hash: "ui-beta"))
+                await appModel.clipboard.insert(.text(value: "Gamma clipboard item", hash: "ui-gamma"))
             }
-            if viewModel.collections.isEmpty {
+            if appModel.clipboard.collections.isEmpty {
                 let collection = ClipboardCollection(name: "Coverage Collection")
-                try? await viewModel.storage.upsertCollection(collection)
-                viewModel.collections = [collection]
+                try? await appModel.clipboard.storage.upsertCollection(collection)
+                appModel.clipboard.collections = [collection]
             }
             controller.showPopover()
         }
@@ -131,19 +153,30 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     #endif
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard let viewModel else { return .terminateNow }
+        guard let appModel else { return .terminateNow }
         guard terminationTask == nil else { return .terminateLater }
         terminationTask = Task { [weak self, weak sender] in
-            await viewModel.shutdown()
-            self?.menuBarController?.stop()
-            sender?.reply(toApplicationShouldTerminate: true)
+            let canTerminate = await appModel.shutdown()
+            guard let self else {
+                sender?.reply(toApplicationShouldTerminate: canTerminate)
+                return
+            }
+            if canTerminate {
+                menuBarController?.stop()
+                sender?.reply(toApplicationShouldTerminate: true)
+            } else {
+                terminationTask = nil
+                menuBarController?.showPopover()
+                appModel.router.showNotes()
+                sender?.reply(toApplicationShouldTerminate: false)
+            }
         }
         return .terminateLater
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         if terminationTask == nil {
-            viewModel?.prepareForShutdown()
+            appModel?.prepareForShutdown()
         }
         terminationTask?.cancel()
         terminationTask = nil
@@ -153,6 +186,6 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         uiTestAnchorWindow?.close()
         uiTestAnchorWindow = nil
         #endif
-        viewModel = nil
+        appModel = nil
     }
 }

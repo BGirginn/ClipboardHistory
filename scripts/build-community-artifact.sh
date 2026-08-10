@@ -39,6 +39,17 @@ source_app="$derived_data/Build/Products/CommunityRelease/ClipboardHistory.app"
 artifact_app="$staging/ClipboardHistory.app"
 ditto --noqtn "$source_app" "$artifact_app"
 codesign --verify --deep --strict --verbose=2 "$artifact_app"
+helper_app="$artifact_app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
+[[ -d "$helper_app" ]] || {
+  print -u2 "artifact build: signed login helper is missing"
+  exit 1
+}
+codesign --verify --strict --verbose=2 "$helper_app"
+helper_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$helper_app/Contents/Info.plist")
+[[ "$helper_identifier" == "com.brgirgin.ClipboardHistory.LoginItem" ]] || {
+  print -u2 "artifact build: login helper identifier mismatch: $helper_identifier"
+  exit 1
+}
 codesign -d --entitlements :- "$artifact_app" 2>/dev/null \
   | plutil -convert json -o - - \
   | jq -e 'length == 0' >/dev/null || {
@@ -51,10 +62,21 @@ architectures=$(lipo -archs "$artifact_app/Contents/MacOS/ClipboardHistory")
   print -u2 "artifact build: arm64-only verification failed: $architectures"
   exit 1
 }
+helper_architectures=$(lipo -archs "$helper_app/Contents/MacOS/ClipboardHistoryLoginItem")
+[[ "$helper_architectures" == "arm64" ]] || {
+  print -u2 "artifact build: login helper arm64-only verification failed: $helper_architectures"
+  exit 1
+}
 minimum_os=$(otool -l "$artifact_app/Contents/MacOS/ClipboardHistory" \
   | awk '$1 == "minos" { print $2; exit }')
-[[ "$minimum_os" == "14.0" ]] || {
+[[ "$minimum_os" == "14.2" ]] || {
   print -u2 "artifact build: minimum macOS mismatch: $minimum_os"
+  exit 1
+}
+helper_minimum_os=$(otool -l "$helper_app/Contents/MacOS/ClipboardHistoryLoginItem" \
+  | awk '$1 == "minos" { print $2; exit }')
+[[ "$helper_minimum_os" == "14.2" ]] || {
+  print -u2 "artifact build: login helper minimum macOS mismatch: $helper_minimum_os"
   exit 1
 }
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$artifact_app/Contents/Info.plist")

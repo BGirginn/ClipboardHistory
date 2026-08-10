@@ -6,6 +6,42 @@ import XCTest
 
 @MainActor
 final class ClipboardPanelRenderingTests: XCTestCase {
+    func testModularShellRendersSupportedWidthsThemesAndLocales() async throws {
+        let context = makeContext()
+        do {
+            for width in [340.0, 380.0, 420.0] {
+                try render(
+                    AppShellView(model: context.appModel),
+                    named: "control-center-\(Int(width))-light-en",
+                    colorScheme: .light,
+                    locale: Locale(identifier: "en"),
+                    width: width
+                )
+            }
+            try render(
+                AppShellView(model: context.appModel),
+                named: "control-center-380-dark-tr",
+                colorScheme: .dark,
+                locale: Locale(identifier: "tr"),
+                width: 380
+            )
+            context.appModel.showMenuBarCustomization()
+            for width in [340.0, 380.0, 420.0] {
+                try render(
+                    AppShellView(model: context.appModel),
+                    named: "menu-bar-customization-\(Int(width))-dark-tr",
+                    colorScheme: .dark,
+                    locale: Locale(identifier: "tr"),
+                    width: width
+                )
+            }
+        } catch {
+            await cleanup(context)
+            throw error
+        }
+        await cleanup(context)
+    }
+
     func testEmptyPanelRendersAtRequestedSize() async {
         let context = makeContext()
         let hostingView = NSHostingView(
@@ -38,7 +74,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 let colorScheme: ColorScheme = index.isMultiple(of: 2) ? .light : .dark
                 try render(
                     ClipboardSettingsView(
-                        viewModel: context.viewModel,
+                        viewModel: context.appModel.settingsFeature,
                         initialSection: section
                     )
                     .frame(width: 380, height: 500),
@@ -228,7 +264,11 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     colorScheme: index.isMultiple(of: 2) ? .dark : .light
                 )
             }
-            try render(ClipboardStorageRecoveryView(viewModel: context.viewModel), named: "storage-recovery", colorScheme: .dark)
+            try render(
+                ClipboardStorageRecoveryView(viewModel: context.appModel.settingsFeature),
+                named: "storage-recovery",
+                colorScheme: .dark
+            )
             try render(
                 DocumentClipboardItemRow(
                     item: filesWithoutURL,
@@ -356,12 +396,25 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             context.viewModel.detailItem = text
             try render(ClipboardPanelView(viewModel: context.viewModel), named: "panel-detail", colorScheme: .dark)
             context.viewModel.detailItem = nil
-            context.viewModel.isShowingSettings = true
-            try render(ClipboardPanelView(viewModel: context.viewModel), named: "panel-settings", colorScheme: .light)
-            context.viewModel.isShowingSettings = false
+            context.appModel.router.openSettings()
+            try render(AppShellView(model: context.appModel), named: "panel-settings", colorScheme: .light)
+            context.appModel.router.closeSettings()
             context.viewModel.isStorageAvailable = false
             try render(ClipboardPanelView(viewModel: context.viewModel), named: "panel-storage-failure", colorScheme: .dark)
             context.viewModel.isStorageAvailable = true
+
+            try render(
+                ClipboardPanelView(viewModel: context.viewModel),
+                named: "panel-history-redesign",
+                colorScheme: .dark
+            )
+            try render(
+                ClipboardPanelView(viewModel: context.viewModel),
+                named: "panel-history-compact-turkish",
+                colorScheme: .light,
+                locale: Locale(identifier: "tr"),
+                width: 340
+            )
 
             let note = Note(
                 title: "Rendered note",
@@ -369,28 +422,93 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 createdAt: Date(timeIntervalSince1970: 100),
                 updatedAt: Date(timeIntervalSince1970: 200)
             )
-            context.viewModel.noteController.notes = [note]
-            context.viewModel.noteController.showList()
+            try await context.storage.upsertNoteThrowing(note)
+            await context.appModel.notes.loadIfNeeded()
+            context.appModel.notes.showList()
             try render(
-                NotesContainerView(viewModel: context.viewModel),
+                notesView(context),
                 named: "notes-list",
                 colorScheme: .light
             )
-            context.viewModel.noteController.openEditor(for: note)
             try render(
-                NotesContainerView(viewModel: context.viewModel),
+                notesView(context),
+                named: "notes-list-compact",
+                colorScheme: .dark,
+                width: 340
+            )
+            context.appModel.notes.openEditor(for: note)
+            try render(
+                notesView(context),
                 named: "notes-editor",
                 colorScheme: .dark
             )
-            context.viewModel.panelSection = .notes
+            try render(
+                notesView(context),
+                named: "notes-editor-compact-turkish",
+                colorScheme: .light,
+                locale: Locale(identifier: "tr"),
+                width: 340
+            )
+            context.appModel.router.showNotes()
             context.viewModel.lockService.configure(enabled: true, option: .never, startsLocked: true)
             try render(
-                ClipboardPanelView(viewModel: context.viewModel),
+                AppShellView(model: context.appModel),
                 named: "notes-hidden-while-locked",
                 colorScheme: .dark
             )
             context.viewModel.lockService.configure(enabled: false, option: .never)
-            context.viewModel.panelSection = .history
+            context.appModel.router.showControlCenter()
+
+            try render(
+                KeyboardCleaningView(
+                    controller: context.appModel.inputTools.keyboardCleaning,
+                    isLocked: false,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "keyboard-cleaning-ready",
+                colorScheme: .light
+            )
+            try render(
+                ScrollReverseView(
+                    controller: context.appModel.inputTools.scrollReversal,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "scroll-reverse-turkish",
+                colorScheme: .light,
+                locale: Locale(identifier: "tr")
+            )
+            context.appModel.inputTools.keyboardCleaning.start()
+            try render(
+                KeyboardCleaningView(
+                    controller: context.appModel.inputTools.keyboardCleaning,
+                    isLocked: false,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "keyboard-cleaning-active",
+                colorScheme: .dark
+            )
+            context.appModel.inputTools.keyboardCleaning.stop()
+            context.appModel.inputTools.scrollReversal.isEnabled = true
+            try render(
+                ScrollReverseView(
+                    controller: context.appModel.inputTools.scrollReversal,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "scroll-reverse-active",
+                colorScheme: .dark
+            )
+            context.appModel.inputTools.scrollReversal.disable()
+            context.appModel.showKeyboardCleaning()
+            try render(
+                AppShellView(model: context.appModel),
+                named: "panel-input-tools-route",
+                colorScheme: .light
+            )
+            context.appModel.showControlCenter()
 
             context.viewModel.isPrivateMode = true
             context.viewModel.privateModeUntil = .now.addingTimeInterval(60)
@@ -401,7 +519,15 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(ClipboardPanelStatusView(viewModel: context.viewModel), named: "status-paused", colorScheme: .dark)
             context.viewModel.pauseUntil = nil
             context.viewModel.lockService.configure(enabled: true, option: .never, startsLocked: true)
-            try render(ClipboardPanelHeaderView(viewModel: context.viewModel), named: "header-locked", colorScheme: .light)
+            try render(
+                ClipboardPanelHeaderView(
+                    viewModel: context.viewModel,
+                    backToHome: {},
+                    openSettings: {}
+                ),
+                named: "header-locked",
+                colorScheme: .light
+            )
         } catch {
             await cleanup(context)
             throw error
@@ -412,15 +538,20 @@ final class ClipboardPanelRenderingTests: XCTestCase {
     private func render<Content: View>(
         _ content: Content,
         named name: String,
-        colorScheme: ColorScheme
+        colorScheme: ColorScheme,
+        locale: Locale = Locale(identifier: "en"),
+        width: CGFloat = 380,
+        height: CGFloat = 500
     ) throws {
         let hostingView = NSHostingView(
-            rootView: content.environment(\.colorScheme, colorScheme)
+            rootView: content
+                .environment(\.colorScheme, colorScheme)
+                .environment(\.locale, locale)
         )
         hostingView.appearance = NSAppearance(
             named: colorScheme == .dark ? .darkAqua : .aqua
         )
-        hostingView.frame = NSRect(x: 0, y: 0, width: 380, height: 500)
+        hostingView.frame = NSRect(x: 0, y: 0, width: width, height: height)
         hostingView.wantsLayer = true
         hostingView.layoutSubtreeIfNeeded()
         RunLoop.current.run(until: Date.now.addingTimeInterval(0.05))
@@ -431,8 +562,8 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)
         )
         hostingView.cacheDisplay(in: hostingView.bounds, to: representation)
-        XCTAssertEqual(representation.pixelsWide, 760, accuracy: 2)
-        XCTAssertEqual(representation.pixelsHigh, 1_000, accuracy: 2)
+        XCTAssertEqual(representation.pixelsWide, Int((width * 2).rounded()), accuracy: 2)
+        XCTAssertEqual(representation.pixelsHigh, Int((height * 2).rounded()), accuracy: 2)
 
         let outputDirectory = ProcessInfo.processInfo.environment[
             "CLIPBOARD_HISTORY_RENDER_OUTPUT"
@@ -451,10 +582,22 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         )
     }
 
+    private func notesView(_ context: Context) -> NotesContainerView {
+        NotesContainerView(
+            controller: context.appModel.notes,
+            closeToHome: {},
+            openSettings: {},
+            beginModalInteraction: {},
+            endModalInteraction: {},
+            menuCommandDidRun: {}
+        )
+    }
+
     private struct Context {
         let directory: URL
         let defaultsSuite: String
         let storage: StorageService
+        let appModel: AppModel
         let viewModel: ClipboardHistoryViewModel
     }
 
@@ -469,23 +612,29 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let defaultsSuite = "PanelRenderingDefaults-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: defaultsSuite)!
         let storage = StorageService(baseDirectory: directory)
-        let viewModel = ClipboardHistoryViewModel(
+        let inputEventTapCoordinator = InputEventTapCoordinatorStub(isTrusted: true)
+        let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             settings: AppSettings(defaults: defaults),
+            inputEventTapCoordinator: inputEventTapCoordinator,
+            controlCenter: ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: defaults)
+            ),
             startsAutomatically: false
         )
         return Context(
             directory: directory,
             defaultsSuite: defaultsSuite,
             storage: storage,
-            viewModel: viewModel
+            appModel: appModel,
+            viewModel: appModel.clipboard
         )
     }
 
     private func cleanup(_ context: Context) async {
-        context.viewModel.prepareForShutdown()
+        context.appModel.prepareForShutdown()
         await context.storage.close()
         UserDefaults.standard.removePersistentDomain(forName: context.defaultsSuite)
         try? FileManager.default.removeItem(at: context.directory)

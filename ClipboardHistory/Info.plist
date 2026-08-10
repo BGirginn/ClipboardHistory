@@ -26,5 +26,7 @@
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>ClipboardHistory uses system audio access only to apply the volume levels you choose for individual applications. Audio is never recorded or stored.</string>
 </dict>
 </plist>

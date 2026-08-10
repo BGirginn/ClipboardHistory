@@ -4,8 +4,9 @@ import SwiftUI
 @MainActor
 struct MenuBarControllerDependencies {
     let makeStatusItem: () -> NSStatusItem
+    let removeStatusItem: (NSStatusItem) -> Void
     let makePopover: () -> NSPopover
-    let makePanel: (ClipboardHistoryViewModel) -> NSPanel
+    let makePanel: (AppModel) -> NSPanel
     let quickLookPresenter: any QuickLookPresenting
     let currentEvent: () -> NSEvent?
     let presentStatusMenu: (NSMenu, NSView) -> Void
@@ -13,8 +14,9 @@ struct MenuBarControllerDependencies {
 
     init(
         makeStatusItem: @escaping () -> NSStatusItem,
+        removeStatusItem: @escaping (NSStatusItem) -> Void = NSStatusBar.system.removeStatusItem,
         makePopover: @escaping () -> NSPopover,
-        makePanel: @escaping (ClipboardHistoryViewModel) -> NSPanel,
+        makePanel: @escaping (AppModel) -> NSPanel,
         quickLookPresenter: any QuickLookPresenting,
         currentEvent: @escaping () -> NSEvent? = { NSApplication.shared.currentEvent },
         presentStatusMenu: @escaping (NSMenu, NSView) -> Void = { menu, view in
@@ -27,6 +29,7 @@ struct MenuBarControllerDependencies {
         terminateApplication: @escaping () -> Void = { NSApplication.shared.terminate(nil) }
     ) {
         self.makeStatusItem = makeStatusItem
+        self.removeStatusItem = removeStatusItem
         self.makePopover = makePopover
         self.makePanel = makePanel
         self.quickLookPresenter = quickLookPresenter
@@ -41,7 +44,7 @@ struct MenuBarControllerDependencies {
                 NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
             },
             makePopover: NSPopover.init,
-            makePanel: { viewModel in
+            makePanel: { model in
                 let panel = NSPanel(
                     contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
                     styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
@@ -54,7 +57,7 @@ struct MenuBarControllerDependencies {
                 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 panel.contentMinSize = NSSize(width: 340, height: 420)
                 panel.contentViewController = NSHostingController(
-                    rootView: ClipboardPanelView(viewModel: viewModel)
+                    rootView: AppShellView(model: model)
                 )
                 return panel
             },

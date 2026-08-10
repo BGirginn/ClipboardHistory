@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ClipboardHistory Safari Audio",
+  "version": "1.0.0",
+  "description": "Adds controllable HTML media tabs to the ClipboardHistory audio mixer.",
+  "incognito": "not_allowed",
+  "permissions": ["nativeMessaging", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }]
+}
