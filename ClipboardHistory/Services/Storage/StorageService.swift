@@ -104,7 +104,7 @@ actor StorageService {
         try ensureInitialized()
         var items = try fetchAllItems()
         if items.contains(where: \.isEncrypted) {
-            try migrateEncryption(items: items, mode: .off)
+            try migrateLegacyEncryptedItems(items: items)
             items = try fetchAllItems()
         }
         let validItems = try reconcileIncompleteRecords(items)

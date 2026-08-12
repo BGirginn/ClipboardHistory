@@ -68,8 +68,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchive(
                 from: destination,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await storage.close()
@@ -129,8 +128,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
         let report = try await service.importArchive(
             from: archiveURL,
             storage: destination,
-            existingItems: [],
-            encryptionMode: .all
+            existingItems: []
         )
         XCTAssertEqual(report, ImportReport(importedCount: 3, duplicateCount: 0, rejectedCount: 0))
         let imported = await destination.loadHistory()
@@ -185,8 +183,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
         let report = try await ExportImportService().importArchive(
             from: url,
             storage: storage,
-            existingItems: [],
-            encryptionMode: .sensitive
+            existingItems: []
         )
         XCTAssertEqual(report.importedCount, 2)
         XCTAssertEqual(report.rejectedCount, 5)
@@ -216,24 +213,21 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await ExportImportService(maximumArchiveBytes: 1).importArchive(
                 from: plainURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await assertThrowsAsync {
             _ = try await ExportImportService(maximumAssetBytes: 1).importArchive(
                 from: plainURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await assertThrowsAsync {
             _ = try await ExportImportService(maximumItemCount: 0).importArchive(
                 from: plainURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
 
@@ -246,16 +240,14 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await ExportImportService(maximumArchiveBytes: 1).importArchiveAtomically(
                 from: encryptedURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
         await assertThrowsAsync {
             _ = try await ExportImportService(maximumItemCount: 0).importArchiveAtomically(
                 from: encryptedURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
         await storage.close()
@@ -298,8 +290,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchive(
                 from: assetURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
 
@@ -326,8 +317,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchive(
                 from: collectionURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
 
@@ -348,8 +338,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchive(
                 from: mismatchedURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
 
@@ -366,8 +355,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchive(
                 from: unsupportedURL,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await storage.close()
@@ -393,8 +381,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchiveAtomically(
                 from: invalidURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
         let rolledBackHistory = await storage.loadHistory()
@@ -422,8 +409,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchiveAtomically(
                 from: wrongModeURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
 
@@ -443,8 +429,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchiveAtomically(
                 from: wrongVersionURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
 
@@ -454,8 +439,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchiveAtomically(
                 from: link,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
 
@@ -473,8 +457,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             _ = try await service.importArchiveAtomically(
                 from: invalidCollectionURL,
                 password: "password",
-                storage: storage,
-                encryptionMode: .all
+                storage: storage
             )
         }
         await storage.close()

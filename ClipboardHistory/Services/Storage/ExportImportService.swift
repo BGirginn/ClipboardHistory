@@ -90,8 +90,7 @@ actor ExportImportService {
         from source: URL,
         password: String? = nil,
         storage: StorageService,
-        existingItems: [ClipboardItem],
-        encryptionMode: EncryptionMode
+        existingItems: [ClipboardItem]
     ) async throws -> ImportReport {
         let resourceValues = try source.resourceValues(
             forKeys: [.isSymbolicLinkKey, .isRegularFileKey, .fileSizeKey]
@@ -144,8 +143,7 @@ actor ExportImportService {
                     item: item,
                     importedID: importedID,
                     assets: archive.assets,
-                    storage: storage,
-                    encryptionMode: encryptionMode
+                    storage: storage
                 )
                 materializedItems.append(importedItem)
                 imported += 1
@@ -204,8 +202,7 @@ actor ExportImportService {
     func importArchiveAtomically(
         from source: URL,
         password: String,
-        storage: StorageService,
-        encryptionMode: EncryptionMode
+        storage: StorageService
     ) async throws -> ImportReport {
         let archive = try decodeAndValidateArchive(from: source, password: password)
         guard archive.mode == .encrypted else { throw ExportImportError.invalidArchive }
@@ -217,8 +214,7 @@ actor ExportImportService {
                         item: item,
                         importedID: item.id,
                         assets: archive.assets,
-                        storage: storage,
-                        encryptionMode: encryptionMode
+                        storage: storage
                     )
                 )
             }
@@ -418,8 +414,7 @@ actor ExportImportService {
         item: ClipboardItem,
         importedID: UUID,
         assets: [String: Data],
-        storage: StorageService,
-        encryptionMode: EncryptionMode
+        storage: StorageService
     ) async throws -> ClipboardItem {
         var copy = item
         copy.id = importedID

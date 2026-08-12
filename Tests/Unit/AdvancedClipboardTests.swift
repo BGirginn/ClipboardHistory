@@ -215,15 +215,13 @@ final class AdvancedClipboardTests: XCTestCase {
         let first = try await service.importArchive(
             from: archiveURL,
             storage: destinationStorage,
-            existingItems: [],
-            encryptionMode: .off
+            existingItems: []
         )
         let existing = await destinationStorage.loadHistory()
         let second = try await service.importArchive(
             from: archiveURL,
             storage: destinationStorage,
-            existingItems: existing,
-            encryptionMode: .off
+            existingItems: existing
         )
 
         XCTAssertEqual(first.importedCount, 2)
@@ -258,8 +256,7 @@ final class AdvancedClipboardTests: XCTestCase {
             _ = try await ExportImportService().importArchive(
                 from: url,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await storage.close()
@@ -288,8 +285,7 @@ final class AdvancedClipboardTests: XCTestCase {
             _ = try await ExportImportService().importArchive(
                 from: url,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         let remainingItems = await storage.loadHistory()
@@ -311,8 +307,7 @@ final class AdvancedClipboardTests: XCTestCase {
             _ = try await ExportImportService().importArchive(
                 from: link,
                 storage: storage,
-                existingItems: [],
-                encryptionMode: .off
+                existingItems: []
             )
         }
         await storage.close()

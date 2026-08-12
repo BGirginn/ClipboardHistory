@@ -236,7 +236,7 @@ final class PrivacySecurityTests: XCTestCase {
         let suite = "PrivacySecurityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
-        defaults.set(EncryptionMode.all.rawValue, forKey: "encryptionMode")
+        defaults.set("all", forKey: "encryptionMode")
         let first = AppSettings(defaults: defaults)
         first.secretDetectionEnabled = false
         first.duplicateDetectionScope = .lastHour

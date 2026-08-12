@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 
 extension StorageService {
-    func migrateEncryption(items: [ClipboardItem], mode _: EncryptionMode) throws {
+    func migrateLegacyEncryptedItems(items: [ClipboardItem]) throws {
         try ensureInitialized()
         var originals: [ClipboardItem] = []
         var migrated: [ClipboardItem] = []

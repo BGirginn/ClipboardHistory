@@ -72,8 +72,7 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
                 report = try await exportImportService.importArchiveAtomically(
                     from: encryptedArchive,
                     password: password,
-                    storage: stagingStorage,
-                    encryptionMode: .off
+                    storage: stagingStorage
                 )
                 await stagingStorage.close()
             } catch {

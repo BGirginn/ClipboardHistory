@@ -62,8 +62,7 @@ extension ClipboardHistoryViewModel {
                 from: source,
                 password: password,
                 storage: storage,
-                existingItems: items,
-                encryptionMode: .off
+                existingItems: items
             )
             let temporary = items.filter { temporaryContent[$0.id] != nil }
             items = temporary + (await storage.loadHistory())

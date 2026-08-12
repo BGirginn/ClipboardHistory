@@ -248,7 +248,7 @@ final class StorageDeepCoverageTests: XCTestCase {
         let failedMigrationStatus = await storage.migrationStatus()
         XCTAssertTrue(failedMigrationStatus.contains("preserved after failure"))
         let historyForMigration = await storage.loadHistory()
-        try await storage.migrateEncryption(items: historyForMigration, mode: .all)
+        try await storage.migrateLegacyEncryptedItems(items: historyForMigration)
 
         await storage.close()
         await storage.close()
@@ -267,7 +267,7 @@ final class StorageDeepCoverageTests: XCTestCase {
         let closedMigrationStatus = await storage.migrationStatus()
         XCTAssertEqual(closedMigrationStatus, "Database unavailable")
         await assertThrowsAsync {
-            try await storage.migrateEncryption(items: [recent], mode: .all)
+            try await storage.migrateLegacyEncryptedItems(items: [recent])
         }
     }
 
@@ -398,7 +398,7 @@ final class StorageDeepCoverageTests: XCTestCase {
             BEGIN SELECT RAISE(ABORT, 'migration failure'); END
             """)
         await assertThrowsAsync {
-            try await storage.migrateEncryption(items: [item], mode: .all)
+            try await storage.migrateLegacyEncryptedItems(items: [item])
         }
         try await storage.execute("DROP TRIGGER fail_migration_insert")
 

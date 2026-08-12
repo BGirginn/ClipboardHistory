@@ -391,16 +391,6 @@
         }
       }
     },
-    "All Items": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tüm Öğeler"
-          }
-        }
-      }
-    },
     "All physical interfaces": {
       "localizations": {
         "tr": {
@@ -3011,16 +3001,6 @@
         }
       }
     },
-    "Off": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kapalı"
-          }
-        }
-      }
-    },
     "Older Than 1 Day": {
       "localizations": {
         "tr": {
@@ -4187,16 +4167,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hassas İçerik"
-          }
-        }
-      }
-    },
-    "Sensitive Items": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hassas Öğeler"
           }
         }
       }

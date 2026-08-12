@@ -42,8 +42,7 @@ final class NoteArchiveTests: XCTestCase {
         let report = try await context.service.importArchive(
             from: fullURL,
             storage: context.destination,
-            existingItems: [],
-            encryptionMode: .all
+            existingItems: []
         )
         let imported = try await context.destination.loadNotesThrowing()
         XCTAssertEqual(report.importedNoteCount, 1)
@@ -104,8 +103,7 @@ final class NoteArchiveTests: XCTestCase {
             _ = try await context.service.importArchive(
                 from: archiveURL,
                 storage: context.destination,
-                existingItems: [],
-                encryptionMode: .all
+                existingItems: []
             )
             XCTFail("Expected note hash validation to fail")
         } catch ExportImportError.invalidArchive {
@@ -135,8 +133,7 @@ final class NoteArchiveTests: XCTestCase {
         let report = try await context.service.importArchive(
             from: archiveURL,
             storage: context.destination,
-            existingItems: [],
-            encryptionMode: .all
+            existingItems: []
         )
         let notes = try await context.destination.loadNotesThrowing()
 
