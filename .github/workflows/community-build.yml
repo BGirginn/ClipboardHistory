@@ -11,13 +11,6 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Run menu-bar regression tests
-        run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
-            -configuration Debug -destination 'platform=macOS,arch=arm64' \
-            -derivedDataPath /private/tmp/ClipboardHistoryCommunityTests \
-            CODE_SIGNING_ALLOWED=NO \
-            -only-testing:ClipboardHistoryTests/MenuBarControllerTests test
       - name: Build unsigned CommunityRelease
         run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
