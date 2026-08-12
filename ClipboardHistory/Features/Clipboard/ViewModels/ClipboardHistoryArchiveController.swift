@@ -63,7 +63,7 @@ extension ClipboardHistoryViewModel {
                 password: password,
                 storage: storage,
                 existingItems: items,
-                encryptionMode: settings.encryptionMode
+                encryptionMode: .off
             )
             let temporary = items.filter { temporaryContent[$0.id] != nil }
             items = temporary + (await storage.loadHistory())
@@ -94,9 +94,16 @@ extension ClipboardHistoryViewModel {
             )
             isStorageAvailable = false
             archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) clipboard items and \(result.importedNoteCount) notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
+        } catch let recoveryError as StorageRecoveryError {
+            isStorageAvailable = false
+            if recoveryError.previousDatabaseRestored {
+                archiveStatusMessage = String(localized: "Recovery failed and the previous database was restored: \(recoveryError.localizedDescription). Quit and reopen Clipboard History.")
+            } else {
+                archiveStatusMessage = String(localized: "Recovery failed and rollback could not be verified: \(recoveryError.localizedDescription). Do not relaunch until the rollback backup is inspected.")
+            }
         } catch {
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Recovery failed without replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")
+            archiveStatusMessage = String(localized: "Recovery failed before replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")
         }
     }
 

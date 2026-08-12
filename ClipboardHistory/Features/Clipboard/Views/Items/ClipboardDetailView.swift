@@ -13,9 +13,14 @@ struct ClipboardDetailView: View {
     init(item: ClipboardItem, viewModel: ClipboardHistoryViewModel) {
         self.item = item
         self.viewModel = viewModel
-        _draftTitle = State(initialValue: item.displayTitle ?? "")
-        _draftText = State(initialValue: item.text ?? "")
-        _draftTags = State(initialValue: item.protectedMetadata.tags.joined(separator: ", "))
+        let startsRedacted = item.isSensitive
+        _draftTitle = State(initialValue: startsRedacted ? "" : item.displayTitle ?? "")
+        _draftText = State(initialValue: startsRedacted ? "" : item.text ?? "")
+        _draftTags = State(
+            initialValue: startsRedacted
+                ? ""
+                : item.protectedMetadata.tags.joined(separator: ", ")
+        )
         _selectedCollectionID = State(initialValue: item.collectionID)
         _isSnippet = State(initialValue: item.isSnippet)
     }
@@ -41,14 +46,25 @@ struct ClipboardDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     preview
-                    editor
-                    metadata
+                    if viewModel.isSensitiveDetailRevealed(item) {
+                        editor
+                        metadata
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
             }
         }
         .accessibilityIdentifier("clipboard.detail")
+        .onChange(of: viewModel.sensitiveDetailItemID) { _, revealedID in
+            guard revealedID == item.id else { return }
+            draftTitle = item.displayTitle ?? ""
+            draftText = item.text ?? ""
+            draftTags = item.protectedMetadata.tags.joined(separator: ", ")
+        }
+        .onDisappear {
+            viewModel.revokeSensitiveContentAccess()
+        }
     }
 
     private var editor: some View {
@@ -91,7 +107,7 @@ struct ClipboardDetailView: View {
 
     @ViewBuilder
     private var preview: some View {
-        if viewModel.isLocked || item.isSensitive {
+        if viewModel.isLocked || !viewModel.isSensitiveDetailRevealed(item) {
             VStack(spacing: 8) {
                 Image(systemName: "eye.slash")
                     .font(.largeTitle)
@@ -101,6 +117,12 @@ struct ClipboardDetailView: View {
                 Text("The preview is hidden.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if item.isSensitive, !viewModel.isLocked {
+                    Button("Reveal Sensitive Content", systemImage: "touchid") {
+                        viewModel.revealSensitiveDetails(item)
+                    }
+                    .accessibilityIdentifier("detail.reveal-sensitive")
+                }
             }
             .frame(maxWidth: .infinity, minHeight: 150)
         } else {
@@ -177,6 +199,7 @@ struct ClipboardDetailView: View {
     }
 
     func goBack() {
+        viewModel.revokeSensitiveContentAccess()
         viewModel.detailItem = nil
     }
 

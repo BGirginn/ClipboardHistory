@@ -26,13 +26,21 @@ for configuration in Debug Release CommunityRelease; do
 
   app="$derived_data/Build/Products/$configuration/ClipboardHistory.app"
   helper="$app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
+  xpc_service="$app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
+  safari_extension="$app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
   [[ -d "$helper" ]] || {
     print -u2 "arm64 gate: embedded login helper is missing in $configuration"
     exit 1
   }
+  [[ -d "$xpc_service" && -d "$safari_extension" ]] || {
+    print -u2 "arm64 gate: embedded XPC service or Safari extension is missing in $configuration"
+    exit 1
+  }
   for executable in \
       "$app/Contents/MacOS/ClipboardHistory" \
-      "$helper/Contents/MacOS/ClipboardHistoryLoginItem"; do
+      "$helper/Contents/MacOS/ClipboardHistoryLoginItem" \
+      "$xpc_service/Contents/MacOS/ClipboardHistoryBrowserAudioBridge" \
+      "$safari_extension/Contents/MacOS/ClipboardHistorySafariExtension"; do
     architectures=$(lipo -archs "$executable")
     [[ "$architectures" == "arm64" ]] || {
       print -u2 "arm64 gate: $configuration architecture mismatch: $architectures"
@@ -57,6 +65,13 @@ for configuration in Debug Release CommunityRelease; do
     print -u2 "arm64 gate: $configuration helper minimum macOS is $helper_minimum"
     exit 1
   }
+  for embedded_bundle in "$xpc_service" "$safari_extension"; do
+    embedded_minimum=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$embedded_bundle/Contents/Info.plist")
+    [[ "$embedded_minimum" == "14.2" ]] || {
+      print -u2 "arm64 gate: $configuration embedded component minimum macOS is $embedded_minimum"
+      exit 1
+    }
+  done
 done
 
-print "arm64 gate: app and login helper are arm64-only with macOS 14.2 minimum in every configuration"
+print "arm64 gate: app, login helper, XPC service, and Safari extension are arm64-only with macOS 14.2 minimum in every configuration"

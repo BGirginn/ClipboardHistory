@@ -242,12 +242,31 @@ final class AppModel: ObservableObject {
     }
 
     @discardableResult
-    func shutdown() async -> Bool {
+    func shutdown() async -> AppShutdownOutcome {
         inputTools.keyboardCleaning.stop()
         let noteOutcome = await notes.flushPendingSave()
-        guard noteOutcome.allowsTransition else { return false }
+        guard noteOutcome.allowsTransition else {
+            router.showNotes()
+            return AppShutdownOutcome(
+                notes: noteOutcome,
+                clipboard: .notAttempted,
+                blockedFeature: .notes
+            )
+        }
+        guard await clipboard.flushPendingWritesForShutdown() else {
+            router.showClipboard()
+            return AppShutdownOutcome(
+                notes: noteOutcome,
+                clipboard: .failed,
+                blockedFeature: .clipboard
+            )
+        }
         prepareForShutdown()
         await clipboard.storage.close()
-        return true
+        return AppShutdownOutcome(
+            notes: noteOutcome,
+            clipboard: .saved,
+            blockedFeature: nil
+        )
     }
 }

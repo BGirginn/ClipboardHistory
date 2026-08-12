@@ -27,12 +27,9 @@ struct ClipboardApplicationLockControls: View {
                 }
             }
 
-            Toggle(
-                "Continue recording while locked",
-                isOn: $viewModel.settings.captureWhileLocked
-            )
-            .help("New items remain encrypted. Viewing, copying, and pasting stay blocked until you unlock.")
-            .accessibilityHint("When enabled, new clipboard items are encrypted and saved while the application is locked.")
+            Text("Clipboard recording pauses while the application is locked.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             LabeledContent("Control") {
                 if viewModel.isLocked {

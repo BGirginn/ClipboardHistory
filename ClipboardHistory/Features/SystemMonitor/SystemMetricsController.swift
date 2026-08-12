@@ -1,4 +1,5 @@
 import Combine
+import AppKit
 import Foundation
 
 @MainActor
@@ -14,6 +15,7 @@ final class SystemMetricsController: ObservableObject {
     private let maximumHistoryCount: Int
     private let defaults: UserDefaults
     private let networkScopeKey = "systemMonitor.networkInterfaceScope.v1"
+    private var workspaceCancellables: Set<AnyCancellable> = []
 
     init(
         provider: any SystemMetricsProviding = SystemMetricsProvider(),
@@ -26,6 +28,14 @@ final class SystemMetricsController: ObservableObject {
         networkInterfaceScope = defaults.string(forKey: networkScopeKey)
             .flatMap(NetworkInterfaceScope.init(rawValue:)) ?? .primaryWiFi
         Task { await provider.setNetworkInterfaceScope(networkInterfaceScope) }
+        for name in [NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification] {
+            NSWorkspace.shared.notificationCenter.publisher(for: name)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    Task { await self.provider.resetBaselines() }
+                }
+                .store(in: &workspaceCancellables)
+        }
     }
 
     func setDemand(_ demand: SystemMetricsDemand, active: Bool) {
@@ -71,24 +81,32 @@ final class SystemMetricsController: ObservableObject {
         samplingTask = nil
     }
 
-    func value(for metric: MenuBarMetricID) -> String {
+    func value(
+        for metric: MenuBarMetricID,
+        formats: MetricFormatPreferences = .defaults
+    ) -> String {
         switch metric {
         case .cpu:
-            snapshot.cpu.totalPercent.formatted(.number.precision(.fractionLength(0))) + "%"
+            return snapshot.cpu.totalPercent.formatted(.number.precision(.fractionLength(0))) + "%"
         case .memory:
-            snapshot.memory.usedPercent.formatted(.number.precision(.fractionLength(0))) + "%"
+            if formats.memory == .usedAndTotal {
+                return "\(compactBytes(snapshot.memory.usedBytes))/\(compactBytes(snapshot.memory.totalBytes))"
+            }
+            return snapshot.memory.usedPercent.formatted(.number.precision(.fractionLength(0))) + "%"
         case .temperature:
-            snapshot.primaryTemperature.map {
-                $0.formatted(.number.precision(.fractionLength(0))) + "°C"
+            return snapshot.primaryTemperature.map {
+                let value = formats.temperature == .fahrenheit ? ($0 * 9 / 5 + 32) : $0
+                let unit = formats.temperature == .fahrenheit ? "°F" : "°C"
+                return value.formatted(.number.precision(.fractionLength(0))) + unit
             } ?? "—"
         case .networkDownload:
-            rateString(snapshot.network.receivedBytesPerSecond)
+            return rateString(snapshot.network.receivedBytesPerSecond, unit: formats.rate)
         case .networkUpload:
-            rateString(snapshot.network.sentBytesPerSecond)
+            return rateString(snapshot.network.sentBytesPerSecond, unit: formats.rate)
         case .diskRead:
-            rateString(snapshot.disk.readBytesPerSecond)
+            return rateString(snapshot.disk.readBytesPerSecond, unit: formats.rate)
         case .diskWrite:
-            rateString(snapshot.disk.writtenBytesPerSecond)
+            return rateString(snapshot.disk.writtenBytesPerSecond, unit: formats.rate)
         }
     }
 
@@ -129,7 +147,21 @@ final class SystemMetricsController: ObservableObject {
             : nil
     }
 
-    private func rateString(_ value: Double) -> String {
-        Int64(max(0, value)).formatted(.byteCount(style: .file)) + "/s"
+    private func rateString(_ value: Double, unit: RateMetricUnit) -> String {
+        let clamped = max(0, value)
+        switch unit {
+        case .automatic:
+            return Int64(clamped).formatted(.byteCount(style: .file)) + "/s"
+        case .kilobytes:
+            return (clamped / 1_000).formatted(.number.precision(.fractionLength(0...1))) + " KB/s"
+        case .megabytes:
+            return (clamped / 1_000_000).formatted(.number.precision(.fractionLength(0...1))) + " MB/s"
+        case .gigabytes:
+            return (clamped / 1_000_000_000).formatted(.number.precision(.fractionLength(0...2))) + " GB/s"
+        }
+    }
+
+    private func compactBytes(_ value: UInt64) -> String {
+        Int64(clamping: value).formatted(.byteCount(style: .memory))
     }
 }

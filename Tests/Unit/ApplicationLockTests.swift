@@ -218,7 +218,7 @@ final class ApplicationLockTests: XCTestCase {
         XCTAssertEqual(fixture.viewModel.lockService.state, .disabled)
     }
 
-    func testLockedCapturePreferenceEncryptsOrDropsNewItems() async throws {
+    func testLockedCaptureIsAlwaysDroppedWithoutEncryption() async throws {
         let capturing = try makeFixture(
             authenticator: StubSystemAuthenticator { _ in true },
             lockEnabled: true,
@@ -229,10 +229,9 @@ final class ApplicationLockTests: XCTestCase {
 
         await capturing.viewModel.insert(.text(value: "captured locked", hash: "locked-capture"))
 
-        XCTAssertEqual(capturing.viewModel.items.count, 1)
-        XCTAssertEqual(capturing.viewModel.items.first?.isEncrypted, true)
+        XCTAssertTrue(capturing.viewModel.items.isEmpty)
         let capturedHistory = await capturing.storage.loadHistory()
-        XCTAssertEqual(capturedHistory.first?.isEncrypted, true)
+        XCTAssertTrue(capturedHistory.isEmpty)
 
         let dropping = try makeFixture(
             authenticator: StubSystemAuthenticator { _ in true },
@@ -263,7 +262,7 @@ final class ApplicationLockTests: XCTestCase {
         XCTAssertTrue(fixture.viewModel.items.isEmpty)
     }
 
-    func testSensitiveAskIsDeferredInMemoryUntilUnlock() async throws {
+    func testSensitiveCaptureIsDroppedWhileLocked() async throws {
         let fixture = try makeFixture(
             authenticator: StubSystemAuthenticator { _ in true },
             lockEnabled: true,
@@ -277,7 +276,7 @@ final class ApplicationLockTests: XCTestCase {
             .text(value: secret, hash: HashUtility.sha256(text: secret))
         )
 
-        XCTAssertEqual(fixture.viewModel.items.first?.isSensitive, true)
+        XCTAssertTrue(fixture.viewModel.items.isEmpty)
         XCTAssertFalse(fixture.viewModel.isShowingSensitiveSaveConfirmation)
         let persistedHistory = await fixture.storage.loadHistory()
         XCTAssertTrue(persistedHistory.isEmpty)
@@ -285,7 +284,7 @@ final class ApplicationLockTests: XCTestCase {
         await fixture.viewModel.unlockAndWait()
 
         XCTAssertEqual(fixture.viewModel.lockService.state, .unlocked)
-        XCTAssertTrue(fixture.viewModel.isShowingSensitiveSaveConfirmation)
+        XCTAssertFalse(fixture.viewModel.isShowingSensitiveSaveConfirmation)
     }
 
     func testLockedRestoreAndPasteNeverWriteOrSendAccessibilityEvent() async throws {
@@ -297,8 +296,10 @@ final class ApplicationLockTests: XCTestCase {
             pasteService: pasteService
         )
         defer { fixture.cleanup() }
+        await fixture.viewModel.unlockAndWait()
         await fixture.viewModel.insert(.text(value: "blocked interaction", hash: "blocked"))
         let item = try XCTUnwrap(fixture.viewModel.items.first)
+        fixture.viewModel.lock()
         let initialChangeCount = fixture.pasteboard.changeCount
 
         await fixture.viewModel.restoreAndWait(item)

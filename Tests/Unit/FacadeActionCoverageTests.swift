@@ -8,6 +8,183 @@ import XCTest
 #if DEBUG
 @MainActor
 final class FacadeActionCoverageTests: XCTestCase {
+    func testLocalizedEnumsIdentifiersAndDefaultProtocolHooks() async {
+        XCTAssertEqual(UtilityFeatureID.allCases.map(\.id), UtilityFeatureID.allCases.map(\.rawValue))
+        XCTAssertEqual(MemoryMetricFormat.allCases.map(\.id), ["percentage", "usedAndTotal"])
+        XCTAssertEqual(
+            RateMetricUnit.allCases.map(\.id),
+            ["automatic", "kilobytes", "megabytes", "gigabytes"]
+        )
+        XCTAssertEqual(TemperatureMetricUnit.allCases.map(\.id), ["celsius", "fahrenheit"])
+        for metric in MenuBarMetricID.allCases {
+            XCTAssertEqual(metric.id, metric.rawValue)
+            XCTAssertFalse(metric.title.isEmpty)
+            XCTAssertFalse(metric.systemImage.isEmpty)
+        }
+        XCTAssertNotNil(AudioMixerPermissionState.notRequested.message)
+        XCTAssertNotNil(AudioMixerPermissionState.requesting.message)
+        XCTAssertNil(AudioMixerPermissionState.ready.message)
+        XCTAssertNotNil(AudioMixerPermissionState.denied.message)
+        XCTAssertEqual(AudioMixerPermissionState.failed("failure").message, "failure")
+
+        let captureViolations: [ClipboardCapturePolicyViolation] = [
+            .tooManyItems, .textTooLarge, .richContentTooLarge,
+            .representationTooLarge, .captureTooLarge, .imageDimensionsTooLarge
+        ]
+        XCTAssertTrue(captureViolations.allSatisfy { $0.errorDescription?.isEmpty == false })
+        let engineErrors: [ProcessAudioEngineError] = [
+            .outputDeviceUnavailable,
+            .outputDeviceIdentifierUnavailable,
+            .tapCreationFailed(-1),
+            .aggregateDeviceCreationFailed(-2),
+            .ioProcedureCreationFailed(-3),
+            .deviceStartFailed(-4),
+            .unsupportedStreamFormat
+        ]
+        XCTAssertTrue(engineErrors.allSatisfy { $0.errorDescription?.isEmpty == false })
+
+        let restored = StorageRecoveryError.installationFailed(
+            previousDatabaseRestored: true,
+            underlyingDescription: "restore"
+        )
+        let unverified = StorageRecoveryError.installationFailed(
+            previousDatabaseRestored: false,
+            underlyingDescription: "rollback"
+        )
+        XCTAssertTrue(restored.previousDatabaseRestored)
+        XCTAssertFalse(unverified.previousDatabaseRestored)
+        XCTAssertTrue(restored.errorDescription?.contains("restore") == true)
+        XCTAssertTrue(unverified.errorDescription?.contains("rollback") == true)
+
+        let explicit = Note(title: "  Explicit  ", body: "body")
+        XCTAssertEqual(explicit.normalizedTitle, "Explicit")
+        XCTAssertEqual(explicit.resolvedTitle, "Explicit")
+        XCTAssertTrue(explicit.hasContent)
+        let derived = Note(title: "  ", body: "\n  \n First body line \n Second")
+        XCTAssertNil(derived.normalizedTitle)
+        XCTAssertEqual(derived.resolvedTitle, "First body line")
+        XCTAssertTrue(derived.hasContent)
+        XCTAssertFalse(Note(title: nil, body: " \n ").hasContent)
+
+        let provider = DefaultHookSystemMetricsProvider()
+        await provider.setNetworkInterfaceScope(.allPhysical)
+        await provider.resetBaselines()
+        _ = await provider.sample(at: .now)
+    }
+
+    func testAppModelRoutesStandaloneActionsAndNoteTransitions() async {
+        let context = makeContext()
+
+        XCTAssertFalse(context.appModel.isLocked)
+        XCTAssertEqual(context.appModel.route(for: .clipboard), .clipboard)
+        XCTAssertEqual(context.appModel.route(for: .notes), .notes)
+        XCTAssertEqual(context.appModel.route(for: .keyboardCleaning), .keyboardCleaning)
+        XCTAssertEqual(context.appModel.route(for: .scrollReverse), .scrollReverse)
+        XCTAssertEqual(context.appModel.route(for: .systemMonitor), .systemMonitor)
+        XCTAssertEqual(context.appModel.route(for: .audioMixer), .audioMixer)
+
+        context.appModel.showSystemMonitor()
+        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
+        context.appModel.showAudioMixer()
+        XCTAssertEqual(context.appModel.router.activeFeature, .audioMixer)
+
+        for id in UtilityFeatureID.allCases {
+            XCTAssertEqual(context.appModel.performStandaloneAction(for: id, action: .open), context.appModel.route(for: id))
+        }
+
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .clipboard,
+                action: .toggleClipboardRecording
+            )
+        )
+        XCTAssertTrue(context.viewModel.isPaused)
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .clipboard,
+                action: .toggleClipboardRecording
+            )
+        )
+        XCTAssertFalse(context.viewModel.isPaused)
+
+        XCTAssertEqual(
+            context.appModel.performStandaloneAction(for: .notes, action: .newNote),
+            .notes
+        )
+        XCTAssertEqual(context.appModel.notes.screen, .editor)
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .keyboardCleaning,
+                action: .toggleKeyboardCleaning
+            )
+        )
+        XCTAssertTrue(context.appModel.inputTools.keyboardCleaning.isActive)
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .keyboardCleaning,
+                action: .toggleKeyboardCleaning
+            )
+        )
+        XCTAssertFalse(context.appModel.inputTools.keyboardCleaning.isActive)
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .scrollReverse,
+                action: .toggleScrollReverse
+            )
+        )
+        XCTAssertTrue(context.appModel.inputTools.scrollReversal.isActive)
+        XCTAssertNil(
+            context.appModel.performStandaloneAction(
+                for: .audioMixer,
+                action: .muteAllAudio
+            )
+        )
+        XCTAssertEqual(
+            context.appModel.performStandaloneAction(for: .systemMonitor, action: .newNote),
+            .systemMonitor
+        )
+        context.appModel.controlCenter.setClickAction(.open, for: .clipboard)
+        XCTAssertEqual(context.appModel.performStandaloneAction(for: .clipboard), .clipboard)
+
+        context.appModel.lockService.configure(
+            enabled: true,
+            option: .never,
+            startsLocked: true
+        )
+        XCTAssertEqual(
+            context.appModel.performStandaloneAction(
+                for: .clipboard,
+                action: .toggleClipboardRecording
+            ),
+            .clipboard
+        )
+        XCTAssertEqual(
+            context.appModel.performStandaloneAction(for: .notes, action: .newNote),
+            .notes
+        )
+        XCTAssertEqual(
+            context.appModel.performStandaloneAction(
+                for: .keyboardCleaning,
+                action: .toggleKeyboardCleaning
+            ),
+            .keyboardCleaning
+        )
+        context.appModel.lockService.configure(enabled: false, option: .never)
+
+        let destinations: [AppFeature] = [
+            .controlCenter, .clipboard, .keyboardCleaning, .scrollReverse,
+            .systemMonitor, .audioMixer, .menuBarCustomization, .settings, .notes
+        ]
+        for destination in destinations {
+            context.appModel.router.showNotes()
+            context.appModel.requestLeaveNotes(to: destination)
+            await waitUntil("route to \(destination)") {
+                context.appModel.router.activeFeature == destination
+            }
+        }
+        await cleanup(context)
+    }
+
     func testSelectionSearchPreviewRestorePasteAndDeleteCommands() async throws {
         let context = makeContext()
         await context.viewModel.insert(.text(value: "first", hash: "first"))
@@ -169,12 +346,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         XCTAssertTrue(privacyChanges.contains(false))
 
         await context.viewModel.insert(.text(value: "migrate", hash: "migrate"))
-        context.settings.encryptionMode = .all
         context.viewModel.settingsDidChange()
-        await waitUntil("encryption migration") {
-            context.viewModel.appliedEncryptionMode == .all
-        }
-        XCTAssertEqual(context.viewModel.appliedEncryptionMode, .all)
         context.viewModel.isShuttingDown = true
         context.viewModel.settingsDidChange()
         context.viewModel.isShuttingDown = false
@@ -200,7 +372,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         XCTAssertTrue(context.viewModel.isShowingSensitiveSaveConfirmation)
         context.viewModel.confirmSensitiveSave()
         await waitUntil {
-            context.viewModel.items.contains { $0.hash == "secret-one" && $0.isEncrypted }
+            context.viewModel.items.contains { $0.hash == "secret-one" && !$0.isEncrypted }
         }
         let secondSecret = "github_token=gh" + "p_abcdefghijklmnopqrstuvwxyz123456"
         await context.viewModel.insert(.text(value: secondSecret, hash: "secret-two"))
@@ -915,7 +1087,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             .image(pngData: png, hash: "sensitive-persistence-failure")
         )
         XCTAssertTrue(
-            persistence.viewModel.errorMessage?.contains("could not be saved securely") == true
+            persistence.viewModel.errorMessage?.contains("could not be saved") == true
         )
         let remainingSensitiveAssets = try FileManager.default.contentsOfDirectory(
             at: persistence.storage.imagesDirectory,
@@ -959,6 +1131,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         let pasteService = StubActiveApplicationPasteService()
         let panels = FacadeArchivePanelStub()
         let workspaceRevealer = FacadeWorkspaceRevealer()
+        let inputCoordinator = InputEventTapCoordinatorStub(isTrusted: true)
         let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
@@ -971,6 +1144,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             storageRecoveryImporter: FacadeRecoveryImporter(),
             workspaceRevealer: workspaceRevealer,
             sleepClock: clock,
+            inputEventTapCoordinator: inputCoordinator,
             startsAutomatically: startsAutomatically
         )
         return Context(
@@ -1103,6 +1277,14 @@ private actor FacadeRecoveryImporter: StorageRecoveryImporting {
         to destinationDirectory: URL
     ) async throws -> StorageRecoveryImportResult {
         StorageRecoveryImportResult(importedItemCount: 0, rollbackBackupURL: nil)
+    }
+}
+
+private actor DefaultHookSystemMetricsProvider: SystemMetricsProviding {
+    func sample(at date: Date) async -> SystemMetricSnapshot {
+        var snapshot = SystemMetricSnapshot.empty
+        snapshot.timestamp = date
+        return snapshot
     }
 }
 #endif

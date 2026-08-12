@@ -11,17 +11,17 @@ struct ClipboardStorageRecoveryView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            Image(systemName: "lock.trianglebadge.exclamationmark")
+            Image(systemName: "externaldrive.badge.exclamationmark")
                 .font(.system(size: 42))
                 .foregroundStyle(.orange)
                 .accessibilityHidden(true)
-            Text("Encrypted Storage Unavailable")
+            Text("Clipboard Storage Unavailable")
                 .font(.title2.bold())
-            Text(viewModel.errorMessage ?? "Clipboard recording is stopped so no content can be stored without encryption.")
+            Text(viewModel.errorMessage ?? "Clipboard recording is stopped because local storage could not be opened safely.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 420)
-            GroupBox("Recover from Encrypted Archive") {
+            GroupBox("Recover from Password-Protected Archive") {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Select a password-protected full archive. The unavailable database is retained as a rollback backup until the import is verified.")
                         .font(.caption)

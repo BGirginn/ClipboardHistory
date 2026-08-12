@@ -17,6 +17,8 @@ struct SystemKeychainSecurityClient: KeychainSecurityClient {
     }
 
     func randomData(count: Int) -> (status: OSStatus, data: Data) {
+        guard count >= 0 else { return (errSecParam, Data()) }
+        guard count > 0 else { return (errSecSuccess, Data()) }
         var bytes = Data(count: count)
         let status = bytes.withUnsafeMutableBytes { buffer in
             guard let baseAddress = buffer.baseAddress else { return errSecAllocate }

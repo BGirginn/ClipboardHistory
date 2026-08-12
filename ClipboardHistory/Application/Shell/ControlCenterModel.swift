@@ -57,7 +57,8 @@ final class ControlCenterModel: ObservableObject {
 
     func setMetricGroupVisible(_ isVisible: Bool) {
         var updated = configuration
-        updated.metricGroup.isVisible = isVisible
+        updated.metricGroup.isVisible = isVisible && !updated.metricGroup.metrics.isEmpty
+        enforceVisibleItemInvariant(in: &updated)
         configuration = updated
         persist()
     }
@@ -65,6 +66,7 @@ final class ControlCenterModel: ObservableObject {
     func setMetricsAsSeparateItems(_ isSeparate: Bool) {
         var updated = configuration
         updated.metricGroup.showsSeparateItems = isSeparate
+        enforceVisibleItemInvariant(in: &updated)
         configuration = updated
         persist()
     }
@@ -88,6 +90,14 @@ final class ControlCenterModel: ObservableObject {
                 updated.metricGroup.isVisible = false
             }
         }
+        enforceVisibleItemInvariant(in: &updated)
+        configuration = updated
+        persist()
+    }
+
+    func setMetricFormats(_ formats: MetricFormatPreferences) {
+        var updated = configuration
+        updated.metricFormats = formats
         configuration = updated
         persist()
     }
@@ -120,7 +130,7 @@ final class ControlCenterModel: ObservableObject {
     private func enforceVisibleItemInvariant(in configuration: inout MenuBarConfiguration) {
         guard !configuration.showsControlCenterItem,
               !configuration.features.contains(where: { $0.placement.showsStandaloneItem }),
-              !configuration.metricGroup.isVisible else {
+              (!configuration.metricGroup.isVisible || configuration.metricGroup.metrics.isEmpty) else {
             return
         }
         configuration.showsControlCenterItem = true

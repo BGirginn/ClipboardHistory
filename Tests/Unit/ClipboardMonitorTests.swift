@@ -350,6 +350,32 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         )
         return bitmap.representation(using: .png, properties: [:])
     }
+
+    func testCentralCapturePolicyEnforcesTextRichBinaryTotalItemAndImageLimits() throws {
+        XCTAssertNoThrow(try ClipboardCapturePolicy.validateItemCount(32))
+        XCTAssertThrowsError(try ClipboardCapturePolicy.validateItemCount(33))
+        XCTAssertNoThrow(try ClipboardCapturePolicy.validateText(String(repeating: "a", count: 1_024)))
+        XCTAssertThrowsError(
+            try ClipboardCapturePolicy.validateText(
+                String(repeating: "a", count: ClipboardCapturePolicy.maximumTextBytes + 1)
+            )
+        )
+        XCTAssertThrowsError(
+            try ClipboardCapturePolicy.validateRichContent(
+                Data(count: ClipboardCapturePolicy.maximumRichContentBytes + 1)
+            )
+        )
+        XCTAssertThrowsError(
+            try ClipboardCapturePolicy.validateBinaryRepresentation(
+                Data(count: ClipboardCapturePolicy.maximumRepresentationBytes + 1)
+            )
+        )
+        XCTAssertThrowsError(
+            try ClipboardCapturePolicy.validateTotalBytes(
+                ClipboardCapturePolicy.maximumTotalBytes + 1
+            )
+        )
+    }
 }
 
 @MainActor

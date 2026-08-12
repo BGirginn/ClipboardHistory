@@ -4,6 +4,8 @@ import XCTest
 
 private actor SystemMetricsProviderStub: SystemMetricsProviding {
     private var index = 0
+    private(set) var scope: NetworkInterfaceScope?
+    private(set) var resetCount = 0
 
     func sample(at date: Date) async -> SystemMetricSnapshot {
         index += 1
@@ -37,6 +39,22 @@ private actor SystemMetricsProviderStub: SystemMetricsProviding {
             thermalState: .nominal
         )
     }
+
+    func setNetworkInterfaceScope(_ scope: NetworkInterfaceScope) {
+        self.scope = scope
+    }
+
+    func resetBaselines() {
+        resetCount += 1
+    }
+}
+
+private actor EmptyTemperatureMetricsProvider: SystemMetricsProviding {
+    func sample(at date: Date) -> SystemMetricSnapshot {
+        var snapshot = SystemMetricSnapshot.empty
+        snapshot.timestamp = date
+        return snapshot
+    }
 }
 
 @MainActor
@@ -45,11 +63,13 @@ final class SystemMetricsControllerTests: XCTestCase {
         let controller = SystemMetricsController(provider: SystemMetricsProviderStub())
 
         await controller.refreshNow()
+        controller.refresh()
+        try? await Task.sleep(for: .milliseconds(20))
 
-        XCTAssertEqual(controller.snapshot.cpu.totalPercent, 1)
+        XCTAssertEqual(controller.snapshot.cpu.totalPercent, 2)
         XCTAssertEqual(controller.snapshot.memory.usedPercent, 50)
         XCTAssertEqual(controller.snapshot.primaryTemperature, 54)
-        XCTAssertEqual(controller.value(for: .cpu), "1%")
+        XCTAssertEqual(controller.value(for: .cpu), "2%")
         XCTAssertEqual(controller.value(for: .memory), "50%")
         XCTAssertEqual(controller.value(for: .temperature), "54°C")
         XCTAssertNil(controller.errorMessage)
@@ -80,5 +100,83 @@ final class SystemMetricsControllerTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(snapshot.network.receivedBytesPerSecond, 0)
         XCTAssertGreaterThanOrEqual(snapshot.disk.readBytesPerSecond, 0)
         XCTAssertTrue(snapshot.temperatures.allSatisfy { (10...130).contains($0.celsius) })
+    }
+
+    func testAllMetricFormatsScopeAndStatisticsAreDeterministic() async {
+        let suite = "SystemMetricsFormats-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let provider = SystemMetricsProviderStub()
+        let controller = SystemMetricsController(provider: provider, defaults: defaults)
+        await controller.refreshNow()
+        await controller.refreshNow()
+
+        XCTAssertEqual(controller.value(for: .cpu), "2%")
+        XCTAssertTrue(
+            controller.value(
+                for: .memory,
+                formats: MetricFormatPreferences(
+                    memory: .usedAndTotal,
+                    temperature: .celsius,
+                    rate: .automatic
+                )
+            ).contains("/")
+        )
+        XCTAssertEqual(
+            controller.value(
+                for: .temperature,
+                formats: MetricFormatPreferences(
+                    memory: .percentage,
+                    temperature: .fahrenheit,
+                    rate: .automatic
+                )
+            ),
+            "129°F"
+        )
+        XCTAssertTrue(controller.value(for: .networkDownload).hasSuffix("/s"))
+        XCTAssertTrue(controller.value(for: .networkUpload).hasSuffix("/s"))
+        XCTAssertTrue(controller.value(for: .diskRead).hasSuffix("/s"))
+        XCTAssertTrue(controller.value(for: .diskWrite).hasSuffix("/s"))
+
+        for unit in [RateMetricUnit.kilobytes, .megabytes, .gigabytes] {
+            let value = controller.value(
+                for: .networkDownload,
+                formats: MetricFormatPreferences(
+                    memory: .percentage,
+                    temperature: .celsius,
+                    rate: unit
+                )
+            )
+            XCTAssertTrue(value.hasSuffix(unit == .kilobytes ? "KB/s" : unit == .megabytes ? "MB/s" : "GB/s"))
+        }
+
+        let statistics = controller.temperatureStatistics(for: "Tp01")
+        XCTAssertEqual(statistics?.minimum, 54)
+        XCTAssertEqual(statistics?.average, 54)
+        XCTAssertEqual(statistics?.maximum, 54)
+        XCTAssertNil(controller.temperatureStatistics(for: "missing"))
+
+        controller.setNetworkInterfaceScope(.allPhysical)
+        try? await Task.sleep(for: .milliseconds(30))
+        let selectedScope = await provider.scope
+        XCTAssertEqual(selectedScope, .allPhysical)
+        XCTAssertEqual(controller.networkInterfaceScope, .allPhysical)
+
+        for demand in [SystemMetricsDemand.controlCenter, .menuBar, .detail] {
+            controller.setDemand(demand, active: true)
+            XCTAssertTrue(controller.hasActiveSampling)
+            controller.setDemand(demand, active: false)
+        }
+        controller.stop()
+        XCTAssertFalse(controller.hasActiveSampling)
+    }
+
+    func testUnavailableTemperatureReportsErrorAndDash() async {
+        let controller = SystemMetricsController(provider: EmptyTemperatureMetricsProvider())
+        await controller.refreshNow()
+
+        XCTAssertEqual(controller.value(for: .temperature), "—")
+        XCTAssertNotNil(controller.errorMessage)
+        XCTAssertNil(controller.temperatureStatistics(for: "missing"))
     }
 }

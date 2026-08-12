@@ -115,7 +115,7 @@ final class NoteStorageTests: XCTestCase {
         XCTAssertEqual(try noteEncryption.decrypt(blobs.title), Data(note.title!.utf8))
         XCTAssertEqual(try noteEncryption.decrypt(blobs.body), Data(note.body.utf8))
 
-        await storage.clearAll()
+        _ = try await storage.clearAll()
 
         let history = await storage.loadHistory()
         let notes = try await storage.loadNotesThrowing()

@@ -14,6 +14,7 @@ extension ClipboardHistoryViewModel {
             errorMessage = String(localized: "Unlock Clipboard History before restoring an item.")
             return false
         }
+        guard await authorizeSensitiveAccess(to: item) else { return false }
 
         let succeeded: Bool
         if let temporary = temporaryContent[item.id] {
@@ -96,7 +97,10 @@ extension ClipboardHistoryViewModel {
             guard !Task.isCancelled else { return }
             do {
                 try await storage.upsertThrowing(item)
+                guard self?.itemWriteGenerationByItemID[item.id] == generation else { return }
+                self?.pendingItemWriteFailureIDs.remove(item.id)
             } catch {
+                self?.pendingItemWriteFailureIDs.insert(item.id)
                 self?.errorMessage = String(localized: "A clipboard item change could not be saved.")
             }
         }
@@ -115,6 +119,7 @@ extension ClipboardHistoryViewModel {
         await pendingWrite.value
         pendingItemWriteTasks[itemID] = nil
         itemWriteGenerationByItemID[itemID] = nil
+        pendingItemWriteFailureIDs.remove(itemID)
     }
 
     func cancelAndAwaitAllPendingWrites() async {
@@ -125,13 +130,25 @@ extension ClipboardHistoryViewModel {
         }
         pendingItemWriteTasks.removeAll()
         itemWriteGenerationByItemID.removeAll()
+        pendingItemWriteFailureIDs.removeAll()
     }
 
-    func drainPendingItemWrites() async {
+    @discardableResult
+    func drainPendingItemWrites() async -> Bool {
         let pendingWrites = Array(pendingItemWriteTasks.values)
         for pendingWrite in pendingWrites {
             await pendingWrite.value
         }
+        return pendingItemWriteFailureIDs.isEmpty
+    }
+
+    func flushPendingWritesForShutdown() async -> Bool {
+        stopMonitoring()
+        let saved = await drainPendingItemWrites()
+        if !saved {
+            errorMessage = String(localized: "Clipboard changes could not be saved. Quit was cancelled so you can retry or remove the affected items.")
+        }
+        return saved
     }
 
     func showCopiedFeedback(for id: UUID) {
@@ -184,7 +201,7 @@ extension ClipboardHistoryViewModel {
             from: content,
             sensitive: true,
             temporary: false,
-            encrypted: true,
+            encrypted: false,
             analysis: await contentAnalyzer.analyze(
                 content,
                 recognizesImageText: settings.imageTextRecognitionEnabled
@@ -194,7 +211,7 @@ extension ClipboardHistoryViewModel {
             try await storage.upsertThrowing(item)
         } catch {
             await storage.deleteImages(for: [item])
-            errorMessage = String(localized: "Sensitive content could not be saved securely.")
+            errorMessage = String(localized: "Sensitive content could not be saved.")
             return
         }
         items.insert(item, at: 0)

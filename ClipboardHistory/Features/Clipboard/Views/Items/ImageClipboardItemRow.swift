@@ -39,6 +39,7 @@ struct ImageClipboardItemRow: View {
     }
 
     private var title: String {
+        if item.isSensitive { return "Sensitive content" }
         if isLocked { return "Preview hidden while locked" }
         return item.displayTitle ?? (item.type == .imageGroup ? "Images" : "Image")
     }

@@ -9,7 +9,7 @@ extension MenuBarController {
         configuration.features
             .filter { $0.placement.showsStandaloneItem }
             .forEach { desired.insert(.feature($0.id)) }
-        if configuration.metricGroup.isVisible {
+        if configuration.metricGroup.isVisible && !configuration.metricGroup.metrics.isEmpty {
             if configuration.metricGroup.showsSeparateItems {
                 configuration.metricGroup.metrics.forEach { desired.insert(.metric($0)) }
             } else {
@@ -26,6 +26,7 @@ extension MenuBarController {
             if let item = statusItems.removeValue(forKey: itemID) {
                 dependencies.removeStatusItem(item)
             }
+            renderedStatusStates.removeValue(forKey: itemID)
         }
         for itemID in desired where statusItems[itemID] == nil {
             let item = dependencies.makeStatusItem()
@@ -137,7 +138,8 @@ extension MenuBarController {
 
     private var systemMetricsTooltip: String {
         let metrics = appModel.systemMetrics
-        return "CPU \(metrics.value(for: .cpu)) · RAM \(metrics.value(for: .memory)) · \(metrics.value(for: .temperature))"
+        let formats = appModel.controlCenter.configuration.metricFormats
+        return "CPU \(metrics.value(for: .cpu, formats: formats)) · RAM \(metrics.value(for: .memory, formats: formats)) · \(metrics.value(for: .temperature, formats: formats))"
     }
 
     private func configureMetricItems() {
@@ -153,27 +155,47 @@ extension MenuBarController {
     }
 
     private func configureMetricStatusItem(_ id: MenuBarItemID, metrics: [MenuBarMetricID], style: MenuBarMetricStyle) {
-        guard let button = statusItems[id]?.button else { return }
+        let formats = appModel.controlCenter.configuration.metricFormats
         let text = metrics.map { metric -> String in
-            let value = appModel.systemMetrics.value(for: metric)
+            let value = appModel.systemMetrics.value(for: metric, formats: formats)
             return style == .compact ? value : "\(metric.title) \(value)"
         }.joined(separator: "  ")
-        button.title = text
-        if style == .iconAndValue, metrics.count == 1, let metric = metrics.first {
-            button.image = NSImage(systemSymbolName: metric.systemImage, accessibilityDescription: metric.title)
-        } else {
-            button.image = nil
-        }
-        button.toolTip = metrics.map {
-            "\($0.title): \(appModel.systemMetrics.value(for: $0))"
+        let tooltip = metrics.map {
+            "\($0.title): \(appModel.systemMetrics.value(for: $0, formats: formats))"
         }.joined(separator: " · ") + String(localized: " — right-click for options")
-        button.setAccessibilityLabel(button.toolTip ?? text)
+        let metric = style == .iconAndValue && metrics.count == 1 ? metrics.first : nil
+        applyRenderedState(
+            MenuBarRenderedState(
+                title: text,
+                symbol: metric?.systemImage,
+                accessibilityDescription: metric?.title ?? tooltip,
+                tooltip: tooltip
+            ),
+            to: id
+        )
     }
 
     private func configureStatusItem(_ id: MenuBarItemID, symbol: String, description: String, tooltip: String) {
-        guard let button = statusItems[id]?.button else { return }
-        button.title = ""
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: description)
-        button.toolTip = tooltip + String(localized: " — right-click for options")
+        applyRenderedState(
+            MenuBarRenderedState(
+                title: "",
+                symbol: symbol,
+                accessibilityDescription: description,
+                tooltip: tooltip + String(localized: " — right-click for options")
+            ),
+            to: id
+        )
+    }
+
+    private func applyRenderedState(_ state: MenuBarRenderedState, to id: MenuBarItemID) {
+        guard renderedStatusStates[id] != state,
+              let button = statusItems[id]?.button else { return }
+        renderedStatusStates[id] = state
+        button.title = state.title
+        button.image = state.symbol.flatMap {
+            NSImage(systemSymbolName: $0, accessibilityDescription: state.accessibilityDescription)
+        }
+        button.toolTip = state.tooltip
+        button.setAccessibilityLabel(state.tooltip)
     }
 }

@@ -1,0 +1,10 @@
+ClipboardHistory/Features/AudioMixer/Services/ProcessAudioPipeline.swift
+ClipboardHistory/Features/SystemMonitor/Services/AppleSMCTemperatureProvider.swift
+ClipboardHistory/Features/SystemMonitor/Services/SystemMetricsProvider.swift
+ClipboardHistory/Services/Security/SystemPasswordArchiveCryptoBackend.swift
+ClipboardHistory/Services/Storage/SQLiteClipboardRepository.swift
+ClipboardHistory/Services/Storage/StorageService.swift
+ClipboardHistory/Services/System/SystemGlobalShortcutBackend.swift
+ClipboardHistory/Services/System/SystemInputEventTapCoordinator.swift
+ClipboardHistory/Services/System/SystemRepeatingTimerScheduler.swift
+ClipboardHistory/Utilities/HTMLSanitizer.swift

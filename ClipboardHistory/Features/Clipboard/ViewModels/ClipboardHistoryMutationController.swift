@@ -12,7 +12,7 @@ extension ClipboardHistoryViewModel {
             AppLog.clipboard.debug("Clipboard capture skipped while recording is paused")
             return
         }
-        guard !isLocked || settings.captureWhileLocked else {
+        guard !isLocked else {
             AppLog.clipboard.debug("Clipboard capture skipped while application lock is active")
             return
         }
@@ -51,11 +51,7 @@ extension ClipboardHistoryViewModel {
         )
         let sensitiveResult = sensitivityResult(for: content, analysis: analysis)
         let isTemporarySensitive = sensitiveResult.isSensitive
-            && settings.sensitiveStoragePolicy != .encrypted
-        let shouldEncrypt = settings.encryptionMode == .all
-            || (sensitiveResult.isSensitive && settings.encryptionMode == .sensitive)
-            || (sensitiveResult.isSensitive && settings.sensitiveStoragePolicy == .encrypted)
-            || isLocked
+        let shouldEncrypt = false
 
         guard let item = await makeItem(
             from: content,
@@ -135,16 +131,12 @@ extension ClipboardHistoryViewModel {
     }
 
     func delete(_ item: ClipboardItem) {
-        clearCurrentPasteboardIfNeeded(for: item)
-        removeFromHistory(item)
         Task { [weak self] in
             await self?.finishDeleting(item)
         }
     }
 
     func deleteAndWait(_ item: ClipboardItem) async {
-        clearCurrentPasteboardIfNeeded(for: item)
-        removeFromHistory(item)
         await finishDeleting(item)
     }
 
@@ -162,8 +154,18 @@ extension ClipboardHistoryViewModel {
 
     func finishDeleting(_ item: ClipboardItem) async {
         await cancelAndAwaitPendingWrite(for: item.id)
-        await storage.deleteItem(item)
-        await thumbnailService.invalidate(itemID: item.id)
+        do {
+            let outcome = try await storage.deleteItem(item)
+            guard outcome.persistentChangeCommitted else { return }
+            clearCurrentPasteboardIfNeeded(for: item)
+            removeFromHistory(item)
+            await thumbnailService.invalidate(itemID: item.id)
+            if outcome.requiresCleanupRetry {
+                cleanupMessage = String(localized: "The item was deleted, but residual file cleanup could not be completed. Cleanup will be retried.")
+            }
+        } catch {
+            errorMessage = String(localized: "The clipboard item could not be deleted. Nothing was removed from history.")
+        }
     }
 
     func togglePin(_ item: ClipboardItem) {
@@ -198,7 +200,21 @@ extension ClipboardHistoryViewModel {
         Task { [weak self] in
             guard let self else { return }
             for item in selection {
-                await deleteAndWait(item)
+                await cancelAndAwaitPendingWrite(for: item.id)
+            }
+            do {
+                let outcome = try await storage.deleteBatchThrowing(items: selection)
+                guard outcome.persistentChangeCommitted else { return }
+                for item in selection {
+                    clearCurrentPasteboardIfNeeded(for: item)
+                    removeFromHistory(item)
+                    await thumbnailService.invalidate(itemID: item.id)
+                }
+                if outcome.requiresCleanupRetry {
+                    cleanupMessage = String(localized: "The items were deleted, but residual file cleanup could not be completed. Cleanup will be retried.")
+                }
+            } catch {
+                errorMessage = String(localized: "The clipboard items could not be deleted. Nothing was removed from history.")
             }
         }
     }
@@ -291,11 +307,18 @@ extension ClipboardHistoryViewModel {
             updated.pinnedAt = updated.pinnedAt ?? .now
         }
         if let editedText, [.text, .richText].contains(updated.type) {
+            let visibleTextChanged = editedText != updated.text
             updated.text = editedText
             updated.hash = HashUtility.sha256(
                 text: TextNormalizer.normalizedForHash(editedText)
             )
             updated.fileSize = Int64(editedText.utf8.count)
+            if visibleTextChanged, updated.type == .richText {
+                updated.type = .text
+                updated.contentSubtype = .plainText
+                updated.payloadFilename = nil
+                updated.pasteboardTypes = [NSPasteboard.PasteboardType.string.rawValue]
+            }
         }
         items[index] = updated
         if detailItem?.id == updated.id { detailItem = updated }
@@ -386,22 +409,31 @@ extension ClipboardHistoryViewModel {
     }
 
     func clearHistoryNow() async {
-        expirationTasks.values.forEach { $0.cancel() }
-        expirationTasks.removeAll()
-        temporaryContent.removeAll()
-        items = []
-        pinnedItems = []
-        recentItems = []
-        selectedItemID = nil
-        selectedItemIDs.removeAll()
-        detailItem = nil
-        lastProgrammaticallyWrittenHash = nil
-        lastProgrammaticallyWrittenIdentity = nil
-        pasteboardIdentityByItemID.removeAll()
-        resetPasteStack()
         await cancelAndAwaitAllPendingWrites()
-        await thumbnailService.clearCache()
-        await storage.clearAll()
+        do {
+            let outcome = try await storage.clearAll()
+            guard outcome.persistentChangeCommitted else { return }
+            expirationTasks.values.forEach { $0.cancel() }
+            expirationTasks.removeAll()
+            temporaryContent.removeAll()
+            items = []
+            pinnedItems = []
+            recentItems = []
+            collections = []
+            selectedItemID = nil
+            selectedItemIDs.removeAll()
+            detailItem = nil
+            lastProgrammaticallyWrittenHash = nil
+            lastProgrammaticallyWrittenIdentity = nil
+            pasteboardIdentityByItemID.removeAll()
+            resetPasteStack()
+            await thumbnailService.clearCache()
+            if outcome.requiresCleanupRetry {
+                cleanupMessage = String(localized: "Clipboard history was deleted, but residual cleanup could not be completed. Cleanup will be retried.")
+            }
+        } catch {
+            errorMessage = String(localized: "Clipboard history could not be cleared. Your saved history was preserved.")
+        }
     }
 
 }

@@ -289,6 +289,118 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testFeatureAndMetricMenusRouteEverySharedAction() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        var createdItems: [NSStatusItem] = []
+        var currentEvent: NSEvent?
+        var presentedMenu: NSMenu?
+        var terminationCount = 0
+        let popover = MenuPopoverStub()
+        let dependencies = MenuBarControllerDependencies(
+            makeStatusItem: {
+                let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+                createdItems.append(item)
+                return item
+            },
+            removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+            makePopover: { popover },
+            makePanel: { _ in MenuPanelStub() },
+            quickLookPresenter: MenuQuickLookSpy(),
+            currentEvent: { currentEvent },
+            presentStatusMenu: { menu, _ in presentedMenu = menu },
+            terminateApplication: { terminationCount += 1 }
+        )
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: dependencies,
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .systemMonitor)
+        let systemItem = try XCTUnwrap(
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.systemMonitor" }
+        )
+        currentEvent = rightMouseEvent()
+        systemItem.button?.performClick(nil)
+        let featureMenu = try XCTUnwrap(presentedMenu)
+        XCTAssertEqual(controller.quickActionTitle(for: .systemMonitor), "Open System Monitor")
+        XCTAssertEqual(controller.quickActionState(for: .systemMonitor), .off)
+
+        performMenuAction(featureMenu.items[0])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
+        performMenuAction(featureMenu.items[1])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
+        performMenuAction(featureMenu.items[5])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
+        performMenuAction(featureMenu.items[6])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .settings)
+        performMenuAction(featureMenu.items[8])
+        XCTAssertEqual(terminationCount, 1)
+
+        context.appModel.controlCenter.setMetricVisible(true, metric: .cpu)
+        context.appModel.controlCenter.setMetricGroupVisible(true)
+        let metricItem = try XCTUnwrap(
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Metrics.Combined" }
+        )
+        metricItem.button?.performClick(nil)
+        let metricMenu = try XCTUnwrap(presentedMenu)
+        performMenuAction(metricMenu.items[0])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
+        performMenuAction(metricMenu.items[1])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .menuBarCustomization)
+        performMenuAction(metricMenu.items[3])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
+        performMenuAction(metricMenu.items[4])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .settings)
+        performMenuAction(metricMenu.items[6])
+        XCTAssertEqual(terminationCount, 2)
+
+        currentEvent = nil
+        metricItem.button?.performClick(nil)
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
+        metricItem.button?.performClick(nil)
+        await settleMenuAction()
+        XCTAssertFalse(popover.isShown)
+
+        controller.stop()
+        await cleanup(context)
+    }
+
+    private func rightMouseEvent() -> NSEvent? {
+        NSEvent.mouseEvent(
+            with: .rightMouseUp,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            eventNumber: 0,
+            clickCount: 1,
+            pressure: 0
+        )
+    }
+
+    private func performMenuAction(_ item: NSMenuItem) {
+        guard let action = item.action else {
+            return XCTFail("Expected an actionable menu item")
+        }
+        XCTAssertTrue(NSApp.sendAction(action, to: item.target, from: item))
+    }
+
+    private func settleMenuAction() async {
+        for _ in 0..<4 { await Task.yield() }
+    }
+
     private struct Context {
         let directory: URL
         let suite: String

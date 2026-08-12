@@ -76,7 +76,7 @@ final class StorageRecoveryImportTests: XCTestCase {
         let collections = try await migratedStorage.loadCollectionsThrowing()
         let notes = try await migratedStorage.loadNotesThrowing()
         XCTAssertEqual(history.first?.text, item.text)
-        XCTAssertTrue(history.first?.isEncrypted == true)
+        XCTAssertTrue(history.first?.isEncrypted == false)
         XCTAssertEqual(collections.first?.name, collection.name)
         XCTAssertEqual(notes, [note])
         await migratedStorage.close()
@@ -176,10 +176,53 @@ final class StorageRecoveryImportTests: XCTestCase {
                 keyProvider: FixedMasterKeyProvider(key: Data(repeating: 2, count: 32))
             )
             XCTFail("Expected final staging move failure")
-        } catch is FailingFinalMoveFileSystem.ExpectedFailure {
+        } catch let error as StorageRecoveryError {
+            XCTAssertTrue(error.previousDatabaseRestored)
             XCTAssertEqual(try Data(contentsOf: marker), Data("old".utf8))
             XCTAssertEqual(fileSystem.injectedFailureCount, 1)
             XCTAssertEqual(fileSystem.removedStagingCount, 1)
+        }
+    }
+
+    func testFailedFinalMoveReportsUnverifiedRollbackSeparately() async throws {
+        let root = temporaryDirectory("StorageRecoveryRollbackFailure")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let sourceStorage = StorageService(
+            baseDirectory: root.appending(path: "Source"),
+            encryptionService: .ephemeral()
+        )
+        let item = ClipboardItem(type: .text, text: "new", hash: "new")
+        let archive = root.appending(path: "migration.clipboardarchive")
+        try await ExportImportService().exportArchive(
+            items: [item],
+            storage: sourceStorage,
+            to: archive,
+            mode: .encrypted,
+            includeImagesAndDocuments: true,
+            password: "password"
+        )
+        await sourceStorage.close()
+        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        try Data("old".utf8).write(to: destination.appending(path: "old-marker"))
+        let fileSystem = FailingFinalMoveFileSystem(
+            destination: destination,
+            failsRollback: true
+        )
+
+        do {
+            _ = try await StorageRecoveryImportService(fileSystem: fileSystem).migrate(
+                encryptedArchive: archive,
+                password: "password",
+                to: destination,
+                keyProvider: FixedMasterKeyProvider(key: Data(repeating: 3, count: 32))
+            )
+            XCTFail("Expected rollback verification failure")
+        } catch let error as StorageRecoveryError {
+            XCTAssertFalse(error.previousDatabaseRestored)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+            XCTAssertEqual(fileSystem.rollbackFailureCount, 1)
         }
     }
 
@@ -193,14 +236,18 @@ final class StorageRecoveryImportTests: XCTestCase {
 
 private final class FailingFinalMoveFileSystem: MigrationFileSystem, @unchecked Sendable {
     struct ExpectedFailure: Error {}
+    struct RollbackFailure: Error {}
 
     private let local = LocalMigrationFileSystem()
     private let destination: URL
+    private let failsRollback: Bool
     private(set) var injectedFailureCount = 0
     private(set) var removedStagingCount = 0
+    private(set) var rollbackFailureCount = 0
 
-    init(destination: URL) {
+    init(destination: URL, failsRollback: Bool = false) {
         self.destination = destination.standardizedFileURL
+        self.failsRollback = failsRollback
     }
 
     func fileExists(at url: URL) -> Bool {
@@ -221,6 +268,12 @@ private final class FailingFinalMoveFileSystem: MigrationFileSystem, @unchecked 
            injectedFailureCount == 0 {
             injectedFailureCount += 1
             throw ExpectedFailure()
+        }
+        if failsRollback,
+           source.lastPathComponent.hasPrefix("before-recovery-import-"),
+           destination.standardizedFileURL == self.destination {
+            rollbackFailureCount += 1
+            throw RollbackFailure()
         }
         try local.moveItem(at: source, to: destination)
     }

@@ -40,6 +40,15 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         previousNetwork = nil
     }
 
+    func resetBaselines() {
+        previousCPU = nil
+        previousCoreTicks = []
+        previousNetwork = nil
+        previousDisk = nil
+        previousDiskDevices = [:]
+        previousDate = nil
+    }
+
     func sample(at date: Date = .now) async -> SystemMetricSnapshot {
         let interval = max(date.timeIntervalSince(previousDate ?? date), 0)
         let cpu = readCPUUsage()
@@ -171,7 +180,7 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         let compressed = UInt64(statistics.compressor_page_count) * pageSize
         let cached = UInt64(statistics.external_page_count) * pageSize
         let free = UInt64(statistics.free_count + statistics.speculative_count) * pageSize
-        let used = min(total, active + inactive + wired + compressed)
+        let used = min(total, active + wired + compressed)
         return MemoryUsageSnapshot(
             totalBytes: total,
             usedBytes: used,

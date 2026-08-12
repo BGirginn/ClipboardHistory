@@ -50,13 +50,14 @@ actor ExportImportService {
         }
 
         let archiveNotes = mode == .metadataOnly ? [] : notes
+        let archiveCollections = mode == .metadataOnly ? [] : collections
         let archive = ClipboardArchive(
             version: ClipboardArchive.currentVersion,
             createdAt: .now,
             mode: mode,
             items: archiveItems,
             assets: assets,
-            collections: collections,
+            collections: archiveCollections,
             notes: archiveNotes,
             itemHashes: try Dictionary(
                 uniqueKeysWithValues: archiveItems.map {
@@ -65,7 +66,7 @@ actor ExportImportService {
             ),
             assetHashes: assets.mapValues { HashUtility.sha256(data: $0) },
             collectionHashes: try Dictionary(
-                uniqueKeysWithValues: collections.map {
+                uniqueKeysWithValues: archiveCollections.map {
                     ($0.id.uuidString.lowercased(), try collectionChecksum($0))
                 }
             ),
@@ -121,12 +122,12 @@ actor ExportImportService {
         guard archive.notes.count <= maximumItemCount else { throw ExportImportError.archiveTooLarge }
         try validateAssetPaths(archive.assets.keys)
         try validateArchiveIntegrity(archive)
-        try await storage.upsertCollectionsBatchThrowing(archive.collections)
-
         var hashes = Set(existingItems.map(\.hash))
+        var itemIDs = Set(existingItems.map(\.id))
         var imported = 0
         var duplicates = 0
         var rejected = 0
+        var materializedItems: [ClipboardItem] = []
         for item in archive.items {
             guard !item.hash.isEmpty else {
                 rejected += 1
@@ -137,13 +138,16 @@ actor ExportImportService {
                 continue
             }
             do {
+                let importedID = itemIDs.insert(item.id).inserted ? item.id : UUID()
+                itemIDs.insert(importedID)
                 let importedItem = try await materialize(
                     item: item,
+                    importedID: importedID,
                     assets: archive.assets,
                     storage: storage,
                     encryptionMode: encryptionMode
                 )
-                try await storage.upsertThrowing(importedItem)
+                materializedItems.append(importedItem)
                 imported += 1
             } catch {
                 rejected += 1
@@ -156,6 +160,7 @@ actor ExportImportService {
         var importedNotes = 0
         var duplicateNotes = 0
         var rejectedNotes = 0
+        var acceptedNotes: [Note] = []
         for archivedNote in archive.notes {
             do {
                 let fingerprint = try noteContentChecksum(archivedNote)
@@ -169,11 +174,21 @@ actor ExportImportService {
                     noteIDs.insert(importedNote.id)
                 }
                 try validateNote(importedNote)
-                try await storage.upsertNoteThrowing(importedNote)
+                acceptedNotes.append(importedNote)
                 importedNotes += 1
             } catch {
                 rejectedNotes += 1
             }
+        }
+        do {
+            try await storage.importBatchThrowing(
+                items: materializedItems,
+                collections: archive.collections,
+                notes: acceptedNotes
+            )
+        } catch {
+            await storage.deleteImages(for: materializedItems)
+            throw error
         }
         AppLog.storage.notice("Archive import completed; imported=\(imported); duplicates=\(duplicates); rejected=\(rejected); notes=\(importedNotes)")
         return ImportReport(
@@ -200,6 +215,7 @@ actor ExportImportService {
                 materializedItems.append(
                     try await materialize(
                         item: item,
+                        importedID: item.id,
                         assets: archive.assets,
                         storage: storage,
                         encryptionMode: encryptionMode
@@ -228,11 +244,10 @@ actor ExportImportService {
                 importedNoteCount: archive.notes.count
             )
         } catch {
-            try? await storage.deleteBatchThrowing(ids: materializedItems.map(\.id))
+            _ = try? await storage.deleteBatchThrowing(items: materializedItems)
             for note in archive.notes {
                 try? await storage.deleteNoteThrowing(id: note.id)
             }
-            await storage.deleteImages(for: materializedItems)
             throw error
         }
     }
@@ -246,6 +261,10 @@ actor ExportImportService {
         copy.assetFilenames = []
         copy.fileURLs = []
         copy.fileBookmarks = []
+        copy.displayTitle = nil
+        copy.protectedMetadata = ClipboardProtectedMetadata()
+        copy.collectionID = nil
+        copy.isSnippet = false
         copy.isEncrypted = false
         return copy
     }
@@ -397,51 +416,56 @@ actor ExportImportService {
 
     private func materialize(
         item: ClipboardItem,
+        importedID: UUID,
         assets: [String: Data],
         storage: StorageService,
         encryptionMode: EncryptionMode
     ) async throws -> ClipboardItem {
         var copy = item
-        copy.id = UUID()
+        copy.id = importedID
         copy.thumbnailFilename = nil
-        copy.isEncrypted = encryptionMode == .all || (encryptionMode == .sensitive && item.isSensitive)
+        copy.isEncrypted = false
         copy.fileBookmarks = item.fileBookmarks
+        copy.imageFilename = nil
+        copy.assetFilenames = []
+        copy.payloadFilename = nil
 
-        if let oldName = item.imageFilename {
-            guard let data = assets["Images/\(oldName)"],
-                  let name = await storage.storeImage(data, id: copy.id, encrypt: copy.isEncrypted) else {
-                throw ExportImportError.missingAsset
+        do {
+            if let oldName = item.imageFilename {
+                guard let data = assets["Images/\(oldName)"],
+                      let name = await storage.storeImage(data, id: copy.id, encrypt: copy.isEncrypted) else {
+                    throw ExportImportError.missingAsset
+                }
+                copy.imageFilename = name
             }
-            copy.imageFilename = name
-        }
-        if !item.assetFilenames.isEmpty {
-            var names: [String] = []
             for (index, oldName) in item.assetFilenames.enumerated() {
                 guard let data = assets["Images/\(oldName)"],
                       let name = await storage.storeImage(
-                          data,
-                          id: copy.id,
-                          encrypt: copy.isEncrypted,
-                          index: index
+                        data,
+                        id: copy.id,
+                        encrypt: copy.isEncrypted,
+                        index: index
                       ) else { throw ExportImportError.missingAsset }
-                names.append(name)
+                copy.assetFilenames.append(name)
             }
-            copy.assetFilenames = names
-        }
-        if let oldName = item.payloadFilename {
-            guard let data = assets["Payloads/\(oldName)"] else {
-                throw ExportImportError.missingAsset
+            if let oldName = item.payloadFilename {
+                guard let data = assets["Payloads/\(oldName)"] else {
+                    throw ExportImportError.missingAsset
+                }
+                let ext = URL(fileURLWithPath: oldName).pathExtension
+                guard !ext.isEmpty,
+                      let name = await storage.storePayload(
+                        data,
+                        id: copy.id,
+                        extension: ext,
+                        encrypt: copy.isEncrypted
+                      ) else { throw ExportImportError.missingAsset }
+                copy.payloadFilename = name
             }
-            let ext = URL(fileURLWithPath: oldName).pathExtension
-            guard !ext.isEmpty,
-                  let name = await storage.storePayload(
-                      data,
-                      id: copy.id,
-                      extension: ext,
-                      encrypt: copy.isEncrypted
-                  ) else { throw ExportImportError.missingAsset }
-            copy.payloadFilename = name
+            return copy
+        } catch {
+            await storage.deleteImages(for: [copy])
+            throw error
         }
-        return copy
     }
 }

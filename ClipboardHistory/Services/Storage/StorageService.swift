@@ -5,7 +5,7 @@ actor StorageService {
     typealias SQLiteTextBinder = @Sendable (OpaquePointer, Int32, String) -> Int32
 
     static let maximumHistoryCount = 100
-    static let schemaVersion = 4
+    static let schemaVersion = 6
 
     nonisolated let baseDirectory: URL
     nonisolated let imagesDirectory: URL
@@ -13,6 +13,7 @@ actor StorageService {
     nonisolated let payloadsDirectory: URL
     nonisolated let backupsDirectory: URL
     nonisolated let stagingDirectory: URL
+    nonisolated let operationsDirectory: URL
     nonisolated let historyFile: URL
     nonisolated let databaseFile: URL
 
@@ -51,6 +52,7 @@ actor StorageService {
         payloadsDirectory = baseDirectory.appending(path: "Payloads", directoryHint: .isDirectory)
         backupsDirectory = baseDirectory.appending(path: "Backups", directoryHint: .isDirectory)
         stagingDirectory = baseDirectory.appending(path: ".staging", directoryHint: .isDirectory)
+        operationsDirectory = baseDirectory.appending(path: ".operations", directoryHint: .isDirectory)
         historyFile = baseDirectory.appending(path: "history.json", directoryHint: .notDirectory)
         databaseFile = baseDirectory.appending(path: "history.sqlite3", directoryHint: .notDirectory)
         self.fileManager = fileManager
@@ -100,7 +102,11 @@ actor StorageService {
 
     func loadHistoryThrowing() throws -> [ClipboardItem] {
         try ensureInitialized()
-        let items = try fetchAllItems()
+        var items = try fetchAllItems()
+        if items.contains(where: \.isEncrypted) {
+            try migrateEncryption(items: items, mode: .off)
+            items = try fetchAllItems()
+        }
         let validItems = try reconcileIncompleteRecords(items)
         try cleanupOrphanedFiles(referencedBy: validItems)
         return validItems
@@ -118,9 +124,8 @@ actor StorageService {
         while sqlite3_step(statement) == SQLITE_ROW {
             guard let idText = textColumn(0, statement),
                   let id = UUID(uuidString: idText),
-                  let encryptedName = dataColumn(1, statement) else { continue }
-            let nameData = try encryptionService().decrypt(encryptedName)
-            guard let name = String(data: nameData, encoding: .utf8) else {
+                  let nameData = dataColumn(1, statement),
+                  let name = String(data: nameData, encoding: .utf8) else {
                 throw DatabaseError.executionFailed("invalid collection name encoding")
             }
             collections.append(
@@ -157,7 +162,7 @@ actor StorageService {
     func insertOrReplaceCollection(_ collection: ClipboardCollection) throws {
         let name = collection.name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { throw DatabaseError.executionFailed("empty collection name") }
-        let protectedName = try encryptionService().encrypt(Data(name.utf8))
+        let protectedName = Data(name.utf8)
         let statement = try prepare("""
             INSERT OR REPLACE INTO ClipboardCollections(id, protectedName, createdAt, sortOrder)
             VALUES (?, ?, ?, ?)
@@ -197,9 +202,8 @@ actor StorageService {
         }
     }
 
-    func verifyEncryptionAvailable() throws {
+    func verifyStorageAvailable() throws {
         try ensureInitialized()
-        _ = try encryptionService()
     }
 
     func saveHistory(_ items: [ClipboardItem]) {
@@ -227,7 +231,6 @@ actor StorageService {
     }
 
     func upsert(_ item: ClipboardItem) {
-        guard !item.isSensitive || item.isEncrypted else { return }
         do {
             try upsertThrowing(item)
         } catch {
@@ -238,9 +241,6 @@ actor StorageService {
     }
 
     func upsertThrowing(_ item: ClipboardItem) throws {
-        guard !item.isSensitive || item.isEncrypted else {
-            throw DatabaseError.executionFailed("sensitive item is not encrypted")
-        }
         try ensureInitialized()
         try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
@@ -253,9 +253,6 @@ actor StorageService {
     }
 
     func upsertBatchThrowing(_ items: [ClipboardItem]) throws {
-        guard items.allSatisfy({ !$0.isSensitive || $0.isEncrypted }) else {
-            throw DatabaseError.executionFailed("sensitive batch item is not encrypted")
-        }
         try ensureInitialized()
         try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
@@ -277,9 +274,6 @@ actor StorageService {
         collections: [ClipboardCollection],
         notes: [Note] = []
     ) throws {
-        guard items.allSatisfy({ !$0.isSensitive || $0.isEncrypted }) else {
-            throw DatabaseError.executionFailed("sensitive batch item is not encrypted")
-        }
         try ensureInitialized()
         try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
@@ -302,35 +296,54 @@ actor StorageService {
         }
     }
 
-    func deleteBatchThrowing(ids: [UUID]) throws {
+    func deleteBatchThrowing(items: [ClipboardItem]) throws -> StorageMutationOutcome {
         try ensureInitialized()
         try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
-            for id in ids {
-                try deleteItemRecord(id: id)
+            for item in items {
+                try deleteItemRecord(id: item.id)
             }
             try execute("COMMIT")
         } catch {
             try? execute("ROLLBACK")
             throw error
         }
+
+        var cleanupFailures: [String] = []
+        for item in items {
+            do {
+                try deleteAssociatedFilesThrowing(for: item)
+            } catch {
+                cleanupFailures.append(item.id.uuidString)
+            }
+        }
+        return StorageMutationOutcome(
+            persistentChangeCommitted: true,
+            cleanupFailures: cleanupFailures
+        )
     }
 
-    func deleteItem(_ item: ClipboardItem) {
+    func deleteItem(_ item: ClipboardItem) throws -> StorageMutationOutcome {
+        try ensureInitialized()
+        try execute("BEGIN IMMEDIATE TRANSACTION")
         do {
-            try ensureInitialized()
-            try execute("BEGIN IMMEDIATE TRANSACTION")
-            do {
-                try deleteItemRecord(id: item.id)
-                try execute("COMMIT")
-            } catch {
-                try? execute("ROLLBACK")
-                throw error
-            }
-            deleteAssociatedFiles(for: item)
+            try deleteItemRecord(id: item.id)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
+
+        do {
+            try deleteAssociatedFilesThrowing(for: item)
+            return .committed
         } catch {
             AppLog.storage.error(
-                "Item deletion failed; category=\(String(describing: type(of: error)), privacy: .public)"
+                "Item data was deleted but asset cleanup failed; category=\(String(describing: type(of: error)), privacy: .public)"
+            )
+            return StorageMutationOutcome(
+                persistentChangeCommitted: true,
+                cleanupFailures: [String(describing: type(of: error))]
             )
         }
     }
@@ -385,28 +398,6 @@ actor StorageService {
     func deleteImages(for items: [ClipboardItem]) {
         for item in items {
             deleteAssociatedFiles(for: item)
-        }
-    }
-
-    func clearAll() {
-        do {
-            try ensureInitialized()
-            try execute("BEGIN IMMEDIATE TRANSACTION")
-            do {
-                try execute("DELETE FROM ClipboardItems")
-                try execute("COMMIT")
-            } catch {
-                try? execute("ROLLBACK")
-                throw error
-            }
-            for directory in [imagesDirectory, thumbnailsDirectory, payloadsDirectory, stagingDirectory] {
-                try recreateDirectory(directory)
-            }
-            try rotateEncryptionKeyAfterCompleteErasure()
-        } catch {
-            AppLog.storage.error(
-                "History clear failed; category=\(String(describing: type(of: error)), privacy: .public)"
-            )
         }
     }
 

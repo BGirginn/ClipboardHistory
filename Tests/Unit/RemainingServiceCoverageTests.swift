@@ -185,12 +185,14 @@ final class RemainingServiceCoverageTests: XCTestCase {
 
     func testInputEventTapTrustChecksUseInjectedEvaluatorsWithoutSystemPrompt() {
         var promptedOptions: CFDictionary?
+        var openedSettingsURL: URL?
         let coordinator = SystemInputEventTapCoordinator(
             promptedTrustEvaluator: { options in
                 promptedOptions = options
                 return true
             },
-            trustEvaluator: { false }
+            trustEvaluator: { false },
+            accessibilitySettingsOpener: { openedSettingsURL = $0 }
         )
 
         XCTAssertFalse(coordinator.isTrusted)
@@ -198,11 +200,73 @@ final class RemainingServiceCoverageTests: XCTestCase {
         XCTAssertNotNil(promptedOptions)
         XCTAssertFalse(coordinator.setKeyboardBlocking(true))
         XCTAssertTrue(coordinator.maintain())
+        coordinator.openAccessibilitySettings()
+        XCTAssertEqual(openedSettingsURL?.scheme, "x-apple.systempreferences")
+
+        let keyboardMask = SystemInputEventTapCoordinator.eventMask(
+            for: InputEventTapConfiguration(blocksKeyboard: true)
+        )
+        XCTAssertNotEqual(keyboardMask & (CGEventMask(1) << CGEventType.keyDown.rawValue), 0)
+        XCTAssertNotEqual(keyboardMask & (CGEventMask(1) << 14), 0)
+        let scrollMask = SystemInputEventTapCoordinator.eventMask(
+            for: InputEventTapConfiguration(
+                scrollReversal: ScrollReversalConfiguration(
+                    isEnabled: true,
+                    reversesDiscreteVertical: true,
+                    reversesDiscreteHorizontal: false,
+                    reversesPreciseVertical: false,
+                    reversesPreciseHorizontal: false
+                )
+            )
+        )
+        XCTAssertNotEqual(
+            scrollMask & (CGEventMask(1) << CGEventType.scrollWheel.rawValue),
+            0
+        )
+        XCTAssertEqual(
+            SystemInputEventTapCoordinator.eventMask(for: InputEventTapConfiguration()),
+            0
+        )
+        var interruptionCount = 0
+        coordinator.interruptionHandler = { interruptionCount += 1 }
+        guard let event = CGEvent(
+            keyboardEventSource: nil,
+            virtualKey: 0,
+            keyDown: true
+        ) else { return XCTFail("Expected a synthetic keyboard event") }
+        XCTAssertNotNil(coordinator.filter(type: .tapDisabledByTimeout, event: event))
+        XCTAssertEqual(interruptionCount, 1)
+        coordinator.handleUnrecoverableInterruption()
+        XCTAssertEqual(interruptionCount, 2)
         coordinator.stopAll()
     }
 
     func testLoggerSubsystemIsAvailable() {
         XCTAssertFalse(AppLog.subsystem.isEmpty)
+    }
+
+    func testNativeReadOnlySensorAndAudioDiscoveryAdaptersSmoke() {
+        let temperatureProvider = AppleSMCTemperatureProvider()
+        for reading in temperatureProvider.readings() + temperatureProvider.readings() {
+            XCTAssertTrue((10...130).contains(reading.celsius), "temperature range")
+            XCTAssertFalse(reading.id.isEmpty, "temperature identifier")
+            XCTAssertFalse(reading.name.isEmpty, "temperature name")
+        }
+
+        let discovery = CoreAudioProcessDiscovery()
+        discovery.startObservingChanges {}
+        let applications = discovery.applications()
+        discovery.stopObservingChanges()
+        discovery.stopObservingChanges()
+        for application in applications {
+            XCTAssertFalse(application.bundleID.isEmpty, "audio bundle identifier")
+            XCTAssertFalse(application.processObjectIDs.contains(0), "audio object identifier")
+            XCTAssertEqual(
+                application.id,
+                application.processObjectIDs.min(),
+                "stable grouped audio identifier"
+            )
+        }
     }
 
     func testApplicationDelegateNormalLaunchAndTerminationUseInjectedFactories() async {
@@ -254,7 +318,9 @@ final class RemainingServiceCoverageTests: XCTestCase {
         )
         XCTAssertEqual(appModelFactoryCount, 1)
         XCTAssertEqual(controllerFactoryCount, 1)
-        try? await Task.sleep(for: .milliseconds(20))
+        await waitUntil("normal launch routes to Control Center") {
+            appModel.router.activeFeature == .controlCenter
+        }
         XCTAssertEqual(appModel.router.activeFeature, .controlCenter)
 
         createdController?.closePopover()
@@ -262,13 +328,17 @@ final class RemainingServiceCoverageTests: XCTestCase {
         XCTAssertFalse(
             delegate.applicationShouldHandleReopen(.shared, hasVisibleWindows: false)
         )
-        try? await Task.sleep(for: .milliseconds(20))
+        await waitUntil("Finder reopen routes to Control Center") {
+            appModel.router.activeFeature == .controlCenter
+        }
         XCTAssertEqual(appModel.router.activeFeature, .controlCenter)
         delegate.applicationWillTerminate(
             Notification(name: NSApplication.willTerminateNotification)
         )
 
         var backgroundController: MenuBarController?
+        var terminationReplies: [Bool] = []
+        let terminationExpectation = expectation(description: "shutdown reply")
         let backgroundDelegate = ClipboardHistoryAppDelegate(
             environment: [:],
             arguments: ["--background-launch"],
@@ -280,6 +350,10 @@ final class RemainingServiceCoverageTests: XCTestCase {
                 )
                 backgroundController = controller
                 return controller
+            },
+            terminationReply: { _, canTerminate in
+                terminationReplies.append(canTerminate)
+                terminationExpectation.fulfill()
             }
         )
         appModel.showClipboard()
@@ -289,10 +363,105 @@ final class RemainingServiceCoverageTests: XCTestCase {
         await Task.yield()
         XCTAssertFalse(backgroundController?.isPopoverShown == true)
         XCTAssertEqual(appModel.router.activeFeature, .clipboard)
+        XCTAssertEqual(backgroundDelegate.applicationShouldTerminate(.shared), .terminateLater)
+        XCTAssertEqual(backgroundDelegate.applicationShouldTerminate(.shared), .terminateLater)
+        await fulfillment(of: [terminationExpectation], timeout: 2)
+        XCTAssertEqual(terminationReplies, [true])
         backgroundDelegate.applicationWillTerminate(
             Notification(name: NSApplication.willTerminateNotification)
         )
-        await storage.close()
+    }
+
+    func testApplicationDelegateCancelsQuitForUnsavedNoteThenAllowsRetry() async {
+        let root = temporaryDirectory("ApplicationDelegateFailedQuit")
+        let suite = "ApplicationDelegateFailedQuit-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: root)
+        }
+        let storage = StorageService(
+            baseDirectory: root,
+            operationFailureInjector: { operation in
+                guard case let .prepareSQL(sql) = operation,
+                      sql.contains("INSERT OR REPLACE INTO Notes") else { return }
+                throw CocoaError(.fileWriteUnknown)
+            }
+        )
+        let appModel = AppModel(
+            storage: storage,
+            settings: AppSettings(defaults: defaults),
+            controlCenter: ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: defaults)
+            ),
+            startsAutomatically: false
+        )
+        let popover = ApplicationDelegatePopoverStub()
+        let controller = MenuBarController(
+            appModel: appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                makePopover: { popover },
+                makePanel: { _ in NSPanel() },
+                quickLookPresenter: QuickLookService()
+            ),
+            panelEventMonitor: ApplicationDelegatePanelEventMonitorStub(),
+            popoverAnchor: { NSView() }
+        )
+        var replies: [Bool] = []
+        let blockedReply = expectation(description: "blocked shutdown reply")
+        let delegate = ClipboardHistoryAppDelegate(
+            environment: [:],
+            arguments: ["--background-launch"],
+            appModelFactory: { appModel },
+            menuBarControllerFactory: { _ in controller },
+            terminationReply: { _, canTerminate in
+                replies.append(canTerminate)
+                blockedReply.fulfill()
+            }
+        )
+        delegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        appModel.showQuickNote()
+        appModel.notes.draftBody = "must survive a failed quit"
+
+        XCTAssertEqual(
+            delegate.applicationShouldTerminate(NSApplication.shared),
+            NSApplication.TerminateReply.terminateLater
+        )
+        await fulfillment(of: [blockedReply], timeout: 2)
+        XCTAssertEqual(replies, [false])
+        XCTAssertEqual(appModel.router.activeFeature, .notes)
+        XCTAssertTrue(controller.isPopoverShown)
+
+        appModel.notes.discardChanges()
+        let successfulReply = expectation(description: "successful retry reply")
+        replies.removeAll()
+        let retryDelegate = ClipboardHistoryAppDelegate(
+            environment: [:],
+            arguments: ["--background-launch"],
+            appModelFactory: { appModel },
+            menuBarControllerFactory: { _ in controller },
+            terminationReply: { _, canTerminate in
+                replies.append(canTerminate)
+                successfulReply.fulfill()
+            }
+        )
+        retryDelegate.applicationDidFinishLaunching(
+            Notification(name: NSApplication.didFinishLaunchingNotification)
+        )
+        XCTAssertEqual(
+            retryDelegate.applicationShouldTerminate(NSApplication.shared),
+            NSApplication.TerminateReply.terminateLater
+        )
+        await fulfillment(of: [successfulReply], timeout: 2)
+        XCTAssertEqual(replies, [true])
+        retryDelegate.applicationWillTerminate(
+            Notification(name: NSApplication.willTerminateNotification)
+        )
     }
 
     private func temporaryDirectory(_ prefix: String) -> URL {
@@ -300,6 +469,19 @@ final class RemainingServiceCoverageTests: XCTestCase {
             path: "\(prefix)-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
+    }
+
+    private func waitUntil(
+        _ label: String,
+        timeout: Duration = .seconds(2),
+        condition: @escaping @MainActor () -> Bool
+    ) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while !condition(), clock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertTrue(condition(), "Condition did not become true: \(label)")
     }
 
     private func makeCoveragePNG() throws -> Data {
@@ -327,4 +509,27 @@ private final class ApplicationDelegatePanelEventMonitorStub: PanelEventMonitori
     func addGlobalMonitor(handler: @escaping (NSEvent) -> Void) -> Any? { nil }
     func addLocalMonitor(handler: @escaping (NSEvent) -> NSEvent?) -> Any? { nil }
     func removeMonitor(_ monitor: Any) {}
+}
+
+@MainActor
+private final class ApplicationDelegatePopoverStub: NSPopover {
+    private var presented = false
+
+    override var isShown: Bool { presented }
+
+    override func show(
+        relativeTo positioningRect: NSRect,
+        of positioningView: NSView,
+        preferredEdge: NSRectEdge
+    ) {
+        presented = true
+    }
+
+    override func performClose(_ sender: Any?) {
+        presented = false
+    }
+
+    override func close() {
+        presented = false
+    }
 }

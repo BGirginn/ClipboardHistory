@@ -41,7 +41,7 @@ final class StorageServiceTests: XCTestCase {
             item.creationDate.timeIntervalSince1970,
             accuracy: 0.000_001
         )
-        XCTAssertEqual(try readOptimizedNullColumnCount(), 5)
+        XCTAssertEqual(try readOptimizedNullColumnCount(), 4)
     }
 
     func testImageRoundTripAndClear() async throws {
@@ -60,7 +60,7 @@ final class StorageServiceTests: XCTestCase {
             hash: HashUtility.sha256(data: data)
         )
         await storage.saveHistory([item])
-        await storage.clearAll()
+        _ = try await storage.clearAll()
 
         let clearedHistory = await storage.loadHistory()
         let clearedImageData = await storage.imageData(filename: storedFilename)
@@ -85,7 +85,7 @@ final class StorageServiceTests: XCTestCase {
         XCTAssertTrue(contents.contains { $0.lastPathComponent.hasPrefix("history-migration-failed-") })
     }
 
-    func testClearRotatesEncryptionKeyForCryptographicErasure() async throws {
+    func testClearDoesNotRotateTheLegacyClipboardKey() async throws {
         await storage.close()
         let knownEncryption = try EncryptionService(keyData: Data(repeating: 0x5A, count: 32))
         storage = StorageService(
@@ -105,7 +105,7 @@ final class StorageServiceTests: XCTestCase {
         let firstCiphertext = try readNewestTextBlob()
         XCTAssertEqual(try knownEncryption.decrypt(firstCiphertext), firstPlaintext)
 
-        await storage.clearAll()
+        _ = try await storage.clearAll()
         let secondPlaintext = Data("second encrypted value".utf8)
         await storage.upsert(
             ClipboardItem(
@@ -118,8 +118,45 @@ final class StorageServiceTests: XCTestCase {
         )
         let secondCiphertext = try readNewestTextBlob()
 
-        XCTAssertThrowsError(try knownEncryption.decrypt(secondCiphertext))
+        XCTAssertEqual(try knownEncryption.decrypt(secondCiphertext), secondPlaintext)
         XCTAssertNil(secondCiphertext.range(of: secondPlaintext))
+    }
+
+    func testClearReportsResidualCleanupAndStartupFinishesCommittedQuarantine() async throws {
+        enum InjectedFailure: Error { case cleanup }
+        await storage.close()
+        storage = StorageService(
+            baseDirectory: temporaryDirectory,
+            encryptionService: .ephemeral(),
+            operationFailureInjector: { operation in
+                if case let .removeAsset(name) = operation, name.hasPrefix("clear-") {
+                    throw InjectedFailure.cleanup
+                }
+            }
+        )
+        let item = ClipboardItem(type: .text, text: "clear me", hash: "clear-me")
+        try await storage.upsertThrowing(item)
+
+        let outcome = try await storage.clearAll()
+
+        XCTAssertTrue(outcome.persistentChangeCommitted)
+        XCTAssertTrue(outcome.requiresCleanupRetry)
+        XCTAssertTrue((try FileManager.default.contentsOfDirectory(
+            at: storage.operationsDirectory,
+            includingPropertiesForKeys: nil
+        )).contains { $0.lastPathComponent.hasPrefix("clear-") })
+        await storage.close()
+
+        storage = StorageService(
+            baseDirectory: temporaryDirectory,
+            encryptionService: .ephemeral()
+        )
+        let recoveredHistory = try await storage.loadHistoryThrowing()
+        XCTAssertTrue(recoveredHistory.isEmpty)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(
+            at: storage.operationsDirectory,
+            includingPropertiesForKeys: nil
+        ).isEmpty)
     }
 
     private func makePNGData() -> Data? {

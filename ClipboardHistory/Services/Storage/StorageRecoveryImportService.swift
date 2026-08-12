@@ -73,7 +73,7 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
                     from: encryptedArchive,
                     password: password,
                     storage: stagingStorage,
-                    encryptionMode: .all
+                    encryptionMode: .off
                 )
                 await stagingStorage.close()
             } catch {
@@ -90,10 +90,19 @@ actor StorageRecoveryImportService: StorageRecoveryImporting {
             do {
                 try fileSystem.moveItem(at: staging, to: destination)
             } catch {
+                var previousDatabaseRestored = !movedExistingData
                 if movedExistingData {
-                    try? fileSystem.moveItem(at: backup, to: destination)
+                    do {
+                        try fileSystem.moveItem(at: backup, to: destination)
+                        previousDatabaseRestored = fileSystem.fileExists(at: destination)
+                    } catch {
+                        previousDatabaseRestored = false
+                    }
                 }
-                throw error
+                throw StorageRecoveryError.installationFailed(
+                    previousDatabaseRestored: previousDatabaseRestored,
+                    underlyingDescription: error.localizedDescription
+                )
             }
             return StorageRecoveryImportResult(
                 importedItemCount: report.importedCount,

@@ -65,7 +65,7 @@ NSPasteboard
    -> StorageService
        -> SQLite
        -> asset files
-       -> encryption/key services
+       -> legacy decryption migration
    -> observable feature state
    -> list/detail/search/paste/presentation
 ```
@@ -74,12 +74,12 @@ Clipboard behavior is security-sensitive because copied data can include secrets
 
 ## Storage and security
 
-Storage uses SQLite plus file-backed assets and migration/recovery logic. Encryption is backed by Keychain-managed material and authenticated encryption.
+Storage uses SQLite plus file-backed assets and migration/recovery logic. Clipboard records use open local storage; legacy encrypted records are decrypted during the schema-v6 migration. Notes retain separate authenticated encryption backed by Keychain-managed material.
 
 Persistent-state changes must be reasoned about as a unit:
 - database rows,
 - assets,
-- encrypted metadata,
+- private metadata and legacy encrypted records,
 - backups,
 - keys,
 - collections,
@@ -87,7 +87,7 @@ Persistent-state changes must be reasoned about as a unit:
 
 "Deleted from the UI" is not equivalent to "deleted from persistent storage."
 
-"Encryption mode enabled" is not equivalent to "all historical records successfully migrated."
+"Open Clipboard storage" is not equivalent to "legacy encrypted records were migrated successfully." Failed migration must preserve the old records and stop Clipboard capture.
 
 ## System Monitor
 

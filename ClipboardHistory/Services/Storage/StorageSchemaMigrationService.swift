@@ -18,6 +18,7 @@ extension StorageService {
         }
         do {
             try createSchemaIfNeeded()
+            try recoverInterruptedClearOperations()
             if try !databaseIntegrityIsValid() {
                 try attemptDatabaseRecovery()
             }
@@ -109,7 +110,6 @@ extension StorageService {
             try execute("CREATE INDEX IF NOT EXISTS idx_items_type ON ClipboardItems(type)")
             try execute("CREATE INDEX IF NOT EXISTS idx_items_pinned ON ClipboardItems(isPinned, pinnedAt)")
             try execute("CREATE INDEX IF NOT EXISTS idx_items_expires ON ClipboardItems(expiresAt)")
-            try execute("CREATE INDEX IF NOT EXISTS idx_items_text ON ClipboardItems(textContent)")
             try execute("""
                 INSERT OR IGNORE INTO SchemaMigrations(version, appliedAt)
                 VALUES (1, strftime('%s','now'))
@@ -122,6 +122,8 @@ extension StorageService {
         try migrateToSchemaVersion2IfNeeded()
         try migrateToSchemaVersion3IfNeeded()
         try migrateToSchemaVersion4IfNeeded()
+        try migrateToSchemaVersion5IfNeeded()
+        try migrateToSchemaVersion6IfNeeded()
     }
 
     func migrateToSchemaVersion2IfNeeded() throws {
@@ -186,6 +188,153 @@ extension StorageService {
             try execute("""
                 INSERT INTO SchemaMigrations(version, appliedAt)
                 VALUES (4, strftime('%s','now'))
+                """)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
+    }
+
+    func migrateToSchemaVersion5IfNeeded() throws {
+        guard try !hasSchemaMigration(version: 5) else { return }
+        try execute("BEGIN IMMEDIATE TRANSACTION")
+        do {
+            let select = try prepare("""
+                SELECT id, protectedMetadata, displayTitle, fileURLs, fileBookmarks
+                FROM ClipboardItems
+                """)
+            defer { sqlite3_finalize(select) }
+            let update = try prepare("""
+                UPDATE ClipboardItems
+                SET protectedMetadata = ?, fileURLs = NULL, fileBookmarks = NULL
+                WHERE id = ?
+                """)
+            defer { sqlite3_finalize(update) }
+            let decoder = JSONDecoder()
+            let encoder = JSONEncoder()
+            while sqlite3_step(select) == SQLITE_ROW {
+                guard let id = textColumn(0, select) else {
+                    throw DatabaseError.executionFailed("schema v5 item identifier is invalid")
+                }
+                let metadata: ClipboardProtectedMetadata
+                if let encryptedMetadata = dataColumn(1, select) {
+                    let plaintext = try encryptionService().decrypt(encryptedMetadata)
+                    if let privateMetadata = try? decoder.decode(
+                        ClipboardPrivateMetadataV2.self,
+                        from: plaintext
+                    ) {
+                        metadata = privateMetadata.protectedMetadata
+                    } else {
+                        metadata = try decoder.decode(ClipboardProtectedMetadata.self, from: plaintext)
+                    }
+                } else {
+                    metadata = ClipboardProtectedMetadata(displayTitle: textColumn(2, select))
+                }
+                let fileURLs = decodeArray(
+                    [String].self,
+                    from: dataColumn(3, select),
+                    using: decoder
+                ) ?? []
+                let fileBookmarks = decodeArray(
+                    [Data].self,
+                    from: dataColumn(4, select),
+                    using: decoder
+                ) ?? []
+                let privateMetadata = ClipboardPrivateMetadataV2(
+                    protectedMetadata: metadata,
+                    fileURLs: fileURLs,
+                    fileBookmarks: fileBookmarks
+                )
+                let encrypted = try encryptionService().encrypt(try encoder.encode(privateMetadata))
+                _ = sqlite3_reset(update)
+                _ = sqlite3_clear_bindings(update)
+                try bind(encrypted, at: 1, to: update)
+                try bind(id, at: 2, to: update)
+                guard sqlite3_step(update) == SQLITE_DONE else {
+                    throw DatabaseError.executionFailed(databaseMessage())
+                }
+            }
+            try execute("DROP INDEX IF EXISTS idx_items_text")
+            try execute("""
+                INSERT INTO SchemaMigrations(version, appliedAt)
+                VALUES (5, strftime('%s','now'))
+                """)
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
+    }
+
+    func migrateToSchemaVersion6IfNeeded() throws {
+        guard try !hasSchemaMigration(version: 6) else { return }
+        try execute("BEGIN IMMEDIATE TRANSACTION")
+        do {
+            let selectItems = try prepare("SELECT id, protectedMetadata FROM ClipboardItems")
+            defer { sqlite3_finalize(selectItems) }
+            let updateItem = try prepare(
+                "UPDATE ClipboardItems SET protectedMetadata = ? WHERE id = ?"
+            )
+            defer { sqlite3_finalize(updateItem) }
+            let decoder = JSONDecoder()
+            let encoder = JSONEncoder()
+            while sqlite3_step(selectItems) == SQLITE_ROW {
+                guard let id = textColumn(0, selectItems),
+                      let storedMetadata = dataColumn(1, selectItems) else { continue }
+                let plaintext: Data
+                if (try? decoder.decode(ClipboardPrivateMetadataV2.self, from: storedMetadata)) != nil {
+                    plaintext = storedMetadata
+                } else {
+                    plaintext = try encryptionService().decrypt(storedMetadata)
+                }
+                let metadata: ClipboardPrivateMetadataV2
+                if let decoded = try? decoder.decode(ClipboardPrivateMetadataV2.self, from: plaintext) {
+                    metadata = decoded
+                } else {
+                    metadata = ClipboardPrivateMetadataV2(
+                        protectedMetadata: try decoder.decode(
+                            ClipboardProtectedMetadata.self,
+                            from: plaintext
+                        ),
+                        fileURLs: [],
+                        fileBookmarks: []
+                    )
+                }
+                _ = sqlite3_reset(updateItem)
+                _ = sqlite3_clear_bindings(updateItem)
+                try bind(try encoder.encode(metadata), at: 1, to: updateItem)
+                try bind(id, at: 2, to: updateItem)
+                guard sqlite3_step(updateItem) == SQLITE_DONE else {
+                    throw DatabaseError.executionFailed(databaseMessage())
+                }
+            }
+            let selectCollections = try prepare(
+                "SELECT id, protectedName FROM ClipboardCollections"
+            )
+            defer { sqlite3_finalize(selectCollections) }
+            let updateCollection = try prepare(
+                "UPDATE ClipboardCollections SET protectedName = ? WHERE id = ?"
+            )
+            defer { sqlite3_finalize(updateCollection) }
+            while sqlite3_step(selectCollections) == SQLITE_ROW {
+                guard let id = textColumn(0, selectCollections),
+                      let storedName = dataColumn(1, selectCollections) else { continue }
+                let plaintext = try encryptionService().decrypt(storedName)
+                guard String(data: plaintext, encoding: .utf8) != nil else {
+                    throw DatabaseError.executionFailed("collection name encoding is invalid")
+                }
+                _ = sqlite3_reset(updateCollection)
+                _ = sqlite3_clear_bindings(updateCollection)
+                try bind(plaintext, at: 1, to: updateCollection)
+                try bind(id, at: 2, to: updateCollection)
+                guard sqlite3_step(updateCollection) == SQLITE_DONE else {
+                    throw DatabaseError.executionFailed(databaseMessage())
+                }
+            }
+            try execute("""
+                INSERT INTO SchemaMigrations(version, appliedAt)
+                VALUES (6, strftime('%s','now'))
                 """)
             try execute("COMMIT")
         } catch {

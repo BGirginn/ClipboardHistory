@@ -1,4 +1,6 @@
-# Beta readiness report
+# Historical beta readiness report
+
+> Historical evidence only. This report applies to `v1.0.0-beta.1` and must not be used as evidence for the current stabilization candidate. See `STABILIZATION_BETA_READINESS.md` for the current worktree.
 
 Date: 2026-08-01
 

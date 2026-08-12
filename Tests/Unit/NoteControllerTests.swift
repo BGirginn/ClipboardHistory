@@ -108,8 +108,8 @@ final class NoteControllerTests: XCTestCase {
         appModel.showQuickNote()
         appModel.notes.draftBody = "Saved during termination"
 
-        let didShutdown = await appModel.shutdown()
-        XCTAssertTrue(didShutdown)
+        let shutdownOutcome = await appModel.shutdown()
+        XCTAssertTrue(shutdownOutcome.allowsTermination)
 
         let reopened = StorageService(
             baseDirectory: directory,
@@ -154,6 +154,8 @@ final class NoteControllerTests: XCTestCase {
         await waitUntil { context.controller.saveState == .failed }
         XCTAssertEqual(context.controller.screen, .editor)
         XCTAssertEqual(context.controller.draftBody, "must survive")
+        context.controller.openQuickEditor()
+        XCTAssertEqual(context.controller.draftBody, "must survive")
 
         failure.shouldFail = false
         context.controller.retrySave()
@@ -172,6 +174,32 @@ final class NoteControllerTests: XCTestCase {
         context.controller.discardChanges()
         XCTAssertEqual(context.controller.draftBody, "must survive")
         XCTAssertFalse(context.controller.hasPendingChanges)
+    }
+
+    func testDeleteFailureKeepsPersistedDraftAndRetryRemovesIt() async throws {
+        let failure = NoteDeleteFailureSwitch()
+        let context = makeContext(operationFailureInjector: failure.inject)
+        context.controller.openQuickEditor()
+        context.controller.draftBody = "delete me"
+        let saveOutcome = await context.controller.flushPendingSave()
+        XCTAssertEqual(saveOutcome, .saved)
+        XCTAssertEqual(context.controller.notes.count, 1)
+
+        failure.shouldFail = true
+        await context.controller.deleteDraft()
+        XCTAssertEqual(context.controller.screen, .editor)
+        XCTAssertEqual(context.controller.notes.count, 1)
+        XCTAssertNotNil(context.controller.errorMessage)
+
+        failure.shouldFail = false
+        await context.controller.deleteDraft()
+        XCTAssertEqual(context.controller.screen, .list)
+        XCTAssertTrue(context.controller.notes.isEmpty)
+
+        context.controller.openQuickEditor()
+        await context.controller.deleteDraft()
+        XCTAssertEqual(context.controller.screen, .list)
+        XCTAssertTrue(context.controller.notes.isEmpty)
     }
 
     func testFailedQuitFlushKeepsDraftAndStorageOpenUntilRetrySucceeds() async throws {
@@ -204,14 +232,14 @@ final class NoteControllerTests: XCTestCase {
         appModel.notes.draftBody = "quit-safe draft"
 
         let firstShutdown = await appModel.shutdown()
-        XCTAssertFalse(firstShutdown)
+        XCTAssertFalse(firstShutdown.allowsTermination)
         XCTAssertEqual(appModel.notes.draftBody, "quit-safe draft")
         XCTAssertEqual(appModel.notes.saveState, .failed)
         _ = try await storage.loadNotesThrowing()
 
         failure.shouldFail = false
         let secondShutdown = await appModel.shutdown()
-        XCTAssertTrue(secondShutdown)
+        XCTAssertTrue(secondShutdown.allowsTermination)
         let reopened = StorageService(
             baseDirectory: directory,
             noteEncryptionService: noteEncryption
@@ -219,6 +247,46 @@ final class NoteControllerTests: XCTestCase {
         let reopenedNotes = try await reopened.loadNotesThrowing()
         XCTAssertEqual(reopenedNotes.first?.body, "quit-safe draft")
         await reopened.close()
+    }
+
+    func testFailedClipboardWriteBlocksQuitUntilARevisionSavesSuccessfully() async throws {
+        let failure = ClipboardWriteFailureSwitch()
+        let directory = FileManager.default.temporaryDirectory.appending(
+            path: "ClipboardFailedTerminationTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let suite = "ClipboardFailedTerminationDefaults-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let storage = StorageService(
+            baseDirectory: directory,
+            operationFailureInjector: failure.inject
+        )
+        let appModel = AppModel(
+            storage: storage,
+            settings: AppSettings(defaults: defaults),
+            inputEventTapCoordinator: InputEventTapCoordinatorStub(isTrusted: true),
+            startsAutomatically: false
+        )
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: directory)
+        }
+        await appModel.clipboard.insert(.text(value: "persist me", hash: "persist-me"))
+        let item = try XCTUnwrap(appModel.clipboard.items.first)
+        failure.shouldFail = true
+        appModel.clipboard.togglePin(item)
+
+        let blocked = await appModel.shutdown()
+
+        XCTAssertFalse(blocked.allowsTermination)
+        XCTAssertEqual(blocked.clipboard, .failed)
+        XCTAssertEqual(blocked.blockedFeature, .clipboard)
+        _ = try await storage.loadHistoryThrowing()
+
+        failure.shouldFail = false
+        appModel.clipboard.togglePin(try XCTUnwrap(appModel.clipboard.items.first))
+        let completed = await appModel.shutdown()
+        XCTAssertTrue(completed.allowsTermination)
     }
 
     func testBodyLimitFailureKeepsFullDraftVisible() async {
@@ -289,6 +357,40 @@ private final class NoteSaveFailureSwitch: @unchecked Sendable {
         guard shouldFail,
               case let .prepareSQL(sql) = operation,
               sql.contains("INSERT OR REPLACE INTO Notes") else { return }
+        throw CocoaError(.fileWriteUnknown)
+    }
+}
+
+private final class NoteDeleteFailureSwitch: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var shouldFail: Bool {
+        get { lock.withLock { value } }
+        set { lock.withLock { value = newValue } }
+    }
+
+    func inject(_ operation: StorageOperation) throws {
+        guard shouldFail,
+              case let .prepareSQL(sql) = operation,
+              sql.contains("DELETE FROM Notes") else { return }
+        throw CocoaError(.fileWriteUnknown)
+    }
+}
+
+private final class ClipboardWriteFailureSwitch: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var shouldFail: Bool {
+        get { lock.withLock { value } }
+        set { lock.withLock { value = newValue } }
+    }
+
+    func inject(_ operation: StorageOperation) throws {
+        guard shouldFail,
+              case let .prepareSQL(sql) = operation,
+              sql.contains("INSERT OR REPLACE INTO ClipboardItems") else { return }
         throw CocoaError(.fileWriteUnknown)
     }
 }

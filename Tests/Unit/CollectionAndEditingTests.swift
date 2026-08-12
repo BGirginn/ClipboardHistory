@@ -12,7 +12,7 @@ final class CollectionAndEditingTests: XCTestCase {
         XCTAssertEqual(TextTransformation.trimWhitespace.apply(to: "  value\n"), "value")
     }
 
-    func testCollectionNameIsEncryptedAndDeletionClearsMembership() async throws {
+    func testCollectionNameUsesOpenStorageAndDeletionClearsMembership() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "ClipboardHistoryCollections-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -32,7 +32,7 @@ final class CollectionAndEditingTests: XCTestCase {
         await storage.close()
 
         let databaseBytes = try Data(contentsOf: storage.databaseFile)
-        XCTAssertNil(databaseBytes.range(of: Data(collection.name.utf8)))
+        XCTAssertNotNil(databaseBytes.range(of: Data(collection.name.utf8)))
 
         let reopened = StorageService(baseDirectory: directory, encryptionService: encryption)
         let loadedCollections = try await reopened.loadCollectionsThrowing()

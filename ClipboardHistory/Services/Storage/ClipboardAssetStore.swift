@@ -70,18 +70,28 @@ extension StorageService {
     }
 
     func deleteAssociatedFiles(for item: ClipboardItem) {
+        do {
+            try deleteAssociatedFilesThrowing(for: item)
+        } catch {
+            AppLog.storage.error(
+                "Asset cleanup failed; category=\(String(describing: type(of: error)), privacy: .public)"
+            )
+        }
+    }
+
+    func deleteAssociatedFilesThrowing(for item: ClipboardItem) throws {
         var imageNames = item.assetFilenames
         if let imageFilename = item.imageFilename {
             imageNames.append(imageFilename)
         }
         for filename in imageNames {
-            deleteLogicalFile(filename, from: imagesDirectory)
+            try deleteLogicalFile(filename, from: imagesDirectory)
         }
         if let thumbnailFilename = item.thumbnailFilename {
-            deleteLogicalFile(thumbnailFilename, from: thumbnailsDirectory)
+            try deleteLogicalFile(thumbnailFilename, from: thumbnailsDirectory)
         }
         if let payloadFilename = item.payloadFilename {
-            deleteLogicalFile(payloadFilename, from: payloadsDirectory)
+            try deleteLogicalFile(payloadFilename, from: payloadsDirectory)
         }
     }
 

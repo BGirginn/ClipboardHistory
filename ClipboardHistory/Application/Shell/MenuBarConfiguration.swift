@@ -1,12 +1,13 @@
 import Foundation
 
 struct MenuBarConfiguration: Codable, Equatable {
-    static let currentVersion = 2
+    static let currentVersion = 3
 
     var version: Int
     var showsControlCenterItem: Bool
     var features: [UtilityFeatureConfiguration]
     var metricGroup: MenuBarDisplayGroup
+    var metricFormats: MetricFormatPreferences
 
     static func defaults(registry: FeatureRegistry = .live) -> MenuBarConfiguration {
         MenuBarConfiguration(
@@ -16,13 +17,14 @@ struct MenuBarConfiguration: Codable, Equatable {
                 UtilityFeatureConfiguration(
                     id: descriptor.id,
                     placement: FeaturePlacement(
-                        showsInControlCenter: true,
+                        showsInControlCenter: descriptor.id != .audioMixer,
                         showsStandaloneItem: false
                     ),
                     clickAction: descriptor.defaultClickAction
                 )
             },
-            metricGroup: .defaults
+            metricGroup: .defaults,
+            metricFormats: .defaults
         )
     }
 
@@ -31,18 +33,21 @@ struct MenuBarConfiguration: Codable, Equatable {
         case showsControlCenterItem
         case features
         case metricGroup
+        case metricFormats
     }
 
     init(
         version: Int,
         showsControlCenterItem: Bool,
         features: [UtilityFeatureConfiguration],
-        metricGroup: MenuBarDisplayGroup = .defaults
+        metricGroup: MenuBarDisplayGroup = .defaults,
+        metricFormats: MetricFormatPreferences = .defaults
     ) {
         self.version = version
         self.showsControlCenterItem = showsControlCenterItem
         self.features = features
         self.metricGroup = metricGroup
+        self.metricFormats = metricFormats
     }
 
     init(from decoder: Decoder) throws {
@@ -51,5 +56,9 @@ struct MenuBarConfiguration: Codable, Equatable {
         showsControlCenterItem = try container.decode(Bool.self, forKey: .showsControlCenterItem)
         features = try container.decode([UtilityFeatureConfiguration].self, forKey: .features)
         metricGroup = try container.decodeIfPresent(MenuBarDisplayGroup.self, forKey: .metricGroup) ?? .defaults
+        metricFormats = try container.decodeIfPresent(
+            MetricFormatPreferences.self,
+            forKey: .metricFormats
+        ) ?? .defaults
     }
 }

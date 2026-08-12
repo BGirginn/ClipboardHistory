@@ -13,11 +13,11 @@ struct ClipboardPasteStackView: View {
             .lineLimit(1)
             Spacer(minLength: 6)
             if let next = nextItem {
-                Text(next.displayTitle ?? next.text ?? next.contentSubtype.rawValue)
+                Text(preview(for: next))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .accessibilityLabel("Next item: \(next.displayTitle ?? next.contentSubtype.rawValue)")
+                    .accessibilityLabel("Next item: \(preview(for: next))")
             }
             Button("Paste Next", systemImage: "arrow.right.to.line", action: pasteNext)
             .labelStyle(.iconOnly)
@@ -39,6 +39,15 @@ struct ClipboardPasteStackView: View {
         case .fifo: viewModel.pasteStackItems.first
         case .lifo: viewModel.pasteStackItems.last
         }
+    }
+
+    private func preview(for item: ClipboardItem) -> String {
+        guard !viewModel.isLocked, !item.isSensitive else {
+            return item.isSensitive
+                ? String(localized: "Sensitive content")
+                : String(localized: "Clipboard History is locked")
+        }
+        return item.displayTitle ?? item.text ?? item.contentSubtype.rawValue
     }
 
     func pasteNext() {

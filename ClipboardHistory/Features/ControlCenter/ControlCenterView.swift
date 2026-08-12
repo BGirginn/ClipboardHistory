@@ -51,7 +51,12 @@ struct ControlCenterView: View {
         }
         .task {
             systemMetrics.setDemand(.controlCenter, active: true)
-            defer { systemMetrics.setDemand(.controlCenter, active: false) }
+            let showsAudioMixer = controlCenter.controlCenterFeatures.contains { $0.id == .audioMixer }
+            audioMixer.setDemand(.controlCenter, active: showsAudioMixer)
+            defer {
+                systemMetrics.setDemand(.controlCenter, active: false)
+                audioMixer.setDemand(.controlCenter, active: false)
+            }
             await notes.loadIfNeeded()
             try? await Task.sleep(for: .seconds(31_536_000))
         }

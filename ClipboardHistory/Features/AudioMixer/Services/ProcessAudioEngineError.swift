@@ -7,6 +7,7 @@ enum ProcessAudioEngineError: LocalizedError, Equatable {
     case aggregateDeviceCreationFailed(OSStatus)
     case ioProcedureCreationFailed(OSStatus)
     case deviceStartFailed(OSStatus)
+    case unsupportedStreamFormat
 
     var errorDescription: String? {
         switch self {
@@ -22,6 +23,8 @@ enum ProcessAudioEngineError: LocalizedError, Equatable {
             String(localized: "The real-time audio processor could not be created.")
         case .deviceStartFailed:
             String(localized: "The processed audio output could not be started.")
+        case .unsupportedStreamFormat:
+            String(localized: "This audio stream format is unsupported; native audio was restored.")
         }
     }
 }

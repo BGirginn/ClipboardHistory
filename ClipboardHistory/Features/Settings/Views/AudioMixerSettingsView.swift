@@ -43,6 +43,7 @@ struct AudioMixerSettingsView: View {
     private var permissionText: String {
         switch viewModel.audioMixer.permissionState {
         case .notRequested: String(localized: "Not Requested")
+        case .requesting: String(localized: "Requesting")
         case .ready: String(localized: "Ready")
         case .denied: String(localized: "Denied")
         case .failed: String(localized: "Needs Attention")

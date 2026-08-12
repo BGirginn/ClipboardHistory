@@ -14,10 +14,8 @@ final class AppSettings: ObservableObject {
     @Published var sensitiveRetentionSeconds: Int { didSet { save() } }
     @Published var excludedBundleIdentifiersText: String { didSet { save() } }
     @Published var allowedBundleIdentifiersText: String { didSet { save() } }
-    @Published var encryptionMode: EncryptionMode { didSet { save() } }
     @Published var autoLockOption: AutoLockOption { didSet { save() } }
     @Published private(set) var applicationLockEnabled: Bool { didSet { save() } }
-    @Published var captureWhileLocked: Bool { didSet { save() } }
     @Published var retentionDays: Int { didSet { save() } }
     @Published var imageRetentionDays: Int { didSet { save() } }
     @Published var maximumStorageMegabytes: Int { didSet { save() } }
@@ -84,33 +82,25 @@ final class AppSettings: ObservableObject {
         excludedBundleIdentifiersText = defaults.string(forKey: Key.excludedBundleIdentifiersText)
             ?? Self.suggestedExcludedApplications
         allowedBundleIdentifiersText = defaults.string(forKey: Key.allowedBundleIdentifiersText) ?? ""
-        encryptionMode = EncryptionMode(
-            rawValue: defaults.string(forKey: Key.encryptionMode) ?? ""
-        ) ?? .sensitive
+        defaults.removeObject(forKey: Key.encryptionMode)
         let storedAutoLockOption = AutoLockOption(
             rawValue: defaults.string(forKey: Key.autoLockOption) ?? ""
         ) ?? .never
         autoLockOption = storedAutoLockOption
-        if defaults.integer(forKey: Key.applicationLockMigrationVersion)
-            < Self.applicationLockMigrationVersion {
+        if defaults.integer(forKey: Key.applicationLockMigrationVersion) < 1 {
             let migratedLockEnabled = storedAutoLockOption != .never
-            let migratedCaptureWhileLocked = storedAutoLockOption == .never
             applicationLockEnabled = migratedLockEnabled
-            captureWhileLocked = migratedCaptureWhileLocked
             defaults.set(migratedLockEnabled, forKey: Key.applicationLockEnabled)
-            defaults.set(migratedCaptureWhileLocked, forKey: Key.captureWhileLocked)
-            defaults.set(
-                Self.applicationLockMigrationVersion,
-                forKey: Key.applicationLockMigrationVersion
-            )
         } else {
             applicationLockEnabled = defaults.object(
                 forKey: Key.applicationLockEnabled
             ) as? Bool ?? false
-            captureWhileLocked = defaults.object(
-                forKey: Key.captureWhileLocked
-            ) as? Bool ?? true
         }
+        defaults.removeObject(forKey: Key.captureWhileLocked)
+        defaults.set(
+            Self.applicationLockMigrationVersion,
+            forKey: Key.applicationLockMigrationVersion
+        )
         retentionDays = max(1, defaults.integer(forKey: Key.retentionDays).nonzero(or: 90))
         imageRetentionDays = max(
             1,
@@ -221,10 +211,8 @@ final class AppSettings: ObservableObject {
         defaults.set(sensitiveRetentionSeconds, forKey: Key.sensitiveRetentionSeconds)
         defaults.set(excludedBundleIdentifiersText, forKey: Key.excludedBundleIdentifiersText)
         defaults.set(allowedBundleIdentifiersText, forKey: Key.allowedBundleIdentifiersText)
-        defaults.set(encryptionMode.rawValue, forKey: Key.encryptionMode)
         defaults.set(autoLockOption.rawValue, forKey: Key.autoLockOption)
         defaults.set(applicationLockEnabled, forKey: Key.applicationLockEnabled)
-        defaults.set(captureWhileLocked, forKey: Key.captureWhileLocked)
         defaults.set(retentionDays, forKey: Key.retentionDays)
         defaults.set(imageRetentionDays, forKey: Key.imageRetentionDays)
         defaults.set(maximumStorageMegabytes, forKey: Key.maximumStorageMegabytes)
@@ -261,7 +249,7 @@ final class AppSettings: ObservableObject {
     com.apple.keychainaccess
     """
     private static let closePanelAfterCopyingMigrationVersion = 1
-    private static let applicationLockMigrationVersion = 1
+    private static let applicationLockMigrationVersion = 2
 
     private enum Key {
         static let globalShortcutEnabled = "globalShortcutEnabled"

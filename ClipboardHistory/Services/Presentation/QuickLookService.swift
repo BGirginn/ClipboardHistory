@@ -20,6 +20,8 @@ final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPrevie
     ) {
         self.panelProvider = panelProvider
         self.temporaryDirectoryProvider = temporaryDirectoryProvider
+        super.init()
+        Self.removeAbandonedPreviewDirectories(in: temporaryDirectoryProvider())
     }
 
     func show(item: ClipboardItem, storage: StorageService) {
@@ -90,11 +92,19 @@ final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPrevie
             directoryHint: .isDirectory
         )
         do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
             var urls: [URL] = []
             for (filename, data) in payloads {
                 let destination = directory.appending(path: filename, directoryHint: .notDirectory)
                 try data.write(to: destination, options: .atomic)
+                try FileManager.default.setAttributes(
+                    [.posixPermissions: 0o600],
+                    ofItemAtPath: destination.path
+                )
                 urls.append(destination)
             }
             temporaryDirectory = directory
@@ -114,5 +124,16 @@ final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPrevie
         }
         temporaryDirectory = nil
         previewURLs = []
+    }
+
+    private static func removeAbandonedPreviewDirectories(in root: URL) {
+        guard let contents = try? FileManager.default.contentsOfDirectory(
+            at: root,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else { return }
+        for url in contents where url.lastPathComponent.hasPrefix("ClipboardHistoryPreview-") {
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 }

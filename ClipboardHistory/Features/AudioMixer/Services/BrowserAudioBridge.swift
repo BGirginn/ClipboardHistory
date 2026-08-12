@@ -22,35 +22,28 @@ final class BrowserAudioBridge: BrowserAudioBridging {
 
     var tabsDidChange: (([BrowserAudioTab]) -> Void)?
 
-    private let requestName = Notification.Name("com.brgirgin.ClipboardHistory.BrowserAudio.Request")
-    private let responseName = Notification.Name("com.brgirgin.ClipboardHistory.BrowserAudio.Response")
     private var desiredVolumes: [String: Double] = [:]
     private var tabsBySource: [String: [BrowserAudioTab]] = [:]
     private var pendingActivations: Set<String> = []
-    private var observer: NSObjectProtocol?
+    private var connection: NSXPCConnection?
+    private var endpoint: BrowserAudioControllerEndpoint?
+    private var reconnectTask: Task<Void, Never>?
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
 
     func start() {
-        guard observer == nil else { return }
-        observer = DistributedNotificationCenter.default().addObserver(
-            forName: requestName,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let requestID = notification.object as? String,
-                  let payload = notification.userInfo?["payload"] as? String else { return }
-            Task { @MainActor [weak self] in
-                self?.handle(requestID: requestID, payload: payload)
-            }
-        }
+        guard connection == nil else { return }
+        connect()
     }
 
     func stop() {
-        if let observer {
-            DistributedNotificationCenter.default().removeObserver(observer)
-        }
-        observer = nil
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        connection?.invalidationHandler = nil
+        connection?.interruptionHandler = nil
+        connection?.invalidate()
+        connection = nil
+        endpoint = nil
         tabsBySource.removeAll()
         desiredVolumes.removeAll()
         pendingActivations.removeAll()
@@ -65,15 +58,22 @@ final class BrowserAudioBridge: BrowserAudioBridging {
         pendingActivations.insert(tabID)
     }
 
-    func handle(requestID: String, payload: String) {
-        guard payload.utf8.count <= 256 * 1024,
-              let data = payload.data(using: .utf8),
-              let message = try? decoder.decode(ExtensionMessage.self, from: data),
+    func handle(requestID _: String, payload: String) {
+        _ = handle(payload: Data(payload.utf8))
+    }
+
+    func handle(payload: Data) -> Data? {
+        guard payload.count <= BrowserAudioBridgeXPC.maximumMessageSize,
+              let message = try? decoder.decode(ExtensionMessage.self, from: payload),
               message.version == 1,
-              message.type == "state" else { return }
+              message.type == "state" else { return nil }
         let source = normalizedSource(message.source, tabs: message.tabs)
         let controllableTabs = message.tabs
-            .filter { $0.canSetVolume && !$0.id.isEmpty && !$0.title.isEmpty }
+            .filter {
+                $0.canSetVolume
+                    && !$0.title.isEmpty
+                    && isValid(tabID: $0.id, source: source)
+            }
             .prefix(128)
         tabsBySource[source] = Array(controllableTabs)
         let tabs = tabsBySource.values
@@ -99,20 +99,82 @@ final class BrowserAudioBridge: BrowserAudioBridging {
             }
         )
         pendingActivations.removeAll()
-        let responsePayload = (try? encoder.encode(response)).flatMap {
-            String(data: $0, encoding: .utf8)
-        } ?? "{\"version\":1,\"commands\":[]}"
-        DistributedNotificationCenter.default().postNotificationName(
-            responseName,
-            object: requestID,
-            userInfo: ["payload": responsePayload],
-            deliverImmediately: true
-        )
+        return try? encoder.encode(response)
+    }
+
+    private func connect() {
+        let connection = NSXPCConnection(serviceName: BrowserAudioBridgeXPC.serviceName)
+        let reconnectRelay = BrowserAudioReconnectRelay { [weak self] in
+            self?.scheduleReconnect()
+        }
+        connection.remoteObjectInterface = BrowserAudioBridgeXPC.serviceInterface()
+        connection.exportedInterface = BrowserAudioBridgeXPC.controllerInterface()
+        let endpoint = BrowserAudioControllerEndpoint { [weak self] payload in
+            self?.handle(payload: payload)
+        }
+        connection.exportedObject = endpoint
+        connection.interruptionHandler = Self.reconnectHandler(reconnectRelay)
+        connection.invalidationHandler = Self.reconnectHandler(reconnectRelay)
+        connection.resume()
+        self.connection = connection
+        self.endpoint = endpoint
+        let proxy = connection.remoteObjectProxyWithErrorHandler(
+            Self.reconnectErrorHandler(reconnectRelay)
+        ) as? BrowserAudioBridgeServiceProtocol
+        proxy?.registerController(withReply: Self.registrationReply(reconnectRelay))
+    }
+
+    private func scheduleReconnect() {
+        connection?.invalidationHandler = nil
+        connection?.interruptionHandler = nil
+        connection?.invalidate()
+        connection = nil
+        endpoint = nil
+        guard reconnectTask == nil else { return }
+        reconnectTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled, let self else { return }
+            reconnectTask = nil
+            connect()
+        }
+    }
+
+    private nonisolated static func reconnectHandler(
+        _ relay: BrowserAudioReconnectRelay
+    ) -> @Sendable () -> Void {
+        { relay.requestReconnect() }
+    }
+
+    private nonisolated static func reconnectErrorHandler(
+        _ relay: BrowserAudioReconnectRelay
+    ) -> @Sendable (Error) -> Void {
+        { _ in relay.requestReconnect() }
+    }
+
+    private nonisolated static func registrationReply(
+        _ relay: BrowserAudioReconnectRelay
+    ) -> @Sendable (Bool) -> Void {
+        { accepted in
+            guard !accepted else { return }
+            relay.requestReconnect()
+        }
     }
 
     private func normalizedSource(_ source: String?, tabs: [BrowserAudioTab]) -> String {
         let candidate = source?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let candidate, !candidate.isEmpty { return String(candidate.prefix(64)) }
         return String((tabs.first?.browser ?? "unknown").prefix(64))
+    }
+
+    private func isValid(tabID: String, source: String) -> Bool {
+        guard tabID.utf8.count <= 160 else { return false }
+        if source.hasPrefix("chromium:") {
+            return tabID.hasPrefix("\(source):")
+                && Int(tabID.dropFirst(source.count + 1)) != nil
+        }
+        if source.hasPrefix("safari") {
+            return tabID.hasPrefix("safari:")
+        }
+        return false
     }
 }

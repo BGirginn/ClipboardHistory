@@ -13,12 +13,6 @@
     },
     "%arg %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$arg %2$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -29,12 +23,6 @@
     },
     "%arg audio apps · %arg controlled tabs": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$arg audio apps · %2$arg controlled tabs"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -85,12 +73,6 @@
     },
     "%arg of %arg · Pressure: %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$arg of %2$arg · Pressure: %3$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -589,12 +571,32 @@
         }
       }
     },
+    "Authenticate to access this sensitive clipboard item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu hassas pano öğesine erişmek için kimliğinizi doğrulayın"
+          }
+        }
+      }
+    },
     "Authenticate with Touch ID or your Mac login password to view, copy, or paste saved items.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Kaydedilmiş öğeleri görüntülemek, kopyalamak veya yapıştırmak için Touch ID ya da Mac oturum açma parolanızla kimliğinizi doğrulayın."
+          }
+        }
+      }
+    },
+    "Automatic": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik"
           }
         }
       }
@@ -819,6 +821,16 @@
         }
       }
     },
+    "Celsius": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santigrat"
+          }
+        }
+      }
+    },
     "Change an app's volume to request System Audio Recording permission.": {
       "localizations": {
         "tr": {
@@ -969,16 +981,6 @@
         }
       }
     },
-    "Clipboard History cannot access its encryption key. Recording is stopped to protect your data. Restore Keychain access, then relaunch the app.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clipboard History şifreleme anahtarına erişemiyor. Verilerinizi korumak için kayıt durduruldu. Anahtar Zinciri erişimini geri yükleyip uygulamayı yeniden açın."
-          }
-        }
-      }
-    },
     "Clipboard History could not create a paste keyboard event.": {
       "localizations": {
         "tr": {
@@ -989,12 +991,82 @@
         }
       }
     },
+    "Clipboard History is locked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Geçmişi kilitli"
+          }
+        }
+      }
+    },
+    "Clipboard Storage Unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Depolaması Kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Clipboard changes could not be saved. Quit was cancelled so you can retry or remove the affected items.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano değişiklikleri kaydedilemedi. Yeniden deneyebilmeniz veya etkilenen öğeleri kaldırabilmeniz için çıkış iptal edildi."
+          }
+        }
+      }
+    },
     "Clipboard content could not be saved. Recording continues, but this item was not added.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Pano içeriği kaydedilemedi. Kayıt sürüyor ancak bu öğe eklenmedi."
+          }
+        }
+      }
+    },
+    "Clipboard history could not be cleared. Your saved history was preserved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano geçmişi temizlenemedi. Kayıtlı geçmişiniz korundu."
+          }
+        }
+      }
+    },
+    "Clipboard history was deleted, but residual cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano geçmişi silindi ancak kalıntı temizliği tamamlanamadı. Temizleme yeniden denenecek."
+          }
+        }
+      }
+    },
+    "Clipboard recording pauses while the application is locked.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama kilitliyken pano kaydı duraklatılır."
+          }
+        }
+      }
+    },
+    "Clipboard storage could not be opened. Recording is stopped to avoid damaging existing data. Open Settings to inspect or recover it.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano depolaması açılamadı. Mevcut verilerin zarar görmesini önlemek için kayıt durduruldu. İncelemek veya kurtarmak için Ayarlar'ı açın."
           }
         }
       }
@@ -1105,16 +1177,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sıkıştırılmış"
-          }
-        }
-      }
-    },
-    "Continue recording while locked": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kilitliyken kayda devam et"
           }
         }
       }
@@ -1539,6 +1601,16 @@
         }
       }
     },
+    "Disk activity history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk etkinliği geçmişi"
+          }
+        }
+      }
+    },
     "Display Style": {
       "localizations": {
         "tr": {
@@ -1699,16 +1771,6 @@
         }
       }
     },
-    "Encrypted Storage Unavailable": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şifreli Depolama Kullanılamıyor"
-          }
-        }
-      }
-    },
     "Encrypted clipboard data is invalid.": {
       "localizations": {
         "tr": {
@@ -1739,24 +1801,8 @@
         }
       }
     },
-    "Encryption": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şifreleme"
-          }
-        }
-      }
-    },
     "Excluded application, %arg, %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Excluded application, %1$arg, %2$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -1855,6 +1901,16 @@
         }
       }
     },
+    "Fahrenheit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahrenhayt"
+          }
+        }
+      }
+    },
     "Filter": {
       "localizations": {
         "tr": {
@@ -1891,6 +1947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tüm Geçmiş"
+          }
+        }
+      }
+    },
+    "GB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GB/sn"
           }
         }
       }
@@ -2057,12 +2123,6 @@
     },
     "Imported %arg clipboard items and %arg notes; skipped %arg duplicates.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Imported %1$arg clipboard items and %2$arg notes; skipped %3$arg duplicates."
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2137,6 +2197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Öğe Ayrıntıları"
+          }
+        }
+      }
+    },
+    "KB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KB/sn"
           }
         }
       }
@@ -2267,16 +2337,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Anahtar Zinciri işlemi %arg durumuyla başarısız oldu."
-          }
-        }
-      }
-    },
-    "Keys are stored in the macOS login Keychain and access is bound to the stable Community Beta signing identity. Item type, dates, sizes, hashes, and source application remain visible as metadata.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anahtarlar macOS giriş Anahtar Zinciri'nde saklanır ve erişim sabit Community Beta imzalama kimliğine bağlanır. Öğe türü, tarihler, boyutlar, karmalar ve kaynak uygulama meta veri olarak görünür kalır."
           }
         }
       }
@@ -2451,6 +2511,16 @@
         }
       }
     },
+    "MB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MB/sn"
+          }
+        }
+      }
+    },
     "Maximum storage": {
       "localizations": {
         "tr": {
@@ -2477,6 +2547,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bellek Dağılımı"
+          }
+        }
+      }
+    },
+    "Memory Format": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek Biçimi"
+          }
+        }
+      }
+    },
+    "Memory usage history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek kullanım geçmişi"
           }
         }
       }
@@ -2543,12 +2633,6 @@
     },
     "Min %arg · Avg %arg · Max %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Min %1$arg · Avg %2$arg · Max %3$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2657,6 +2741,16 @@
         }
       }
     },
+    "Network transfer history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ağ aktarım geçmişi"
+          }
+        }
+      }
+    },
     "Never": {
       "localizations": {
         "tr": {
@@ -2703,16 +2797,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Yeni koleksiyon adı"
-          }
-        }
-      }
-    },
-    "New items remain encrypted. Viewing, copying, and pasting stay blocked until you unlock.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yeni öğeler şifreli kalır. Kilidi açana kadar görüntüleme, kopyalama ve yapıştırma engellenir."
           }
         }
       }
@@ -3097,12 +3181,12 @@
         }
       }
     },
-    "Open Settings from Control Center to recover encrypted storage.": {
+    "Open Settings from Control Center to inspect or recover clipboard storage.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Şifreli depolamayı kurtarmak için Kontrol Merkezi'nden Ayarlar'ı açın."
+            "value": "Pano depolamasını incelemek veya kurtarmak için Kontrol Merkezi'nden Ayarlar'ı açın."
           }
         }
       }
@@ -3273,6 +3357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Duraklatıldı"
+          }
+        }
+      }
+    },
+    "Percentage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüzde"
           }
         }
       }
@@ -3467,6 +3561,26 @@
         }
       }
     },
+    "Rate Unit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hız Birimi"
+          }
+        }
+      }
+    },
+    "Read": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okuma"
+          }
+        }
+      }
+    },
     "Ready": {
       "localizations": {
         "tr": {
@@ -3537,24 +3651,18 @@
         }
       }
     },
-    "Recover from Encrypted Archive": {
+    "Recover from Password-Protected Archive": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Şifreli Arşivden Kurtar"
+            "value": "Parola Korumalı Arşivden Kurtar"
           }
         }
       }
     },
     "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish."
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -3563,12 +3671,52 @@
         }
       }
     },
-    "Recovery failed without replacing the previous database: %arg. Quit and reopen Clipboard History.": {
+    "Recovery failed and rollback could not be verified: %arg. Do not relaunch until the rollback backup is inspected.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Önceki veritabanı değiştirilmeden kurtarma başarısız oldu: %arg. Clipboard History'yi kapatıp yeniden açın."
+            "value": "Kurtarma başarısız oldu ve geri alma doğrulanamadı: %arg. Geri alma yedeği incelenene kadar uygulamayı yeniden başlatmayın."
+          }
+        }
+      }
+    },
+    "Recovery failed and the previous database was restored: %arg. Quit and reopen Clipboard History.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma başarısız oldu ve önceki veritabanı geri yüklendi: %arg. Clipboard History uygulamasından çıkıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery failed before replacing the previous database: %arg. Quit and reopen Clipboard History.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma önceki veritabanı değiştirilmeden başarısız oldu: %arg. Clipboard History uygulamasından çıkıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery installation failed and rollback could not be verified: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma kurulumu başarısız oldu ve geri alma doğrulanamadı: %arg"
+          }
+        }
+      }
+    },
+    "Recovery installation failed and the previous database was restored: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma kurulumu başarısız oldu ve önceki veritabanı geri yüklendi: %arg"
           }
         }
       }
@@ -3605,16 +3753,30 @@
     },
     "Removed %arg items and reclaimed %arg.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Removed %1$arg items and reclaimed %2$arg."
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$arg öğe kaldırıldı ve %2$arg alan geri kazanıldı."
+          }
+        }
+      }
+    },
+    "Requesting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İsteniyor"
+          }
+        }
+      }
+    },
+    "Requesting System Audio Recording access…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ses Kaydı erişimi isteniyor…"
           }
         }
       }
@@ -3729,6 +3891,16 @@
         }
       }
     },
+    "Reveal Sensitive Content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas İçeriği Göster"
+          }
+        }
+      }
+    },
     "Reveal in Finder": {
       "localizations": {
         "tr": {
@@ -3829,22 +4001,22 @@
         }
       }
     },
+    "Save Anyway": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yine de Kaydet"
+          }
+        }
+      }
+    },
     "Save Changes": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Değişiklikleri Kaydet"
-          }
-        }
-      }
-    },
-    "Save Encrypted": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şifreli Kaydet"
           }
         }
       }
@@ -4039,12 +4211,12 @@
         }
       }
     },
-    "Sensitive content could not be saved securely.": {
+    "Sensitive content could not be saved.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hassas içerik güvenli biçimde kaydedilemedi."
+            "value": "Hassas içerik kaydedilemedi."
           }
         }
       }
@@ -4369,6 +4541,16 @@
         }
       }
     },
+    "Temperature Unit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık Birimi"
+          }
+        }
+      }
+    },
     "Temperature is read directly from validated AppleSMC or Apple Silicon HID CPU/SoC die sensors. No estimated temperature is shown when a verified sensor is unavailable.": {
       "localizations": {
         "tr": {
@@ -4459,6 +4641,26 @@
         }
       }
     },
+    "The clipboard item could not be deleted. Nothing was removed from history.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğesi silinemedi. Geçmişten hiçbir şey kaldırılmadı."
+          }
+        }
+      }
+    },
+    "The clipboard items could not be deleted. Nothing was removed from history.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğeleri silinemedi. Geçmişten hiçbir şey kaldırılmadı."
+          }
+        }
+      }
+    },
     "The default audio output device is unavailable.": {
       "localizations": {
         "tr": {
@@ -4515,6 +4717,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geçmiş veritabanı kapalı."
+          }
+        }
+      }
+    },
+    "The item was deleted, but residual file cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğe silindi ancak kalıntı dosya temizliği tamamlanamadı. Temizleme yeniden denenecek."
+          }
+        }
+      }
+    },
+    "The items were deleted, but residual file cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğeler silindi ancak kalıntı dosya temizliği tamamlanamadı. Temizleme yeniden denenecek."
           }
         }
       }
@@ -4675,6 +4897,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bu Clipboard History arşiv sürümü desteklenmiyor."
+          }
+        }
+      }
+    },
+    "This audio stream format is unsupported; native audio was restored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ses akışı biçimi desteklenmiyor; yerel ses geri yüklendi."
           }
         }
       }
@@ -4859,6 +5091,16 @@
         }
       }
     },
+    "Unlock Clipboard History before accessing a sensitive item.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas bir öğeye erişmeden önce Clipboard History kilidini açın."
+          }
+        }
+      }
+    },
     "Unlock Clipboard History before restoring an item.": {
       "localizations": {
         "tr": {
@@ -4949,14 +5191,18 @@
         }
       }
     },
+    "Used / Total": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanılan / Toplam"
+          }
+        }
+      }
+    },
     "User %arg · System %arg": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "User %1$arg · System %2$arg"
-          }
-        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -5035,22 +5281,22 @@
         }
       }
     },
-    "When enabled, new clipboard items are encrypted and saved while the application is locked.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Etkinleştirildiğinde, uygulama kilitliyken yeni pano öğeleri şifrelenip kaydedilir."
-          }
-        }
-      }
-    },
     "Wired": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Kablolu"
+          }
+        }
+      }
+    },
+    "Write": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazma"
           }
         }
       }

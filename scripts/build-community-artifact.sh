@@ -82,21 +82,21 @@ helper_minimum_os=$(otool -l "$helper_app/Contents/MacOS/ClipboardHistoryLoginIt
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$artifact_app/Contents/Info.plist")
 build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$artifact_app/Contents/Info.plist")
 beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifact_app/Contents/Info.plist")
-[[ "$version" == "1.0.0" && "$build" == "10002" && "$beta" == "1.0.0-beta.2" ]] || {
+[[ "$version" == "1.0.0" && "$build" == "10003" && "$beta" == "1.0.0-beta.3" ]] || {
   print -u2 "artifact build: version mismatch: $version ($build), $beta"
   exit 1
 }
 
-zip="$output_directory/ClipboardHistory-1.0.0-beta.2-arm64.zip"
-dmg="$output_directory/ClipboardHistory-1.0.0-beta.2-arm64.dmg"
-spdx="$output_directory/ClipboardHistory-1.0.0-beta.2-arm64.spdx.json"
+zip="$output_directory/ClipboardHistory-1.0.0-beta.3-arm64.zip"
+dmg="$output_directory/ClipboardHistory-1.0.0-beta.3-arm64.dmg"
+spdx="$output_directory/ClipboardHistory-1.0.0-beta.3-arm64.spdx.json"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
-hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname 'ClipboardHistory 1.0.0-beta.2' "$dmg"
+hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname 'ClipboardHistory 1.0.0-beta.3' "$dmg"
 hdiutil verify "$dmg" >/dev/null
 unzip -tq "$zip" >/dev/null
 syft scan "dir:$artifact_app" \
   --source-name ClipboardHistory \
-  --source-version 1.0.0-beta.2 \
+  --source-version 1.0.0-beta.3 \
   -o "spdx-json=$spdx"
 jq -e '.spdxVersion == "SPDX-2.3" and .name == "ClipboardHistory"' "$spdx" >/dev/null
 (

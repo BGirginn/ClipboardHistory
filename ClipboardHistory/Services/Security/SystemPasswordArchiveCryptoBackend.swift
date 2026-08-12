@@ -5,9 +5,12 @@ import Security
 
 struct SystemPasswordArchiveCryptoBackend: PasswordArchiveCryptoBackend {
     func randomData(count: Int) -> (status: OSStatus, data: Data) {
+        guard count >= 0 else { return (errSecParam, Data()) }
+        guard count > 0 else { return (errSecSuccess, Data()) }
         var data = Data(count: count)
         let status = data.withUnsafeMutableBytes { buffer in
-            SecRandomCopyBytes(kSecRandomDefault, buffer.count, buffer.baseAddress!)
+            guard let baseAddress = buffer.baseAddress else { return errSecAllocate }
+            return SecRandomCopyBytes(kSecRandomDefault, buffer.count, baseAddress)
         }
         return (status, data)
     }
@@ -18,14 +21,16 @@ struct SystemPasswordArchiveCryptoBackend: PasswordArchiveCryptoBackend {
         rounds: UInt32,
         keyLength: Int
     ) -> (status: Int32, data: Data) {
+        guard keyLength >= 0 else { return (Int32(kCCParamError), Data()) }
         var keyData = Data(count: keyLength)
-        let status = password.withCString { passwordBytes in
+        let passwordData = Data(password.utf8)
+        let status = passwordData.withUnsafeBytes { passwordBytes in
             salt.withUnsafeBytes { saltBytes in
                 keyData.withUnsafeMutableBytes { keyBytes in
                     CCKeyDerivationPBKDF(
                         CCPBKDFAlgorithm(kCCPBKDF2),
-                        passwordBytes,
-                        strlen(passwordBytes),
+                        passwordBytes.baseAddress?.assumingMemoryBound(to: CChar.self),
+                        passwordBytes.count,
                         saltBytes.bindMemory(to: UInt8.self).baseAddress,
                         salt.count,
                         CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),

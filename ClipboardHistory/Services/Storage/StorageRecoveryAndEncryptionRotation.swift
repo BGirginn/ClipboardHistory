@@ -1,17 +1,51 @@
 import Foundation
 import SQLite3
 
+struct ClearOperationManifest: Codable, Equatable, Sendable {
+    let id: String
+}
+
 extension StorageService {
-    func rotateEncryptionKeyAfterCompleteErasure() throws {
-        if let keyProvider {
-            _ = try keyProvider.loadOrCreateKey()
-            let keyData = try KeychainService.generateRandomKey()
-            try keyProvider.replaceKey(with: keyData)
-            encryption = try EncryptionService(keyData: keyData)
-        } else {
-            encryption = .ephemeral()
+    func recoverInterruptedClearOperations() throws {
+        let directories = try fileManager.contentsOfDirectory(
+            at: operationsDirectory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ).filter { $0.lastPathComponent.hasPrefix("clear-") }
+        guard !directories.isEmpty else { return }
+        let committedID = try settingValue(for: "lastCommittedClearOperation")
+        for quarantine in directories {
+            let manifestURL = quarantine.appending(path: "manifest.json")
+            guard let data = try? Data(contentsOf: manifestURL),
+                  let manifest = try? JSONDecoder().decode(ClearOperationManifest.self, from: data),
+                  manifest.id == quarantine.lastPathComponent else {
+                throw DatabaseError.executionFailed("invalid clear-operation manifest")
+            }
+            if committedID == manifest.id {
+                try fileManager.removeItem(at: quarantine)
+                try deleteSettingValue(for: "lastCommittedClearOperation")
+            } else {
+                try restoreClearQuarantine(quarantine)
+            }
         }
-        AppLog.storage.notice("Encryption key rotated after complete history erasure")
+    }
+
+    private func restoreClearQuarantine(_ quarantine: URL) throws {
+        for destination in [
+            imagesDirectory, thumbnailsDirectory, payloadsDirectory,
+            backupsDirectory, stagingDirectory
+        ] {
+            let source = quarantine.appending(
+                path: destination.lastPathComponent,
+                directoryHint: .isDirectory
+            )
+            guard fileManager.fileExists(atPath: source.path) else { continue }
+            if fileManager.fileExists(atPath: destination.path) {
+                try fileManager.removeItem(at: destination)
+            }
+            try fileManager.moveItem(at: source, to: destination)
+        }
+        try fileManager.removeItem(at: quarantine)
     }
 
     func encryptionService() throws -> EncryptionService {
@@ -30,12 +64,15 @@ extension StorageService {
         return liveEncryption
     }
 
-    func deleteLogicalFile(_ filename: String, from directory: URL) {
-        guard let filename = ManagedFilename(filename) else { return }
+    func deleteLogicalFile(_ filename: String, from directory: URL) throws {
+        guard let filename = ManagedFilename(filename) else {
+            throw DatabaseError.unsafeFilename
+        }
         for encrypted in [false, true] {
             let url = physicalURL(filename: filename.value, directory: directory, encrypted: encrypted)
             if fileManager.fileExists(atPath: url.path) {
-                try? fileManager.removeItem(at: url)
+                try operationFailureInjector?(.removeAsset(filename.value))
+                try fileManager.removeItem(at: url)
             }
         }
     }
@@ -93,7 +130,7 @@ extension StorageService {
     func createDirectoriesIfNeeded() throws {
         for directory in [
             imagesDirectory, thumbnailsDirectory, payloadsDirectory,
-            backupsDirectory, stagingDirectory
+            backupsDirectory, stagingDirectory, operationsDirectory
         ] {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }

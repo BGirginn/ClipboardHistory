@@ -13,7 +13,8 @@ struct SecretDetectionService: Sendable {
         var score = 0.0
         var signals: [String] = []
         let candidates: [(String, String, Double)] = [
-            (#"-----BEGIN (OPENSSH|RSA|EC|DSA|PGP|PRIVATE) PRIVATE KEY-----"#, "private-key", 1.0),
+            (#"-----BEGIN (?:OPENSSH |RSA |EC |DSA |ENCRYPTED )?PRIVATE KEY-----"#, "private-key", 1.0),
+            (#"-----BEGIN PGP PRIVATE KEY BLOCK-----"#, "private-key", 1.0),
             (#"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b"#, "jwt", 0.95),
             (#"\bgh[pousr]_[A-Za-z0-9]{20,}\b"#, "github-token", 0.95),
             (#"\bsk-[A-Za-z0-9_-]{20,}\b"#, "api-key-prefix", 0.9),

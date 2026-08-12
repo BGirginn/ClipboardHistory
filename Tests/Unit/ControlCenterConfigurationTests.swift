@@ -4,11 +4,14 @@ import XCTest
 
 @MainActor
 final class ControlCenterConfigurationTests: XCTestCase {
-    func testDefaultsUseOneControlCenterItemAndShowEveryModuleInsideIt() {
+    func testDefaultsUseOneControlCenterItemAndKeepExperimentalAudioMixerHidden() {
         let context = makeContext()
 
         XCTAssertTrue(context.model.configuration.showsControlCenterItem)
-        XCTAssertEqual(context.model.controlCenterFeatures.map(\.id), UtilityFeatureID.allCases)
+        XCTAssertEqual(
+            context.model.controlCenterFeatures.map(\.id),
+            UtilityFeatureID.allCases.filter { $0 != .audioMixer }
+        )
         XCTAssertTrue(context.model.standaloneFeatures.isEmpty)
         XCTAssertEqual(
             context.model.configuration(for: .notes).clickAction,
@@ -89,13 +92,14 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 2)
+        XCTAssertEqual(migrated.version, 3)
         XCTAssertFalse(migrated.showsControlCenterItem)
         let notes = try XCTUnwrap(migrated.features.first { $0.id == .notes })
         XCTAssertFalse(notes.placement.showsInControlCenter)
         XCTAssertTrue(notes.placement.showsStandaloneItem)
         XCTAssertEqual(notes.clickAction, .newNote)
         XCTAssertEqual(migrated.metricGroup, .defaults)
+        XCTAssertEqual(migrated.metricFormats, .defaults)
         XCTAssertNotNil(migrated.features.first { $0.id == .systemMonitor })
         XCTAssertNotNil(migrated.features.first { $0.id == .audioMixer })
     }
@@ -112,6 +116,69 @@ final class ControlCenterConfigurationTests: XCTestCase {
                 )
             }
         }
+    }
+
+    func testVersionThreeFormatsPersistAndEmptyMetricGroupCannotHideEveryItem() throws {
+        let context = makeContext()
+        var formats = MetricFormatPreferences.defaults
+        formats.memory = .usedAndTotal
+        formats.temperature = .fahrenheit
+        formats.rate = .megabytes
+        context.model.setMetricFormats(formats)
+
+        let reloaded = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        )
+        XCTAssertEqual(reloaded.configuration.metricFormats, formats)
+
+        let invalid = MenuBarConfiguration(
+            version: 2,
+            showsControlCenterItem: false,
+            features: reloaded.configuration.features.map {
+                var feature = $0
+                feature.placement.showsStandaloneItem = false
+                return feature
+            },
+            metricGroup: MenuBarDisplayGroup(
+                isVisible: true,
+                showsSeparateItems: false,
+                metrics: [],
+                style: .compact
+            )
+        )
+        context.defaults.set(try JSONEncoder().encode(invalid), forKey: "menuBarConfiguration.v1")
+        XCTAssertTrue(
+            ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: context.defaults)
+            ).configuration.showsControlCenterItem
+        )
+    }
+
+    func testMetricVisibilityOrderingAndBoundaryMovesPersist() {
+        let context = makeContext()
+
+        for metric in MenuBarMetricID.allCases {
+            context.model.setMetricVisible(false, metric: metric)
+        }
+        XCTAssertTrue(context.model.configuration.metricGroup.metrics.isEmpty)
+        XCTAssertFalse(context.model.configuration.metricGroup.isVisible)
+
+        context.model.setMetricVisible(true, metric: .memory)
+        context.model.setMetricVisible(true, metric: .cpu)
+        context.model.setMetricGroupVisible(true)
+        XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.memory, .cpu])
+
+        context.model.moveMetric(.cpu, direction: -1)
+        XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.cpu, .memory])
+        context.model.moveMetric(.cpu, direction: -1)
+        context.model.moveMetric(.memory, direction: 1)
+        context.model.moveMetric(.temperature, direction: 1)
+        XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.cpu, .memory])
+
+        let reloaded = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        )
+        XCTAssertEqual(reloaded.configuration.metricGroup.metrics, [.cpu, .memory])
     }
 
     private func makeContext() -> (model: ControlCenterModel, defaults: UserDefaults) {

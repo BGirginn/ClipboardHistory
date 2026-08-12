@@ -22,13 +22,7 @@ struct AppShellView: View {
     }
 
     var body: some View {
-        Group {
-            if !clipboard.isStorageAvailable {
-                ClipboardStorageRecoveryView(viewModel: model.settingsFeature)
-            } else {
-                featureContent
-            }
-        }
+        featureContent
         .frame(
             minWidth: AppDesign.panelMinimumWidth,
             idealWidth: AppDesign.panelIdealWidth,

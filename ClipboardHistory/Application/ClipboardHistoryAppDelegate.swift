@@ -5,11 +5,13 @@ import Foundation
 final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     typealias AppModelFactory = @MainActor () -> AppModel
     typealias MenuBarControllerFactory = @MainActor (AppModel) -> MenuBarController
+    typealias TerminationReply = @MainActor (NSApplication, Bool) -> Void
 
     private let environment: [String: String]
     private let arguments: [String]
     private let appModelFactory: AppModelFactory
     private let menuBarControllerFactory: MenuBarControllerFactory
+    private let terminationReply: TerminationReply
     private var appModel: AppModel?
     private var menuBarController: MenuBarController?
     private var terminationTask: Task<Void, Never>?
@@ -22,7 +24,8 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             environment: ProcessInfo.processInfo.environment,
             arguments: ProcessInfo.processInfo.arguments,
             appModelFactory: { AppModel() },
-            menuBarControllerFactory: { MenuBarController(appModel: $0) }
+            menuBarControllerFactory: { MenuBarController(appModel: $0) },
+            terminationReply: { $0.reply(toApplicationShouldTerminate: $1) }
         )
     }
 
@@ -30,25 +33,27 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         environment: [String: String],
         arguments: [String] = [],
         appModelFactory: @escaping AppModelFactory,
-        menuBarControllerFactory: @escaping MenuBarControllerFactory
+        menuBarControllerFactory: @escaping MenuBarControllerFactory,
+        terminationReply: @escaping TerminationReply = {
+            $0.reply(toApplicationShouldTerminate: $1)
+        }
     ) {
         self.environment = environment
         self.arguments = arguments
         self.appModelFactory = appModelFactory
         self.menuBarControllerFactory = menuBarControllerFactory
+        self.terminationReply = terminationReply
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
-        guard environment["XCTestConfigurationFilePath"] == nil else {
-            AppLog.lifecycle.debug("Application services disabled for hosted unit tests")
-            return
-        }
-        #endif
-        #if DEBUG
         if environment["CLIPBOARD_HISTORY_UI_TESTING"] == "1" {
             launchForUITesting()
+            return
+        }
+        guard environment["XCTestConfigurationFilePath"] == nil else {
+            AppLog.lifecycle.debug("Application services disabled for hosted unit tests")
             return
         }
         #endif
@@ -98,11 +103,13 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             settings: AppSettings(defaults: defaults),
+            audioMixerController: AudioMixerController(defaults: defaults),
             controlCenter: ControlCenterModel(
                 store: MenuBarConfigurationStore(defaults: defaults)
             ),
             startsAutomatically: false
         )
+        appModel.controlCenter.setShownInControlCenter(true, for: .audioMixer)
         self.appModel = appModel
         let anchorWindow = makeUITestAnchorWindow()
         uiTestAnchorWindow = anchorWindow
@@ -110,19 +117,21 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             anchorWindow?.contentView
         }
         menuBarController = controller
+        let seedItems = [
+            ClipboardItem(type: .text, text: "Alpha clipboard item", hash: "ui-alpha"),
+            ClipboardItem(type: .text, text: "Beta clipboard item", hash: "ui-beta"),
+            ClipboardItem(type: .text, text: "Gamma clipboard item", hash: "ui-gamma")
+        ]
+        let seedCollection = ClipboardCollection(name: "Coverage Collection")
+        appModel.clipboard.items = seedItems
+        appModel.clipboard.collections = [seedCollection]
+        appModel.clipboard.refreshDisplayedItems()
+        controller.showPopover()
         Task {
-            await appModel.clipboard.loadHistory()
-            if appModel.clipboard.items.isEmpty {
-                await appModel.clipboard.insert(.text(value: "Alpha clipboard item", hash: "ui-alpha"))
-                await appModel.clipboard.insert(.text(value: "Beta clipboard item", hash: "ui-beta"))
-                await appModel.clipboard.insert(.text(value: "Gamma clipboard item", hash: "ui-gamma"))
+            for item in seedItems {
+                try? await appModel.clipboard.storage.upsertThrowing(item)
             }
-            if appModel.clipboard.collections.isEmpty {
-                let collection = ClipboardCollection(name: "Coverage Collection")
-                try? await appModel.clipboard.storage.upsertCollection(collection)
-                appModel.clipboard.collections = [collection]
-            }
-            controller.showPopover()
+            try? await appModel.clipboard.storage.upsertCollection(seedCollection)
         }
         AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
     }
@@ -155,20 +164,23 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let appModel else { return .terminateNow }
         guard terminationTask == nil else { return .terminateLater }
+        let terminationReply = terminationReply
         terminationTask = Task { [weak self, weak sender] in
-            let canTerminate = await appModel.shutdown()
+            let outcome = await appModel.shutdown()
+            let canTerminate = outcome.allowsTermination
             guard let self else {
-                sender?.reply(toApplicationShouldTerminate: canTerminate)
+                if let sender {
+                    terminationReply(sender, canTerminate)
+                }
                 return
             }
             if canTerminate {
                 menuBarController?.stop()
-                sender?.reply(toApplicationShouldTerminate: true)
+                if let sender { terminationReply(sender, true) }
             } else {
                 terminationTask = nil
-                menuBarController?.showPopover()
-                appModel.router.showNotes()
-                sender?.reply(toApplicationShouldTerminate: false)
+                menuBarController?.showActiveFeature()
+                if let sender { terminationReply(sender, false) }
             }
         }
         return .terminateLater

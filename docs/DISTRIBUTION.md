@@ -1,6 +1,6 @@
 # Community beta distribution
 
-`v1.0.0-beta.2` is distributed as an explicitly pre-release Community build for Apple silicon Macs running macOS 14.2 or later. It is self-signed, is not Apple-notarized, and must not be described as a production or Developer ID release.
+`v1.0.0-beta.3` is the prepared Community candidate for Apple silicon Macs running macOS 14.2 or later. It must not be described as distributed until the release gates, artifact publication, and Cask update have actually passed. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
 
 ## Stable signing identity
 
@@ -11,26 +11,26 @@ scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
 
-Changing the signing identity changes the designated requirement and can strand access to an existing login-Keychain encryption key. Export the identity from Keychain Access as an encrypted `.p12`, store it outside the repository, and never expose its password in shell arguments, logs, chat, or CI variables.
+Changing the signing identity changes the designated requirement and can strand access to encrypted Notes or the key needed for one-time migration of legacy encrypted Clipboard records. Export the identity from Keychain Access as an encrypted `.p12`, store it outside the repository, and never expose its password in shell arguments, logs, chat, or CI variables.
 
 ## Release artifacts
 
 Build from the exact clean release commit:
 
 ```sh
-scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.2
+scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.3
 ```
 
 The script requires `syft` and produces:
 
-- `ClipboardHistory-1.0.0-beta.2-arm64.zip`
-- `ClipboardHistory-1.0.0-beta.2-arm64.dmg`
-- `ClipboardHistory-1.0.0-beta.2-arm64.spdx.json`
+- `ClipboardHistory-1.0.0-beta.3-arm64.zip`
+- `ClipboardHistory-1.0.0-beta.3-arm64.dmg`
+- `ClipboardHistory-1.0.0-beta.3-arm64.spdx.json`
 - `SHA256SUMS`
 - `designated-requirement.txt`
 - `signing-certificate-sha256.txt`
 
-It verifies the code signature and designated requirement, an empty final entitlement set, exact `arm64` architecture, minimum macOS 14, version `1.0.0` build `10002`, DMG and ZIP integrity, checksums, and SPDX metadata.
+It verifies the code signature and designated requirement, an empty final entitlement set, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10003`, DMG and ZIP integrity, checksums, and SPDX metadata.
 
 The Community beta retains normal quarantine behavior. If Gatekeeper blocks first launch, document Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway. Never remove quarantine, run `xattr`, or suppress the warning in the Cask.
 

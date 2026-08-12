@@ -1,37 +1,59 @@
 import AppKit
 import Foundation
 
+@MainActor
 struct BrowserExtensionInstaller {
     private static let nativeHostName = "com.brgirgin.clipboardhistory.audiomixer"
     private static let extensionID = "cgflaocbdgjkjlnoiolchhogcaepfmpf"
+    private let supportRoot: URL
+    private let resourceBundle: Bundle
+    private let helperURL: URL
+    private let fileManager: FileManager
+    private let workspace: any WorkspaceRevealing
+
+    init(
+        supportRoot: URL = .applicationSupportDirectory,
+        resourceBundle: Bundle = .main,
+        helperURL: URL? = nil,
+        fileManager: FileManager = .default,
+        workspace: any WorkspaceRevealing = SystemWorkspaceRevealer()
+    ) {
+        self.supportRoot = supportRoot
+        self.resourceBundle = resourceBundle
+        self.helperURL = helperURL ?? resourceBundle.bundleURL.appending(
+            path: "Contents/Library/LoginItems/ClipboardHistoryLoginItem.app/Contents/MacOS/ClipboardHistoryLoginItem"
+        )
+        self.fileManager = fileManager
+        self.workspace = workspace
+    }
 
     func install() throws -> URL {
-        let supportDirectory = URL.applicationSupportDirectory
+        let supportDirectory = supportRoot
             .appending(path: "ClipboardHistory", directoryHint: .isDirectory)
         let extensionDirectory = supportDirectory
             .appending(path: "BrowserAudioExtension", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(
+        try fileManager.createDirectory(
             at: supportDirectory,
             withIntermediateDirectories: true
         )
-        if FileManager.default.fileExists(atPath: extensionDirectory.path) {
-            try FileManager.default.removeItem(at: extensionDirectory)
+        if fileManager.fileExists(atPath: extensionDirectory.path) {
+            try fileManager.removeItem(at: extensionDirectory)
         }
-        try FileManager.default.createDirectory(
+        try fileManager.createDirectory(
             at: extensionDirectory,
             withIntermediateDirectories: true
         )
         for resource in extensionResources {
-            guard let source = Bundle.main.url(
+            guard let source = resourceBundle.url(
                 forResource: resource.name,
                 withExtension: resource.extension
             ) else { throw CocoaError(.fileNoSuchFile) }
             let destination = extensionDirectory.appending(path: resource.destination)
-            try FileManager.default.createDirectory(
+            try fileManager.createDirectory(
                 at: destination.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            try FileManager.default.copyItem(at: source, to: destination)
+            try fileManager.copyItem(at: source, to: destination)
         }
         try installNativeHostManifests()
         return extensionDirectory
@@ -52,13 +74,11 @@ struct BrowserExtensionInstaller {
 
     func revealExtensionDirectory() throws {
         let directory = try install()
-        NSWorkspace.shared.activateFileViewerSelecting([directory])
+        workspace.reveal([directory])
     }
 
     private func installNativeHostManifests() throws {
-        let helperURL = Bundle.main.bundleURL
-            .appending(path: "Contents/Library/LoginItems/ClipboardHistoryLoginItem.app/Contents/MacOS/ClipboardHistoryLoginItem")
-        guard FileManager.default.isExecutableFile(atPath: helperURL.path) else {
+        guard fileManager.isExecutableFile(atPath: helperURL.path) else {
             throw CocoaError(.fileNoSuchFile)
         }
         let manifest: [String: Any] = [
@@ -70,14 +90,14 @@ struct BrowserExtensionInstaller {
         ]
         let data = try JSONSerialization.data(withJSONObject: manifest, options: [.prettyPrinted, .sortedKeys])
         for directory in nativeMessagingDirectories() {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
             let destination = directory.appending(path: "\(Self.nativeHostName).json")
             try data.write(to: destination, options: .atomic)
         }
     }
 
     private func nativeMessagingDirectories() -> [URL] {
-        let support = URL.applicationSupportDirectory
+        let support = supportRoot
         return [
             support.appending(path: "Google/Chrome/NativeMessagingHosts", directoryHint: .isDirectory),
             support.appending(path: "BraveSoftware/Brave-Browser/NativeMessagingHosts", directoryHint: .isDirectory),

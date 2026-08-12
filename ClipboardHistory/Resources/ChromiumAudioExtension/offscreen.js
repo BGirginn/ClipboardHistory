@@ -7,6 +7,7 @@ const browserName = navigator.brave
     : /Arc\//.test(navigator.userAgent)
       ? "Arc"
       : "Chrome";
+const browserID = browserName.toLowerCase();
 
 function connectNative() {
   if (nativePort) return;
@@ -28,9 +29,9 @@ function publishState() {
   nativePort.postMessage({
     version: 1,
     type: "state",
-    source: "chromium",
+    source: `chromium:${browserID}`,
     tabs: Array.from(captures.values()).map(item => ({
-      id: `chromium:${item.tabId}`,
+      id: `chromium:${browserID}:${item.tabId}`,
       browser: browserName,
       title: item.title,
       canSetVolume: true,
@@ -43,8 +44,9 @@ function publishState() {
 function handleNativeCommands(message) {
   if (message.version !== 1 || !Array.isArray(message.commands)) return;
   for (const command of message.commands) {
-    if (typeof command.id !== "string" || !command.id.startsWith("chromium:")) continue;
-    const tabId = Number(command.id.slice("chromium:".length));
+    const prefix = `chromium:${browserID}:`;
+    if (typeof command.id !== "string" || !command.id.startsWith(prefix)) continue;
+    const tabId = Number(command.id.slice(prefix.length));
     if (command.action === "activate") {
       chrome.runtime.sendMessage({ type: "activate-tab", tabId }).catch(() => {});
       continue;

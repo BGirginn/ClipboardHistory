@@ -2,6 +2,7 @@ import Foundation
 
 enum AudioMixerPermissionState: Equatable, Sendable {
     case notRequested
+    case requesting
     case ready
     case denied
     case failed(String)
@@ -10,6 +11,8 @@ enum AudioMixerPermissionState: Equatable, Sendable {
         switch self {
         case .notRequested:
             String(localized: "Change an app's volume to request System Audio Recording permission.")
+        case .requesting:
+            String(localized: "Requesting System Audio Recording access…")
         case .ready:
             nil
         case .denied:

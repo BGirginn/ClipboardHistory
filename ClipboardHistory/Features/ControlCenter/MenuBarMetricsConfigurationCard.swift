@@ -11,32 +11,46 @@ struct MenuBarMetricsConfigurationCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Toggle("Show Live Metrics in Menu Bar", isOn: visibleBinding)
-            Toggle("Use Separate Menu-Bar Items", isOn: separateBinding)
-                .disabled(!model.configuration.metricGroup.isVisible)
-            Picker("Display Style", selection: styleBinding) {
-                ForEach(MenuBarMetricStyle.allCases) { style in
-                    Text(style.title).tag(style)
+            if model.configuration.metricGroup.isVisible {
+                Toggle("Use Separate Menu-Bar Items", isOn: separateBinding)
+                Picker("Display Style", selection: styleBinding) {
+                    ForEach(MenuBarMetricStyle.allCases) { style in
+                        Text(style.title).tag(style)
+                    }
                 }
-            }
-            .disabled(!model.configuration.metricGroup.isVisible)
-            Divider()
-            ForEach(MenuBarMetricID.allCases) { metric in
-                HStack {
-                    Toggle(metric.title, isOn: metricBinding(metric))
-                    Spacer()
-                    if model.configuration.metricGroup.metrics.contains(metric) {
-                        Button("Move Up", systemImage: "chevron.up") {
-                            model.moveMetric(metric, direction: -1)
+                Picker("Memory Format", selection: memoryFormatBinding) {
+                    Text("Percentage").tag(MemoryMetricFormat.percentage)
+                    Text("Used / Total").tag(MemoryMetricFormat.usedAndTotal)
+                }
+                Picker("Temperature Unit", selection: temperatureUnitBinding) {
+                    Text("Celsius").tag(TemperatureMetricUnit.celsius)
+                    Text("Fahrenheit").tag(TemperatureMetricUnit.fahrenheit)
+                }
+                Picker("Rate Unit", selection: rateUnitBinding) {
+                    Text("Automatic").tag(RateMetricUnit.automatic)
+                    Text("KB/s").tag(RateMetricUnit.kilobytes)
+                    Text("MB/s").tag(RateMetricUnit.megabytes)
+                    Text("GB/s").tag(RateMetricUnit.gigabytes)
+                }
+                Divider()
+                ForEach(MenuBarMetricID.allCases) { metric in
+                    HStack {
+                        Toggle(metric.title, isOn: metricBinding(metric))
+                        Spacer()
+                        if model.configuration.metricGroup.metrics.contains(metric) {
+                            Button("Move Up", systemImage: "chevron.up") {
+                                model.moveMetric(metric, direction: -1)
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                            .disabled(model.configuration.metricGroup.metrics.first == metric)
+                            Button("Move Down", systemImage: "chevron.down") {
+                                model.moveMetric(metric, direction: 1)
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                            .disabled(model.configuration.metricGroup.metrics.last == metric)
                         }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                        .disabled(model.configuration.metricGroup.metrics.first == metric)
-                        Button("Move Down", systemImage: "chevron.down") {
-                            model.moveMetric(metric, direction: 1)
-                        }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                        .disabled(model.configuration.metricGroup.metrics.last == metric)
                     }
                 }
             }
@@ -68,6 +82,39 @@ struct MenuBarMetricsConfigurationCard: View {
         Binding(
             get: { model.configuration.metricGroup.style },
             set: { model.setMetricStyle($0) }
+        )
+    }
+
+    private var memoryFormatBinding: Binding<MemoryMetricFormat> {
+        Binding(
+            get: { model.configuration.metricFormats.memory },
+            set: { value in
+                var formats = model.configuration.metricFormats
+                formats.memory = value
+                model.setMetricFormats(formats)
+            }
+        )
+    }
+
+    private var temperatureUnitBinding: Binding<TemperatureMetricUnit> {
+        Binding(
+            get: { model.configuration.metricFormats.temperature },
+            set: { value in
+                var formats = model.configuration.metricFormats
+                formats.temperature = value
+                model.setMetricFormats(formats)
+            }
+        )
+    }
+
+    private var rateUnitBinding: Binding<RateMetricUnit> {
+        Binding(
+            get: { model.configuration.metricFormats.rate },
+            set: { value in
+                var formats = model.configuration.metricFormats
+                formats.rate = value
+                model.setMetricFormats(formats)
+            }
         )
     }
 

@@ -62,7 +62,11 @@ struct ClipboardPanelItemActionRouter {
     }
 
     func dragProvider(_ item: ClipboardItem) -> NSItemProvider {
-        viewModel.dragProvider.make(for: item, storage: viewModel.storage)
+        if item.isSensitive {
+            viewModel.revealSensitiveDetails(item)
+            return NSItemProvider()
+        }
+        return viewModel.dragProvider.make(for: item, storage: viewModel.storage)
     }
 
     func showDetails(_ item: ClipboardItem) {

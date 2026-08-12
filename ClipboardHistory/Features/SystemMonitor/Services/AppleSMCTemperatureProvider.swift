@@ -149,7 +149,11 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
 
     private func readTemperature(_ sensor: SensorKey, connection: io_connect_t) -> Double? {
         guard let bytes = readBytes(for: sensor, connection: connection) else { return nil }
-        let type = fourCharacterString(sensor.dataType)
+        return decodeTemperature(dataType: sensor.dataType, bytes: bytes)
+    }
+
+    func decodeTemperature(dataType: UInt32, bytes: [UInt8]) -> Double? {
+        let type = fourCharacterString(dataType)
         switch type {
         case "sp78" where bytes.count >= 2:
             let raw = Int16(bitPattern: UInt16(bytes[0]) << 8 | UInt16(bytes[1]))
@@ -194,13 +198,13 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
         return output
     }
 
-    private func fourCharacterCode(_ string: String) -> UInt32? {
+    func fourCharacterCode(_ string: String) -> UInt32? {
         let bytes = Array(string.utf8)
         guard bytes.count == 4 else { return nil }
         return bytes.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
     }
 
-    private func fourCharacterString(_ value: UInt32) -> String {
+    func fourCharacterString(_ value: UInt32) -> String {
         let bytes = [
             UInt8((value >> 24) & 0xff),
             UInt8((value >> 16) & 0xff),
@@ -210,7 +214,7 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
         return String(bytes: bytes, encoding: .ascii) ?? ""
     }
 
-    private func uint32(from bytes: [UInt8]) -> UInt32 {
+    func uint32(from bytes: [UInt8]) -> UInt32 {
         guard bytes.count >= 4 else { return 0 }
         return UInt32(bytes[0]) << 24
             | UInt32(bytes[1]) << 16
@@ -218,15 +222,15 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
             | UInt32(bytes[3])
     }
 
-    private func isCPUKey(_ code: String) -> Bool {
+    func isCPUKey(_ code: String) -> Bool {
         code.hasPrefix("Tp") || code.hasPrefix("Te") || code.hasPrefix("TC")
     }
 
-    private func isTemperatureType(_ value: UInt32) -> Bool {
+    func isTemperatureType(_ value: UInt32) -> Bool {
         ["sp78", "fpe2", "flt "].contains(fourCharacterString(value))
     }
 
-    private func sensorName(for code: String) -> String {
+    func sensorName(for code: String) -> String {
         if code.hasPrefix("Te") { return String(localized: "Efficiency CPU") + " · " + code }
         if code.hasPrefix("Tp") { return String(localized: "Performance CPU") + " · " + code }
         return String(localized: "CPU Sensor") + " · " + code

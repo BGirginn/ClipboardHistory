@@ -102,6 +102,13 @@ final class AppLockService: NSObject, ObservableObject {
         return true
     }
 
+    @discardableResult
+    func authenticateSensitiveContentAccess() async -> Bool {
+        await authenticate(
+            reason: String(localized: "Authenticate to access this sensitive clipboard item")
+        )
+    }
+
     private func authenticate(reason: String) async -> Bool {
         guard !isAuthenticating else { return false }
         isAuthenticating = true

@@ -160,7 +160,7 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(pasteboard.string(forType: .string), currentText)
     }
 
-    func testDeleteClearsPasteboardBeforeAsynchronousStorageCleanup() async throws {
+    func testDeleteClearsPasteboardOnlyAfterPersistentDeletionCommits() async throws {
         let text = "clear immediately"
         pasteboard.clearContents()
         XCTAssertTrue(pasteboard.setString(text, forType: .string))
@@ -172,8 +172,12 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
 
         viewModel.delete(item)
 
-        XCTAssertNil(pasteboard.string(forType: .string))
+        XCTAssertEqual(pasteboard.string(forType: .string), text)
+        for _ in 0..<20 where !viewModel.items.isEmpty {
+            await Task.yield()
+        }
         XCTAssertTrue(viewModel.items.isEmpty)
+        XCTAssertNil(pasteboard.string(forType: .string))
     }
 
     func testDuplicateDeliveryUpdatesPasteboardIdentity() async throws {

@@ -39,14 +39,14 @@ final class AppSettingsMigrationTests: XCTestCase {
         }
     }
 
-    func testApplicationLockDefaultsToDisabledWithLockedCaptureEnabled() {
+    func testApplicationLockDefaultsToDisabledAndRemovesLockedCapturePreference() {
         withDefaults { defaults in
             let settings = AppSettings(defaults: defaults)
 
             XCTAssertFalse(settings.applicationLockEnabled)
-            XCTAssertTrue(settings.captureWhileLocked)
             XCTAssertEqual(settings.autoLockOption, .never)
-            XCTAssertEqual(defaults.integer(forKey: "applicationLockMigrationVersion"), 1)
+            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
+            XCTAssertEqual(defaults.integer(forKey: "applicationLockMigrationVersion"), 2)
         }
     }
 
@@ -57,8 +57,8 @@ final class AppSettingsMigrationTests: XCTestCase {
             let settings = AppSettings(defaults: defaults)
 
             XCTAssertTrue(settings.applicationLockEnabled)
-            XCTAssertFalse(settings.captureWhileLocked)
             XCTAssertEqual(settings.autoLockOption, .fiveMinutes)
+            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
         }
     }
 
@@ -70,13 +70,12 @@ final class AppSettingsMigrationTests: XCTestCase {
 
             let settings = AppSettings(defaults: defaults)
             XCTAssertTrue(settings.applicationLockEnabled)
-            XCTAssertFalse(settings.captureWhileLocked)
+            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
 
             settings.setApplicationLockEnabled(false)
-            settings.captureWhileLocked = true
             let reopened = AppSettings(defaults: defaults)
             XCTAssertFalse(reopened.applicationLockEnabled)
-            XCTAssertTrue(reopened.captureWhileLocked)
+            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
         }
     }
 

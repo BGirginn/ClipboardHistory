@@ -16,6 +16,8 @@ final class PrivacySecurityTests: XCTestCase {
             "SLACK_TOKEN=" + "xoxb" + "-1234567890-abcdefghijklmnopqrstuvwxyz",
             "AWS_ACCESS_KEY_ID=" + "AKIA" + "IOSFODNN7EXAMPLE",
             privateKeyMarker + "\nabc\n" + privateKeyMarker.replacingOccurrences(of: "BEGIN", with: "END"),
+            "-----BEGIN PRIVATE KEY-----\nYWJjZA==\n-----END PRIVATE KEY-----",
+            "-----BEGIN ENCRYPTED PRIVATE KEY-----\nYWJjZA==\n-----END ENCRYPTED PRIVATE KEY-----",
             "postgres://admin:highentropysecret@localhost/database",
             "4111 1111 1111 1111",
             "Recovery codes:\nABCD-1234\nEFGH-5678"
@@ -184,7 +186,7 @@ final class PrivacySecurityTests: XCTestCase {
         XCTAssertThrowsError(try PasswordArchiveCrypto.decrypt(encrypted, password: "wrong password"))
     }
 
-    func testEncryptedDatabaseTextIsNotReadableAtRest() async throws {
+    func testLegacyEncryptedDatabaseItemMigratesToOpenStorage() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "EncryptedDatabaseTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -205,7 +207,8 @@ final class PrivacySecurityTests: XCTestCase {
         let diskContents = try combinedDiskContents(in: directory)
 
         XCTAssertEqual(loaded.first?.text, secret)
-        XCTAssertNil(diskContents.range(of: Data(secret.utf8)))
+        XCTAssertNotNil(diskContents.range(of: Data(secret.utf8)))
+        XCTAssertFalse(try XCTUnwrap(loaded.first).isEncrypted)
         await storage.close()
 
         let reopened = StorageService(baseDirectory: directory, encryptionService: encryption)
@@ -233,14 +236,14 @@ final class PrivacySecurityTests: XCTestCase {
         let suite = "PrivacySecurityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(EncryptionMode.all.rawValue, forKey: "encryptionMode")
         let first = AppSettings(defaults: defaults)
-        first.encryptionMode = .all
         first.secretDetectionEnabled = false
         first.duplicateDetectionScope = .lastHour
         first.excludedBundleIdentifiersText = "com.example.private"
 
         let second = AppSettings(defaults: defaults)
-        XCTAssertEqual(second.encryptionMode, .all)
+        XCTAssertNil(defaults.object(forKey: "encryptionMode"))
         XCTAssertFalse(second.secretDetectionEnabled)
         XCTAssertEqual(second.duplicateDetectionScope, .lastHour)
         XCTAssertTrue(second.excludedBundleIdentifiers.contains("com.example.private"))

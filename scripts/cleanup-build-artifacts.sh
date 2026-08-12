@@ -141,6 +141,7 @@ is_known_temporary_artifact() {
     clipboardhistory-arm64-builds.*|\
     clipboardhistory-community-build.*|\
     clipboardhistory-community-stage.*|\
+    clipboardhistory-coverage-*|\
     clipboardhistory-coverage.*.json|\
     clipboardhistory-localization.*|\
     clipboardhistory-mutation-*.*|\
@@ -157,6 +158,7 @@ is_known_temporary_artifact() {
     ClipboardHistoryKeyFailure-*|\
     ClipboardHistoryPastePermission-*|\
     ClipboardHistoryPasteStack-*|\
+    ClipboardHistoryCoverage*|\
     ClipboardHistoryTamperedText-*|\
     ClipboardHistoryTests-*|\
     ClipboardHistory-UITesting-*|\

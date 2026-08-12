@@ -32,10 +32,10 @@ run_mutation() {
       perl -0pi -e 's/archive\.itemHashes\[item\.id\.uuidString\.lowercased\(\)\] == \(try itemChecksum\(item\)\)/archive.itemHashes[item.id.uuidString.lowercased()] != (try itemChecksum(item))/' "$checkout/ClipboardHistory/Services/Storage/ExportImportService.swift"
       ;;
     lock_capture)
-      perl -0pi -e 's/guard !isLocked \|\| settings\.captureWhileLocked else/guard isLocked || settings.captureWhileLocked else/' "$checkout/ClipboardHistory/ViewModels/ClipboardHistoryMutationController.swift"
+      perl -0pi -e 's/guard !isLocked else/guard isLocked else/' "$checkout/ClipboardHistory/Features/Clipboard/ViewModels/ClipboardHistoryMutationController.swift"
       ;;
-    key_rotation)
-      perl -0pi -e 's/\} else \{\n            encryption = \.ephemeral\(\)\n        \}/} else {\n            return\n        }/' "$checkout/ClipboardHistory/Services/Storage/StorageRecoveryAndEncryptionRotation.swift"
+    open_storage_migration)
+      perl -0pi -e 's/let shouldEncrypt = false/let shouldEncrypt = true/' "$checkout/ClipboardHistory/Services/Storage/StorageMaintenanceService.swift"
       ;;
   esac
 
@@ -76,8 +76,8 @@ run_mutation retention_boundary ClipboardHistoryTests/AdvancedClipboardTests/tes
 run_mutation authenticated_decryption ClipboardHistoryTests/PrivacySecurityTests/testAESGCMRoundTripAndTamperDetection
 run_mutation search_conjunction ClipboardHistoryTests/ClipboardSearchQueryTests/testFieldFiltersMatchProtectedAndPublicMetadata
 run_mutation archive_manifest ClipboardHistoryTests/AdvancedClipboardTests/testImportRejectsTamperedItemManifest
-run_mutation lock_capture ClipboardHistoryTests/ApplicationLockTests/testLockedCapturePreferenceEncryptsOrDropsNewItems
-run_mutation key_rotation ClipboardHistoryTests/StorageServiceTests/testClearRotatesEncryptionKeyForCryptographicErasure
+run_mutation lock_capture ClipboardHistoryTests/ApplicationLockTests/testLockedCaptureIsAlwaysDroppedWithoutEncryption
+run_mutation open_storage_migration ClipboardHistoryTests/PrivacySecurityTests/testLegacyEncryptedDatabaseItemMigratesToOpenStorage
 
 print "mutation summary: killed=$killed survived=$survived"
 (( survived == 0 ))

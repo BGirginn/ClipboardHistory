@@ -40,10 +40,19 @@ extension ClipboardHistoryViewModel {
     func previewSelected() {
         guard let selectedItem,
               [.image, .imageGroup, .pdf, .files].contains(selectedItem.type) else { return }
-        requestPreview?(selectedItem)
+        if !selectedItem.isSensitive {
+            requestPreview?(selectedItem)
+            return
+        }
+        Task { [weak self] in
+            guard let self,
+                  await authorizeSensitiveAccess(to: selectedItem) else { return }
+            requestPreview?(selectedItem)
+        }
     }
 
     func closePanel() {
+        revokeSensitiveContentAccess()
         requestClosePanel?()
     }
 
@@ -133,21 +142,20 @@ extension ClipboardHistoryViewModel {
             enabled: settings.applicationLockEnabled,
             option: settings.autoLockOption
         )
+        let maintenancePreferences = StorageMaintenancePreferences(
+            historyLimit: settings.historyLimit,
+            retentionDays: settings.retentionDays,
+            imageRetentionDays: settings.imageRetentionDays,
+            maximumStorageMegabytes: settings.maximumStorageMegabytes,
+            thumbnailCacheMegabytes: settings.thumbnailCacheMegabytes
+        )
+        guard maintenancePreferences != appliedMaintenancePreferences else { return }
+        appliedMaintenancePreferences = maintenancePreferences
         maintenanceTask?.cancel()
         maintenanceTask = Task { [weak self] in
             guard let self else { return }
             await thumbnailService.setCacheLimit(megabytes: settings.thumbnailCacheMegabytes)
             guard !Task.isCancelled else { return }
-            if appliedEncryptionMode != settings.encryptionMode {
-                await drainPendingItemWrites()
-                guard !Task.isCancelled else { return }
-                appliedEncryptionMode = settings.encryptionMode
-                let persistent = items.filter { temporaryContent[$0.id] == nil }
-                await storage.migrateEncryption(items: persistent, mode: settings.encryptionMode)
-                let temporary = items.filter { temporaryContent[$0.id] != nil }
-                items = temporary + (await storage.loadHistory())
-                refreshDisplayedItems()
-            }
             guard !Task.isCancelled else { return }
             await enforceUnpinnedHistoryLimit()
             guard !Task.isCancelled else { return }
@@ -283,6 +291,18 @@ extension ClipboardHistoryViewModel {
     }
 
     func reveal(_ item: ClipboardItem) {
+        if !item.isSensitive {
+            revealAuthorized(item)
+            return
+        }
+        Task { [weak self] in
+            guard let self,
+                  await authorizeSensitiveAccess(to: item) else { return }
+            revealAuthorized(item)
+        }
+    }
+
+    private func revealAuthorized(_ item: ClipboardItem) {
         if item.type == .files, let path = item.fileURLs.first {
             workspaceRevealer.reveal([URL(fileURLWithPath: path)])
             return
@@ -299,7 +319,9 @@ extension ClipboardHistoryViewModel {
 
     func exportImage(_ item: ClipboardItem, asJPEG: Bool) {
         Task { [weak self] in
-            await self?.performImageExport(item, asJPEG: asJPEG)
+            guard let self,
+                  await authorizeSensitiveAccess(to: item) else { return }
+            await performImageExport(item, asJPEG: asJPEG)
         }
     }
 

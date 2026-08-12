@@ -11,10 +11,10 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     private var isRunning = false
     private var routedOutputDevice = AudioDeviceID(kAudioObjectUnknown)
 
-    init(processObjectID: AudioObjectID, gain: Double) throws {
+    init(processObjectIDs: Set<AudioObjectID>, gain: Double) throws {
         storeGain(gain)
         do {
-            try start(processObjectID: processObjectID)
+            try start(processObjectIDs: processObjectIDs)
         } catch {
             stop()
             throw error
@@ -53,12 +53,12 @@ final class ProcessAudioPipeline: @unchecked Sendable {
         routedOutputDevice = kAudioObjectUnknown
     }
 
-    private func start(processObjectID: AudioObjectID) throws {
+    private func start(processObjectIDs: Set<AudioObjectID>) throws {
         let outputDevice = try defaultOutputDevice()
         routedOutputDevice = outputDevice
         let outputUID = try deviceUID(outputDevice)
         let tapDescription = CATapDescription(
-            processes: [processObjectID],
+            processes: processObjectIDs.sorted(),
             deviceUID: outputUID,
             stream: 0
         )
@@ -90,6 +90,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
         guard aggregateStatus == noErr else {
             throw ProcessAudioEngineError.aggregateDeviceCreationFailed(aggregateStatus)
         }
+        try validateStreamFormat(of: aggregateDeviceID)
 
         var createdIOProc: AudioDeviceIOProcID?
         let ioStatus = AudioDeviceCreateIOProcIDWithBlock(
@@ -114,6 +115,14 @@ final class ProcessAudioPipeline: @unchecked Sendable {
         outputData: UnsafeMutablePointer<AudioBufferList>
     ) {
         let gain = Float(bitPattern: UInt32(bitPattern: OSAtomicAdd32Barrier(0, &gainBits)))
+        Self.processBuffers(inputData: inputData, outputData: outputData, gain: gain)
+    }
+
+    static func processBuffers(
+        inputData: UnsafePointer<AudioBufferList>,
+        outputData: UnsafeMutablePointer<AudioBufferList>,
+        gain: Float
+    ) {
         let inputBuffers = UnsafeMutableAudioBufferListPointer(
             UnsafeMutablePointer(mutating: inputData)
         )
@@ -140,11 +149,46 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     }
 
     private func storeGain(_ gain: Double) {
-        let newValue = Int32(bitPattern: Float(min(max(gain, 0), 1)).bitPattern)
+        let newValue = Int32(bitPattern: Self.normalizedGain(gain).bitPattern)
         while true {
             let oldValue = OSAtomicAdd32Barrier(0, &gainBits)
             if OSAtomicCompareAndSwap32Barrier(oldValue, newValue, &gainBits) { return }
         }
+    }
+
+    static func normalizedGain(_ gain: Double) -> Float {
+        Float(min(max(gain, 0), 1))
+    }
+
+    private func validateStreamFormat(of device: AudioDeviceID) throws {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyStreamFormat,
+            mScope: kAudioObjectPropertyScopeInput,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var format = AudioStreamBasicDescription()
+        let expectedSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
+        var returnedSize = expectedSize
+        let status = AudioObjectGetPropertyData(
+            device,
+            &address,
+            0,
+            nil,
+            &returnedSize,
+            &format
+        )
+        guard status == noErr,
+              returnedSize == expectedSize,
+              Self.isSupportedStreamFormat(format) else {
+            throw ProcessAudioEngineError.unsupportedStreamFormat
+        }
+    }
+
+    static func isSupportedStreamFormat(_ format: AudioStreamBasicDescription) -> Bool {
+        format.mFormatID == kAudioFormatLinearPCM
+            && format.mFormatFlags & kAudioFormatFlagIsFloat != 0
+            && format.mBitsPerChannel == 32
+            && format.mBytesPerFrame > 0
     }
 
     private func defaultOutputDevice() throws -> AudioDeviceID {
@@ -163,7 +207,9 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             &size,
             &device
         )
-        guard status == noErr, device != kAudioObjectUnknown else {
+        guard status == noErr,
+              size == UInt32(MemoryLayout<AudioDeviceID>.size),
+              device != kAudioObjectUnknown else {
             throw ProcessAudioEngineError.outputDeviceUnavailable
         }
         return device
@@ -175,12 +221,16 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
-        var uid: CFString = "" as CFString
-        var size = UInt32(MemoryLayout<CFString>.size)
+        var uid: CFString?
+        let expectedSize = UInt32(MemoryLayout<CFString?>.size)
+        var size = expectedSize
         let status = withUnsafeMutablePointer(to: &uid) { pointer in
             AudioObjectGetPropertyData(device, &address, 0, nil, &size, pointer)
         }
-        guard status == noErr, !String(uid).isEmpty else {
+        guard status == noErr,
+              size == expectedSize,
+              let uid,
+              !String(uid).isEmpty else {
             throw ProcessAudioEngineError.outputDeviceIdentifierUnavailable
         }
         return uid as String

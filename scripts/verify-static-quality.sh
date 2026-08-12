@@ -5,6 +5,7 @@ repository_root=${0:A:h:h}
 cd "$repository_root"
 
 plutil -lint ClipboardHistory/Info.plist ClipboardHistory/ClipboardHistory.entitlements >/dev/null
+plutil -lint ClipboardHistoryBrowserAudioBridge/Info.plist >/dev/null
 xcodebuild -project ClipboardHistory.xcodeproj -list >/dev/null
 
 if rg -n 'URLSession|NWConnection|Network\.framework|https?://' ClipboardHistory --glob '*.swift'; then
@@ -13,6 +14,25 @@ if rg -n 'URLSession|NWConnection|Network\.framework|https?://' ClipboardHistory
 fi
 if rg -n '(^|[^A-Za-z])(try!|as!|fatalError|preconditionFailure)\b|\b(print|NSLog)\s*\(' ClipboardHistory --glob '*.swift'; then
   print -u2 "static gate: unsafe cast/error termination or console logging found"
+  exit 1
+fi
+force_unwraps=$(rg -n '[A-Za-z0-9_\]\)]![\.\[,\)]|[A-Za-z0-9_\]\)]!\s*$' ClipboardHistory --glob '*.swift' \
+  | rg -v 'Services/Presentation/QuickLookService\.swift:.*QLPreviewPanel!' || true)
+if [[ -n "$force_unwraps" ]]; then
+  print -r -- "$force_unwraps"
+  print -u2 "static gate: production force unwrap found outside the Quick Look Objective-C signature allowlist"
+  exit 1
+fi
+if rg -n 'DistributedNotificationCenter' ClipboardHistory ClipboardHistoryLoginItem ClipboardHistorySafariExtension ClipboardHistoryBrowserAudioBridge --glob '*.swift'; then
+  print -u2 "static gate: unauthenticated distributed notification IPC found"
+  exit 1
+fi
+unsafe_allowlist=scripts/unsafe-c-boundary-allowlist.txt
+unsafe_files=$(rg -l 'unsafeBitCast|assumingMemoryBound|\bUnmanaged\b|nonisolated\(unsafe\)|baseAddress!' ClipboardHistory --glob '*.swift' | sort || true)
+unexpected_unsafe=$(comm -23 <(print -r -- "$unsafe_files") <(sort "$unsafe_allowlist") || true)
+if [[ -n "$unexpected_unsafe" ]]; then
+  print -r -- "$unexpected_unsafe"
+  print -u2 "static gate: unsafe C boundary is missing from scripts/unsafe-c-boundary-allowlist.txt"
   exit 1
 fi
 if rg -n 'clipboard.*privacy: \.public|text.*privacy: \.public|payload.*privacy: \.public' ClipboardHistory --glob '*.swift' -i; then

@@ -21,11 +21,19 @@ extension ClipboardHistoryViewModel {
         lockCancellable = lockService.$state.dropFirst().sink { [weak self] state in
             self?.objectWillChange.send()
             if state.isLocked {
+                self?.revokeSensitiveContentAccess()
                 self?.isShowingSensitiveSaveConfirmation = false
                 self?.endPanelModalInteraction?()
                 Task { await self?.thumbnailService.clearCache() }
             } else {
                 self?.presentNextSensitiveConfirmationIfUnlocked()
+            }
+        }
+        backgroundCancellable = NotificationCenter.default.publisher(
+            for: NSApplication.didResignActiveNotification
+        ).sink { [weak self] _ in
+            Task { @MainActor in
+                self?.revokeSensitiveContentAccess()
             }
         }
     }
@@ -40,7 +48,7 @@ extension ClipboardHistoryViewModel {
 
     func shouldCapture(from bundleIdentifier: String?) -> Bool {
         guard !isPaused else { return false }
-        guard !isLocked || settings.captureWhileLocked else { return false }
+        guard !isLocked else { return false }
         guard let bundle = bundleIdentifier?.lowercased() else { return true }
         if settings.allowedBundleIdentifiers.contains(bundle) { return true }
         return !settings.excludedBundleIdentifiers.contains(bundle)

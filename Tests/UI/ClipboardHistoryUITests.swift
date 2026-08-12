@@ -119,7 +119,7 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertTrue(privateMode.waitForExistence(timeout: 2))
         privateMode.click()
 
-        selectSettingsSection("Security", expectedHeading: "Encryption", in: application)
+        selectSettingsSection("Security", expectedHeading: "Application Lock", in: application)
         selectSettingsSection("Storage", expectedHeading: "Retention", in: application)
         selectSettingsSection("Advanced", expectedHeading: "Duplicate Detection", in: application)
 
@@ -222,6 +222,26 @@ final class ClipboardHistoryUITests: XCTestCase {
         let acknowledge = application.sheets.buttons["OK"].firstMatch
         XCTAssertTrue(acknowledge.waitForExistence(timeout: 2))
         acknowledge.click()
+    }
+
+    func testSystemMonitorAndExperimentalAudioMixerOpenFromControlCenter() {
+        let application = launchApplication()
+        defer { application.terminate() }
+
+        let systemMonitor = application.descendants(matching: .any)["controlCenter.systemMonitor"]
+        XCTAssertTrue(systemMonitor.waitForExistence(timeout: 2))
+        systemMonitor.click()
+        XCTAssertTrue(application.staticTexts["System Monitor"].waitForExistence(timeout: 2))
+        XCTAssertTrue(application.descendants(matching: .any)["systemMonitor.cpu"].exists)
+        XCTAssertTrue(application.buttons["Refresh"].exists)
+
+        application.descendants(matching: .any)["module.back"].click()
+        let audioMixer = application.descendants(matching: .any)["controlCenter.audioMixer"]
+        XCTAssertTrue(audioMixer.waitForExistence(timeout: 2))
+        audioMixer.click()
+        XCTAssertTrue(application.staticTexts["Audio Mixer"].waitForExistence(timeout: 2))
+        XCTAssertTrue(application.staticTexts["Applications"].exists)
+        XCTAssertTrue(application.descendants(matching: .any)["Audio Actions"].exists)
     }
 
     private func launchApplication(language: String? = nil) -> XCUIApplication {

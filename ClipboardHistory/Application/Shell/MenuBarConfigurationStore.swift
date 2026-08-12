@@ -38,7 +38,7 @@ struct MenuBarConfigurationStore {
                 var feature = storedByID[descriptor.id] ?? UtilityFeatureConfiguration(
                     id: descriptor.id,
                     placement: FeaturePlacement(
-                        showsInControlCenter: true,
+                        showsInControlCenter: descriptor.id != .audioMixer,
                         showsStandaloneItem: false
                     ),
                     clickAction: descriptor.defaultClickAction
@@ -46,10 +46,12 @@ struct MenuBarConfigurationStore {
                 feature.clickAction = registry.validatedAction(feature.clickAction, for: feature.id)
                 return feature
             },
-            metricGroup: configuration.metricGroup
+            metricGroup: configuration.metricGroup,
+            metricFormats: configuration.metricFormats
         )
         if !normalized.showsControlCenterItem
-            && !normalized.features.contains(where: { $0.placement.showsStandaloneItem }) {
+            && !normalized.features.contains(where: { $0.placement.showsStandaloneItem })
+            && (!normalized.metricGroup.isVisible || normalized.metricGroup.metrics.isEmpty) {
             normalized.showsControlCenterItem = true
         }
         return normalized

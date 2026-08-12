@@ -47,8 +47,8 @@ struct AudioMixerView: View {
             .searchable(text: $searchText, prompt: "Search Applications")
         }
         .task {
-            controller.startRefreshing()
-            defer { controller.stopRefreshing() }
+            controller.setDemand(.detail, active: true)
+            defer { controller.setDemand(.detail, active: false) }
             try? await Task.sleep(for: .seconds(31_536_000))
         }
         .alert(

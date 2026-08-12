@@ -5,6 +5,7 @@ import SafariServices
 
 @MainActor
 final class AudioMixerController: ObservableObject {
+    typealias SafariPreferencesOpener = (String, @escaping @Sendable (Error?) -> Void) -> Void
     @Published private(set) var applications: [AudioApplication] = []
     @Published private(set) var browserTabs: [BrowserAudioTab] = []
     @Published private(set) var permissionState: AudioMixerPermissionState = .notRequested
@@ -14,32 +15,62 @@ final class AudioMixerController: ObservableObject {
     private let engine: any ProcessAudioControlling
     private let browserBridge: any BrowserAudioBridging
     private let extensionInstaller: BrowserExtensionInstaller
+    private let safariPreferencesOpener: SafariPreferencesOpener
     private let defaults: UserDefaults
     private let gainsKey = "audioMixer.applicationGains.v1"
     private var gains: [String: Double]
     private var preMuteGains: [String: Double] = [:]
     private var browserPreMuteGains: [String: Double] = [:]
     private var refreshTask: Task<Void, Never>?
-    private var hasRestoredStoredGains = false
+    private var demands: Set<AudioMixerDemand> = []
+    private var appliedProcessIDsByBundle: [String: Set<AudioObjectID>] = [:]
 
     init(
         discovery: any AudioProcessDiscovering = CoreAudioProcessDiscovery(),
         engine: any ProcessAudioControlling = ProcessAudioEngine(),
         browserBridge: any BrowserAudioBridging = BrowserAudioBridge(),
         extensionInstaller: BrowserExtensionInstaller = BrowserExtensionInstaller(),
+        safariPreferencesOpener: @escaping SafariPreferencesOpener = { identifier, completion in
+            SFSafariApplication.showPreferencesForExtension(
+                withIdentifier: identifier,
+                completionHandler: completion
+            )
+        },
         defaults: UserDefaults = .standard
     ) {
         self.discovery = discovery
         self.engine = engine
         self.browserBridge = browserBridge
         self.extensionInstaller = extensionInstaller
+        self.safariPreferencesOpener = safariPreferencesOpener
         self.defaults = defaults
         gains = defaults.dictionary(forKey: gainsKey) as? [String: Double] ?? [:]
         self.browserBridge.tabsDidChange = { [weak self] tabs in
             self?.browserTabs = tabs
         }
+        self.engine.setFailureHandler { [weak self] bundleID, error in
+            guard let self else { return }
+            permissionState = permissionState(for: error)
+            appliedProcessIDsByBundle.removeValue(forKey: bundleID)
+            updateApplication(bundleID) {
+                $0.controlState = .failed(error.localizedDescription)
+            }
+        }
         self.browserBridge.start()
+        let discoveryRelay = MainActorSignalRelay { [weak self] in
+            guard let self, !demands.isEmpty else { return }
+            refreshApplications()
+            restoreStoredGainsIfNeeded()
+        }
+        self.discovery.startObservingChanges(discoveryRelay.callback())
+        if gains.values.contains(where: { $0 < 100 }) {
+            demands.insert(.activePipeline)
+            updateRefreshTask()
+        }
     }
+
+    var demandCount: Int { demands.count }
+    var isRefreshing: Bool { refreshTask != nil }
 
     var isEverythingMuted: Bool {
         let applicationAudio = applications.filter(\.isProducingOutput)
@@ -49,14 +80,35 @@ final class AudioMixerController: ObservableObject {
     }
 
     func startRefreshing() {
-        guard refreshTask == nil else { return }
+        setDemand(.detail, active: true)
+    }
+
+    func stopRefreshing() {
+        setDemand(.detail, active: false)
+    }
+
+    func setDemand(_ demand: AudioMixerDemand, active: Bool) {
+        let changed: Bool
+        if active {
+            changed = demands.insert(demand).inserted
+        } else {
+            changed = demands.remove(demand) != nil
+        }
+        guard changed else { return }
+        updateRefreshTask()
+    }
+
+    private func updateRefreshTask() {
+        refreshTask?.cancel()
+        refreshTask = nil
+        guard !demands.isEmpty else { return }
         refreshTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
                 refreshApplications()
                 restoreStoredGainsIfNeeded()
                 do {
-                    try await Task.sleep(for: .seconds(2))
+                    try await Task.sleep(for: refreshInterval)
                 } catch {
                     return
                 }
@@ -64,9 +116,10 @@ final class AudioMixerController: ObservableObject {
         }
     }
 
-    func stopRefreshing() {
-        refreshTask?.cancel()
-        refreshTask = nil
+    private var refreshInterval: Duration {
+        if demands.contains(.detail) { return .seconds(2) }
+        if demands.contains(.controlCenter) { return .seconds(5) }
+        return .seconds(10)
     }
 
     func refreshApplications() {
@@ -81,6 +134,10 @@ final class AudioMixerController: ObservableObject {
             }
             return application
         }
+        let activeBundles = Set(applications.map(\.bundleID))
+        appliedProcessIDsByBundle = appliedProcessIDsByBundle.filter {
+            activeBundles.contains($0.key)
+        }
     }
 
     func setVolume(_ volume: Double, for application: AudioApplication) {
@@ -92,16 +149,28 @@ final class AudioMixerController: ObservableObject {
             $0.isMuted = normalized == 0
             $0.controlState = normalized == 100 ? .native : .starting
         }
+        permissionState = .requesting
         do {
-            try engine.setGain(normalized / 100, for: application.id, bundleID: application.bundleID)
+            try engine.setGain(
+                normalized / 100,
+                for: application.processObjectIDs,
+                bundleID: application.bundleID
+            )
             gains[application.bundleID] = normalized
             defaults.set(gains, forKey: gainsKey)
+            if normalized == 100 {
+                appliedProcessIDsByBundle.removeValue(forKey: application.bundleID)
+            } else {
+                appliedProcessIDsByBundle[application.bundleID] = application.processObjectIDs
+            }
+            setDemand(.activePipeline, active: gains.values.contains(where: { $0 < 100 }))
             permissionState = .ready
             updateApplication(application.bundleID) {
                 $0.controlState = normalized == 100 ? .native : .controlled
             }
         } catch {
-            permissionState = .failed(error.localizedDescription)
+            appliedProcessIDsByBundle.removeValue(forKey: application.bundleID)
+            permissionState = permissionState(for: error)
             updateApplication(application.bundleID) {
                 $0.volume = previousVolume
                 $0.isMuted = previousVolume == 0
@@ -161,6 +230,7 @@ final class AudioMixerController: ObservableObject {
     }
 
     func toggleMuteAll() {
+        if applications.isEmpty { refreshApplications() }
         if isEverythingMuted {
             for application in applications where application.isProducingOutput {
                 setVolume(preMuteGains[application.bundleID] ?? 100, for: application)
@@ -183,6 +253,7 @@ final class AudioMixerController: ObservableObject {
     }
 
     func resetAll() {
+        if applications.isEmpty { refreshApplications() }
         for application in applications {
             setVolume(100, for: application)
         }
@@ -201,9 +272,7 @@ final class AudioMixerController: ObservableObject {
     }
 
     func openSafariExtensionSettings() {
-        SFSafariApplication.showPreferencesForExtension(
-            withIdentifier: "com.brgirgin.ClipboardHistory.SafariExtension"
-        ) { [weak self] error in
+        safariPreferencesOpener("com.brgirgin.ClipboardHistory.SafariExtension") { [weak self] error in
             Task { @MainActor in
                 self?.extensionMessage = error?.localizedDescription
                     ?? String(localized: "Enable ClipboardHistory Safari Audio, then allow access only on sites you want to control.")
@@ -212,8 +281,10 @@ final class AudioMixerController: ObservableObject {
     }
 
     func stop() {
-        stopRefreshing()
+        demands.removeAll()
+        updateRefreshTask()
         browserBridge.stop()
+        discovery.stopObservingChanges()
         engine.stopAll()
     }
 
@@ -223,19 +294,34 @@ final class AudioMixerController: ObservableObject {
     }
 
     private func restoreStoredGainsIfNeeded() {
-        if hasRestoredStoredGains {
-            for application in applications where application.volume < 100 {
-                try? engine.setGain(
+        for application in applications where application.volume < 100 {
+            guard appliedProcessIDsByBundle[application.bundleID] != application.processObjectIDs else {
+                continue
+            }
+            do {
+                try engine.setGain(
                     application.volume / 100,
-                    for: application.id,
+                    for: application.processObjectIDs,
                     bundleID: application.bundleID
                 )
+                permissionState = .ready
+                appliedProcessIDsByBundle[application.bundleID] = application.processObjectIDs
+                updateApplication(application.bundleID) { $0.controlState = .controlled }
+            } catch {
+                appliedProcessIDsByBundle.removeValue(forKey: application.bundleID)
+                permissionState = permissionState(for: error)
+                updateApplication(application.bundleID) {
+                    $0.controlState = .failed(error.localizedDescription)
+                }
             }
-            return
         }
-        hasRestoredStoredGains = true
-        for application in applications where application.volume < 100 {
-            setVolume(application.volume, for: application)
+    }
+
+    private func permissionState(for error: Error) -> AudioMixerPermissionState {
+        if case let ProcessAudioEngineError.tapCreationFailed(status) = error,
+           status == kAudioDevicePermissionsError {
+            return .denied
         }
+        return .failed(error.localizedDescription)
     }
 }

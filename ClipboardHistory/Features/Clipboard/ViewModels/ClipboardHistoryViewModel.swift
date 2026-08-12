@@ -34,6 +34,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @Published var archiveStatusMessage: String?
     @Published var globalShortcutError: String?
     @Published var isStorageAvailable = true
+    @Published var sensitiveDetailItemID: UUID?
 
     let storage: StorageService
     var settings: AppSettings
@@ -74,12 +75,14 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var panelCloseTask: Task<Void, Never>?
     var pendingItemWriteTasks: [UUID: Task<Void, Never>] = [:]
     var itemWriteGenerationByItemID: [UUID: Int] = [:]
+    var pendingItemWriteFailureIDs: Set<UUID> = []
     var maintenanceTask: Task<Void, Never>?
     var settingsCancellable: AnyCancellable?
     var lockCancellable: AnyCancellable?
+    var backgroundCancellable: AnyCancellable?
     var insertionsSinceCleanup = 0
     var pendingSensitiveItemIDs: [UUID] = []
-    var appliedEncryptionMode: EncryptionMode
+    var appliedMaintenancePreferences: StorageMaintenancePreferences
     var isShuttingDown = false
 
     init(
@@ -122,11 +125,20 @@ final class ClipboardHistoryViewModel: ObservableObject {
         self.contentAnalyzer = contentAnalyzer
         self.metadataExtractor = metadataExtractor
         self.sleepClock = sleepClock
-        appliedEncryptionMode = settings.encryptionMode
+        appliedMaintenancePreferences = StorageMaintenancePreferences(
+            historyLimit: settings.historyLimit,
+            retentionDays: settings.retentionDays,
+            imageRetentionDays: settings.imageRetentionDays,
+            maximumStorageMegabytes: settings.maximumStorageMegabytes,
+            thumbnailCacheMegabytes: settings.thumbnailCacheMegabytes
+        )
         isPrivateMode = settings.privateModeDefaultEnabled
         monitor.delegate = self
         monitor.shouldCaptureFromApplication = { [weak self] bundleIdentifier in
             self?.shouldCapture(from: bundleIdentifier) ?? false
+        }
+        monitor.captureRejected = { [weak self] violation in
+            self?.errorMessage = violation.localizedDescription
         }
         updateIgnoredPasteboardTypes()
         lockService.configure(
@@ -170,9 +182,38 @@ final class ClipboardHistoryViewModel: ObservableObject {
         lockService.isEnabled
     }
 
+    func isSensitiveDetailRevealed(_ item: ClipboardItem) -> Bool {
+        !item.isSensitive || sensitiveDetailItemID == item.id
+    }
+
+    @discardableResult
+    func authorizeSensitiveAccess(to item: ClipboardItem) async -> Bool {
+        guard item.isSensitive else { return true }
+        guard !isLocked else {
+            errorMessage = String(localized: "Unlock Clipboard History before accessing a sensitive item.")
+            return false
+        }
+        guard await lockService.authenticateSensitiveContentAccess() else {
+            errorMessage = lockService.errorMessage
+            return false
+        }
+        sensitiveDetailItemID = item.id
+        return true
+    }
+
+    func revealSensitiveDetails(_ item: ClipboardItem) {
+        Task { [weak self] in
+            _ = await self?.authorizeSensitiveAccess(to: item)
+        }
+    }
+
+    func revokeSensitiveContentAccess() {
+        sensitiveDetailItemID = nil
+    }
+
     func loadHistory() async {
         do {
-            try await storage.verifyEncryptionAvailable()
+            try await storage.verifyStorageAvailable()
             let persistentItems = try await storage.loadHistoryThrowing()
             collections = try await storage.loadCollectionsThrowing()
             items = persistentItems.filter { $0.expiresAt.map { $0 > .now } ?? true }
@@ -182,7 +223,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         } catch {
             isStorageAvailable = false
             stopMonitoring()
-            errorMessage = String(localized: "Clipboard History cannot access its encryption key. Recording is stopped to protect your data. Restore Keychain access, then relaunch the app.")
+            errorMessage = String(localized: "Clipboard storage could not be opened. Recording is stopped to avoid damaging existing data. Open Settings to inspect or recover it.")
             AppLog.storage.fault(
                 "Storage unavailable; recording=stopped; category=\(String(describing: type(of: error)), privacy: .public)"
             )
@@ -206,6 +247,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         stopMonitoring()
         settingsCancellable = nil
         lockCancellable = nil
+        backgroundCancellable = nil
         maintenanceTask?.cancel()
         maintenanceTask = nil
         copiedFeedbackTask?.cancel()
@@ -227,6 +269,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
     /// Actor serialization ensures pending SQLite work has yielded before close.
     @discardableResult
     func shutdown() async -> Bool {
+        stopMonitoring()
+        guard await drainPendingItemWrites() else { return false }
         prepareForShutdown()
         await storage.close()
         return true

@@ -7,6 +7,7 @@ objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		G10000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E10000000000000000000001 /* ClipboardHistoryLoginItem.app in Embed Login Items */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* ClipboardHistoryLoginItem.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F10000000000000000000001 /* ClipboardHistorySafariExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* ClipboardHistorySafariExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A10000000000000000000001 /* ClipboardHistoryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* ClipboardHistoryApp.swift */; };
@@ -52,6 +53,7 @@ objectVersion = 77;
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		G20000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = ClipboardHistoryBrowserAudioBridge.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
 		E20000000000000000000001 /* ClipboardHistoryLoginItem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipboardHistoryLoginItem.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F20000000000000000000001 /* ClipboardHistorySafariExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipboardHistorySafariExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000001 /* ClipboardHistoryApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryApp.swift; sourceTree = "<group>"; };
@@ -85,6 +87,17 @@ objectVersion = 77;
 /* End PBXFileReference section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		G11000000000000000000001 /* Embed XPC Services */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/XPCServices;
+			dstSubfolderSpec = 1;
+			files = (
+				G10000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc in Embed XPC Services */,
+			);
+			name = "Embed XPC Services";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E11000000000000000000001 /* Embed Login Items */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -110,6 +123,13 @@ objectVersion = 77;
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		G30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F30000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -148,6 +168,13 @@ objectVersion = 77;
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXContainerItemProxy section */
+		G13000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = G50000000000000000000001;
+			remoteInfo = ClipboardHistoryBrowserAudioBridge;
+		};
 		F13000000000000000000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A80000000000000000000001 /* Project object */;
@@ -179,6 +206,13 @@ objectVersion = 77;
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		G14000000000000000000001 /* Exceptions for ClipboardHistoryBrowserAudioBridge folder */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = G50000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */;
+		};
 		F14000000000000000000001 /* Exceptions for ClipboardHistorySafariExtension folder */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -200,6 +234,7 @@ objectVersion = 77;
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000002 /* ClipboardHistory */,
+				G40000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */,
 				E40000000000000000000001 /* ClipboardHistoryLoginItem */,
 				F40000000000000000000001 /* ClipboardHistorySafariExtension */,
 				A40000000000000000000008 /* ClipboardHistoryTests */,
@@ -287,12 +322,25 @@ objectVersion = 77;
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000020 /* ClipboardHistory.app */,
+				G20000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc */,
 				E20000000000000000000001 /* ClipboardHistoryLoginItem.app */,
 				F20000000000000000000001 /* ClipboardHistorySafariExtension.appex */,
 				A20000000000000000000021 /* ClipboardHistoryTests.xctest */,
 				D20000000000000000000001 /* ClipboardHistoryUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		G40000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				G14000000000000000000001 /* Exceptions for ClipboardHistoryBrowserAudioBridge folder */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = ClipboardHistoryBrowserAudioBridge;
 			sourceTree = "<group>";
 		};
 		E40000000000000000000001 /* ClipboardHistoryLoginItem */ = {
@@ -338,12 +386,14 @@ objectVersion = 77;
 				A70000000000000000000001 /* Resources */,
 				E11000000000000000000001 /* Embed Login Items */,
 				F11000000000000000000001 /* Embed App Extensions */,
+				G11000000000000000000001 /* Embed XPC Services */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				E12000000000000000000001 /* PBXTargetDependency */,
 				F12000000000000000000001 /* PBXTargetDependency */,
+				G12000000000000000000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A40000000000000000000002 /* ClipboardHistory */,
@@ -352,6 +402,26 @@ objectVersion = 77;
 			productName = ClipboardHistory;
 			productReference = A20000000000000000000020 /* ClipboardHistory.app */;
 			productType = "com.apple.product-type.application";
+		};
+		G50000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = G90000000000000000000001 /* Build configuration list for PBXNativeTarget "ClipboardHistoryBrowserAudioBridge" */;
+			buildPhases = (
+				G60000000000000000000001 /* Sources */,
+				G30000000000000000000001 /* Frameworks */,
+				G70000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				G40000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */,
+			);
+			name = ClipboardHistoryBrowserAudioBridge;
+			productName = ClipboardHistoryBrowserAudioBridge;
+			productReference = G20000000000000000000001 /* ClipboardHistoryBrowserAudioBridge.xpc */;
+			productType = "com.apple.product-type.xpc-service";
 		};
 		E50000000000000000000001 /* ClipboardHistoryLoginItem */ = {
 			isa = PBXNativeTarget;
@@ -461,6 +531,9 @@ objectVersion = 77;
 					F50000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
 					};
+					G50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 				};
 			};
 			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "ClipboardHistory" */;
@@ -479,6 +552,7 @@ objectVersion = 77;
 			preferredProjectObjectVersion = 77;
 			targets = (
 				A50000000000000000000001 /* ClipboardHistory */,
+				G50000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */,
 				E50000000000000000000001 /* ClipboardHistoryLoginItem */,
 				F50000000000000000000001 /* ClipboardHistorySafariExtension */,
 				A50000000000000000000002 /* ClipboardHistoryTests */,
@@ -488,6 +562,13 @@ objectVersion = 77;
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		G70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F70000000000000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -526,6 +607,11 @@ objectVersion = 77;
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		G12000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = G50000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */;
+			targetProxy = G13000000000000000000001 /* PBXContainerItemProxy */;
+		};
 		F12000000000000000000001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = F50000000000000000000001 /* ClipboardHistorySafariExtension */;
@@ -549,6 +635,13 @@ objectVersion = 77;
 /* End PBXTargetDependency section */
 
 /* Begin PBXSourcesBuildPhase section */
+		G60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F60000000000000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -739,13 +832,13 @@ objectVersion = 77;
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLIPBOARD_HISTORY_BETA_VERSION = "1.0.0-beta.2";
+				CLIPBOARD_HISTORY_BETA_VERSION = "1.0.0-beta.3";
 				CODE_SIGN_ENTITLEMENTS = ClipboardHistory/ClipboardHistory.entitlements;
 				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10002;
+				CURRENT_PROJECT_VERSION = 10003;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -900,7 +993,7 @@ objectVersion = 77;
 				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 10002;
+				CURRENT_PROJECT_VERSION = 10003;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -967,7 +1060,7 @@ objectVersion = 77;
 				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 10002;
+				CURRENT_PROJECT_VERSION = 10003;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClipboardHistorySafariExtension/Info.plist;
@@ -975,6 +1068,65 @@ objectVersion = 77;
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.SafariExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+		GG0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistoryBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.BrowserAudioBridge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		GG0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistoryBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.BrowserAudioBridge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		GG0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 10003;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistoryBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.BrowserAudioBridge;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -1041,6 +1193,16 @@ objectVersion = 77;
 				FF0000000000000000000001 /* Debug */,
 				FF0000000000000000000002 /* Release */,
 				FF0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		G90000000000000000000001 /* Build configuration list for PBXNativeTarget "ClipboardHistoryBrowserAudioBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				GG0000000000000000000001 /* Debug */,
+				GG0000000000000000000002 /* Release */,
+				GG0000000000000000000003 /* CommunityRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

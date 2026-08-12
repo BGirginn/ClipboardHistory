@@ -1,4 +1,5 @@
 import AppKit
+import CoreAudio
 import PDFKit
 import SwiftUI
 import XCTest
@@ -535,6 +536,282 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testSystemMonitorAudioMixerAndStatusBranchMatrixRenders() async throws {
+        let context = makeContext()
+        do {
+            let thermalStates: [ProcessInfo.ThermalState] = [.nominal, .fair, .serious, .critical]
+            for (index, thermalState) in thermalStates.enumerated() {
+                await context.appModel.systemMetrics.refreshNow()
+                try render(
+                    SystemMonitorView(
+                        controller: context.appModel.systemMetrics,
+                        close: {},
+                        openSettings: {}
+                    ),
+                    named: "system-monitor-\(index)-\(thermalState.rawValue)",
+                    colorScheme: index.isMultiple(of: 2) ? .light : .dark,
+                    locale: index == 3 ? Locale(identifier: "tr") : Locale(identifier: "en"),
+                    width: [340.0, 380.0, 420.0, 380.0][index]
+                )
+            }
+            let history = context.appModel.systemMetrics.history
+            try render(
+                SystemMetricHistoryChart(
+                    title: "Dynamic metric history",
+                    color: .green,
+                    history: history,
+                    value: { $0.memory.usedPercent },
+                    fixedMaximum: nil
+                ),
+                named: "system-history-dynamic",
+                colorScheme: .light
+            )
+            try render(
+                SystemMetricHistoryChart(
+                    title: "Fixed metric history",
+                    color: .blue,
+                    history: history,
+                    value: { $0.cpu.totalPercent },
+                    fixedMaximum: 100
+                ),
+                named: "system-history-fixed",
+                colorScheme: .dark
+            )
+            try render(
+                SystemDualMetricHistoryChart(
+                    title: "Dual metric history",
+                    firstLabel: "Read",
+                    secondLabel: "Write",
+                    firstColor: .purple,
+                    secondColor: .pink,
+                    history: history,
+                    firstValue: { $0.disk.readBytesPerSecond },
+                    secondValue: { $0.disk.writtenBytesPerSecond }
+                ),
+                named: "system-history-dual",
+                colorScheme: .light
+            )
+            try render(
+                TemperatureSensorList(
+                    readings: context.appModel.systemMetrics.snapshot.temperatures,
+                    statistics: context.appModel.systemMetrics.temperatureStatistics
+                ),
+                named: "temperature-sensor-statistics",
+                colorScheme: .dark
+            )
+
+            context.appModel.controlCenter.setMetricGroupVisible(true)
+            context.appModel.controlCenter.setMetricsAsSeparateItems(true)
+            context.appModel.controlCenter.setMetricStyle(.iconAndValue)
+            context.appModel.controlCenter.setMetricFormats(
+                MetricFormatPreferences(
+                    memory: .usedAndTotal,
+                    temperature: .fahrenheit,
+                    rate: .megabytes
+                )
+            )
+            try render(
+                MenuBarMetricsConfigurationCard(model: context.appModel.controlCenter),
+                named: "menu-bar-metrics-visible",
+                colorScheme: .dark
+            )
+
+            context.appModel.audioMixer.refreshApplications()
+            context.audioBridge.publish([])
+            try render(
+                AudioMixerApplicationSection(
+                    applications: [],
+                    controller: context.appModel.audioMixer
+                ),
+                named: "audio-applications-empty",
+                colorScheme: .dark
+            )
+            try render(
+                AudioMixerView(
+                    controller: context.appModel.audioMixer,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "audio-mixer-empty-tabs",
+                colorScheme: .light,
+                width: 340
+            )
+
+            let tabs = [
+                BrowserAudioTab(
+                    id: "safari:42",
+                    browser: "Safari",
+                    title: "Accessible HTML Media",
+                    canSetVolume: true,
+                    volume: 50,
+                    isMuted: false
+                ),
+                BrowserAudioTab(
+                    id: "chromium:brave:7",
+                    browser: "Brave",
+                    title: "Authorized Chromium Tab",
+                    canSetVolume: true,
+                    volume: 0,
+                    isMuted: true
+                )
+            ]
+            context.audioBridge.publish(tabs)
+            let safari = try XCTUnwrap(
+                context.appModel.audioMixer.applications.first { $0.bundleID == "com.apple.Safari" }
+            )
+            context.appModel.audioMixer.setVolume(40, for: safari)
+            context.appModel.audioMixer.extensionMessage = "Extension setup guidance"
+            try render(
+                AudioMixerView(
+                    controller: context.appModel.audioMixer,
+                    close: {},
+                    openSettings: {}
+                ),
+                named: "audio-mixer-populated-turkish",
+                colorScheme: .dark,
+                locale: Locale(identifier: "tr"),
+                width: 420
+            )
+
+            var failedApplication = safari
+            failedApplication.controlState = .failed("Pipeline unavailable")
+            try render(
+                AudioApplicationRow(
+                    application: failedApplication,
+                    setVolume: { _ in },
+                    toggleMute: {}
+                ),
+                named: "audio-application-failed",
+                colorScheme: .light
+            )
+            try render(
+                BrowserAudioTabRow(
+                    tab: tabs[0],
+                    effectiveVolume: 20,
+                    setVolume: { _ in },
+                    toggleMute: {},
+                    activate: {}
+                ),
+                named: "browser-tab-effective-volume",
+                colorScheme: .dark
+            )
+
+            context.appModel.notes.openQuickEditor()
+            for (index, state) in [
+                NoteController.SaveState.idle,
+                .saving,
+                .saved,
+                .failed
+            ].enumerated() {
+                context.appModel.notes.saveState = state
+                context.appModel.notes.errorMessage = state == .failed ? "Save unavailable" : nil
+                try render(
+                    NoteEditorStatusView(
+                        controller: context.appModel.notes,
+                        beginModalInteraction: {},
+                        endModalInteraction: {},
+                        menuCommandDidRun: {}
+                    ),
+                    named: "note-status-\(index)",
+                    colorScheme: index.isMultiple(of: 2) ? .light : .dark
+                )
+            }
+            context.appModel.notes.saveState = .failed
+            context.appModel.notes.errorMessage = nil
+            try render(
+                NoteEditorStatusView(
+                    controller: context.appModel.notes,
+                    beginModalInteraction: {},
+                    endModalInteraction: {},
+                    menuCommandDidRun: {}
+                ),
+                named: "note-status-failed-without-message",
+                colorScheme: .light
+            )
+
+            try render(
+                ClipboardHeaderActionButton(
+                    title: "Active Header Action",
+                    systemImage: "bolt.fill",
+                    helpText: "Active action",
+                    accessibilityIdentifier: "coverage.header.active",
+                    accessibilityValue: "Active",
+                    isActive: true,
+                    tint: .orange,
+                    action: {}
+                ),
+                named: "clipboard-header-action-active",
+                colorScheme: .dark
+            )
+            try render(
+                ClipboardHeaderActionButton(
+                    title: "Disabled Header Action",
+                    systemImage: "bolt",
+                    helpText: "Disabled action",
+                    accessibilityIdentifier: "coverage.header.disabled",
+                    accessibilityValue: "Disabled",
+                    isDisabled: true,
+                    action: {}
+                ),
+                named: "clipboard-header-action-disabled",
+                colorScheme: .light
+            )
+
+            let keyboard = context.appModel.inputTools.keyboardCleaning
+            keyboard.stop()
+            context.inputCoordinator.trusted = false
+            context.inputCoordinator.requestResult = false
+            keyboard.start()
+            try render(
+                KeyboardCleaningAvailabilityView(controller: keyboard),
+                named: "keyboard-cleaning-permission",
+                colorScheme: .light
+            )
+            context.inputCoordinator.trusted = true
+            context.inputCoordinator.keyboardResult = false
+            keyboard.retryAfterPermissionChange()
+            try render(
+                KeyboardCleaningAvailabilityView(controller: keyboard),
+                named: "keyboard-cleaning-error",
+                colorScheme: .dark
+            )
+
+            let scroll = context.appModel.inputTools.scrollReversal
+            context.inputCoordinator.trusted = false
+            scroll.isEnabled = true
+            try render(
+                ScrollReversalStatusView(controller: scroll),
+                named: "scroll-reversal-permission",
+                colorScheme: .light
+            )
+            context.inputCoordinator.trusted = true
+            context.inputCoordinator.scrollResult = false
+            scroll.retryAfterPermissionChange()
+            try render(
+                ScrollReversalStatusView(controller: scroll),
+                named: "scroll-reversal-error",
+                colorScheme: .dark
+            )
+            context.inputCoordinator.scrollResult = true
+            scroll.retryAfterPermissionChange()
+            try render(
+                ScrollReversalStatusView(controller: scroll),
+                named: "scroll-reversal-active-status",
+                colorScheme: .light
+            )
+            scroll.disable()
+            try render(
+                ScrollReversalStatusView(controller: scroll),
+                named: "scroll-reversal-inactive-status",
+                colorScheme: .dark
+            )
+        } catch {
+            await cleanup(context)
+            throw error
+        }
+        await cleanup(context)
+    }
+
     private func render<Content: View>(
         _ content: Content,
         named name: String,
@@ -599,6 +876,8 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let storage: StorageService
         let appModel: AppModel
         let viewModel: ClipboardHistoryViewModel
+        let audioBridge: RenderingBrowserAudioBridge
+        let inputCoordinator: InputEventTapCoordinatorStub
     }
 
     private func makeContext() -> Context {
@@ -613,12 +892,25 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let defaults = UserDefaults(suiteName: defaultsSuite)!
         let storage = StorageService(baseDirectory: directory)
         let inputEventTapCoordinator = InputEventTapCoordinatorStub(isTrusted: true)
+        let audioBridge = RenderingBrowserAudioBridge()
+        let audioMixer = AudioMixerController(
+            discovery: RenderingAudioDiscovery(),
+            engine: RenderingAudioEngine(),
+            browserBridge: audioBridge,
+            defaults: defaults
+        )
+        let systemMetrics = SystemMetricsController(
+            provider: RenderingSystemMetricsProvider(),
+            defaults: defaults
+        )
         let appModel = AppModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             settings: AppSettings(defaults: defaults),
             inputEventTapCoordinator: inputEventTapCoordinator,
+            systemMetricsController: systemMetrics,
+            audioMixerController: audioMixer,
             controlCenter: ControlCenterModel(
                 store: MenuBarConfigurationStore(defaults: defaults)
             ),
@@ -629,7 +921,9 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             defaultsSuite: defaultsSuite,
             storage: storage,
             appModel: appModel,
-            viewModel: appModel.clipboard
+            viewModel: appModel.clipboard,
+            audioBridge: audioBridge,
+            inputCoordinator: inputEventTapCoordinator
         )
     }
 
@@ -657,5 +951,116 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let document = PDFDocument()
         document.insert(page, at: 0)
         return try XCTUnwrap(document.dataRepresentation())
+    }
+}
+
+private actor RenderingSystemMetricsProvider: SystemMetricsProviding {
+    private var sampleIndex = 0
+
+    func sample(at date: Date) -> SystemMetricSnapshot {
+        let pressures: [MemoryPressureLevel] = [.normal, .warning, .critical, .normal]
+        let thermalStates: [ProcessInfo.ThermalState] = [.nominal, .fair, .serious, .critical]
+        let index = min(sampleIndex, pressures.count - 1)
+        sampleIndex += 1
+        return SystemMetricSnapshot(
+            timestamp: date,
+            cpu: CPUUsageSnapshot(
+                totalPercent: 42 + Double(index),
+                userPercent: 28,
+                systemPercent: 14,
+                idlePercent: 58,
+                perCorePercent: [20, 40, 60, 80]
+            ),
+            memory: MemoryUsageSnapshot(
+                totalBytes: 16_000_000_000,
+                usedBytes: 9_000_000_000,
+                activeBytes: 5_000_000_000,
+                inactiveBytes: 2_000_000_000,
+                wiredBytes: 2_000_000_000,
+                compressedBytes: 2_000_000_000,
+                cachedBytes: 1_000_000_000,
+                freeBytes: 4_000_000_000,
+                pressure: pressures[index]
+            ),
+            network: NetworkRateSnapshot(
+                receivedBytesPerSecond: 12_000_000,
+                sentBytesPerSecond: 2_500_000,
+                interfaceName: index == 3 ? nil : "en0"
+            ),
+            disk: DiskRateSnapshot(
+                readBytesPerSecond: 30_000_000,
+                writtenBytesPerSecond: 8_000_000,
+                devices: [
+                    DiskDeviceRate(
+                        id: "disk0",
+                        name: "Internal SSD",
+                        isExternal: false,
+                        readBytesPerSecond: 25_000_000,
+                        writtenBytesPerSecond: 6_000_000
+                    ),
+                    DiskDeviceRate(
+                        id: "disk4",
+                        name: "External SSD",
+                        isExternal: true,
+                        readBytesPerSecond: 5_000_000,
+                        writtenBytesPerSecond: 2_000_000
+                    )
+                ]
+            ),
+            temperatures: [
+                TemperatureReading(id: "cpu", name: "CPU Die", celsius: 55 + Double(index)),
+                TemperatureReading(id: "soc", name: "SoC Die", celsius: 51 + Double(index))
+            ],
+            thermalState: thermalStates[index]
+        )
+    }
+}
+
+private struct RenderingAudioDiscovery: AudioProcessDiscovering {
+    func applications() -> [AudioApplication] {
+        [
+            AudioApplication(
+                id: 41,
+                processObjectIDs: [41, 42],
+                processID: 410,
+                bundleID: "com.apple.Safari",
+                name: "Safari",
+                isProducingOutput: true,
+                volume: 100,
+                isMuted: false,
+                controlState: .native
+            ),
+            AudioApplication(
+                id: 51,
+                processID: 510,
+                bundleID: "com.brave.Browser",
+                name: "Brave",
+                isProducingOutput: false,
+                volume: 100,
+                isMuted: false,
+                controlState: .native
+            )
+        ]
+    }
+}
+
+@MainActor
+private final class RenderingAudioEngine: ProcessAudioControlling {
+    func setGain(_: Double, for _: Set<AudioObjectID>, bundleID _: String) throws {}
+    func stopControlling(bundleID _: String) {}
+    func stopAll() {}
+}
+
+@MainActor
+private final class RenderingBrowserAudioBridge: BrowserAudioBridging {
+    var tabsDidChange: (([BrowserAudioTab]) -> Void)?
+
+    func start() {}
+    func stop() {}
+    func setVolume(_: Double, tabID _: String) {}
+    func activate(tabID _: String) {}
+
+    func publish(_ tabs: [BrowserAudioTab]) {
+        tabsDidChange?(tabs)
     }
 }

@@ -24,9 +24,9 @@ struct ClipboardPanelView: View {
         VStack(spacing: 0) {
             if !viewModel.isStorageAvailable {
                 ContentUnavailableView(
-                    "Encrypted Storage Unavailable",
-                    systemImage: "lock.trianglebadge.exclamationmark",
-                    description: Text("Open Settings from Control Center to recover encrypted storage.")
+                    "Clipboard Storage Unavailable",
+                    systemImage: "externaldrive.badge.exclamationmark",
+                    description: Text("Open Settings from Control Center to inspect or recover clipboard storage.")
                 )
             } else if viewModel.isLocked {
                 VStack(spacing: 0) {
@@ -77,7 +77,7 @@ struct ClipboardPanelView: View {
             "Save detected sensitive content?",
             isPresented: $viewModel.isShowingSensitiveSaveConfirmation
         ) {
-            Button("Save Encrypted", action: viewModel.confirmSensitiveSave)
+            Button("Save Anyway", action: viewModel.confirmSensitiveSave)
             Button("Keep Temporarily", role: .cancel, action: viewModel.keepSensitiveTemporarily)
         } message: {
             Text("Detection is local and may produce false positives. Temporary content is excluded from disk and search.")

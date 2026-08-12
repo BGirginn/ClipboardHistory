@@ -55,8 +55,8 @@ extension StorageService {
         sqlite3_bind_null(statement, 17)
         try bind(item.payloadFilename, at: 18, to: statement)
         try bindEncodedCollection(item.assetFilenames, at: 19, to: statement, encoder: encoder)
-        try bindEncodedCollection(item.fileURLs, at: 20, to: statement, encoder: encoder)
-        try bindEncodedCollection(item.fileBookmarks, at: 21, to: statement, encoder: encoder)
+        sqlite3_bind_null(statement, 20)
+        sqlite3_bind_null(statement, 21)
         bind(item.imageWidth, at: 22, to: statement)
         bind(item.imageHeight, at: 23, to: statement)
         bind(item.pageCount, at: 24, to: statement)
@@ -64,12 +64,13 @@ extension StorageService {
         sqlite3_bind_int(statement, 26, item.isEncrypted ? 1 : 0)
         var metadata = item.protectedMetadata
         metadata.displayTitle = item.displayTitle
-        if metadata == ClipboardProtectedMetadata() {
-            sqlite3_bind_null(statement, 27)
-        } else {
-            let protectedMetadata = try encryptionService().encrypt(try encoder.encode(metadata))
-            try bind(protectedMetadata, at: 27, to: statement)
-        }
+        let privateMetadata = ClipboardPrivateMetadataV2(
+            protectedMetadata: metadata,
+            fileURLs: item.fileURLs,
+            fileBookmarks: item.fileBookmarks
+        )
+        let protectedMetadata = try encoder.encode(privateMetadata)
+        try bind(protectedMetadata, at: 27, to: statement)
         try bind(item.collectionID?.uuidString, at: 28, to: statement)
         sqlite3_bind_int(statement, 29, item.isSnippet ? 1 : 0)
         try bindEncodedCollection(item.pasteboardTypes, at: 30, to: statement, encoder: encoder)
@@ -101,18 +102,34 @@ extension StorageService {
                   let hash = textColumn(5, statement) else { continue }
 
             let isEncrypted = sqlite3_column_int(statement, 25) != 0
-            let protectedMetadata: ClipboardProtectedMetadata
-            if let encryptedMetadata = dataColumn(26, statement) {
-                let metadataData = try encryptionService().decrypt(encryptedMetadata)
-                protectedMetadata = try decoder.decode(
-                    ClipboardProtectedMetadata.self,
-                    from: metadataData
-                )
+            let privateMetadata: ClipboardPrivateMetadataV2
+            if let storedMetadata = dataColumn(26, statement) {
+                if let decoded = try? decoder.decode(
+                    ClipboardPrivateMetadataV2.self,
+                    from: storedMetadata
+                ) {
+                    privateMetadata = decoded
+                } else {
+                    throw DatabaseError.executionFailed("invalid Clipboard metadata encoding")
+                }
             } else {
-                protectedMetadata = ClipboardProtectedMetadata(
-                    displayTitle: textColumn(16, statement)
+                privateMetadata = ClipboardPrivateMetadataV2(
+                    protectedMetadata: ClipboardProtectedMetadata(
+                        displayTitle: textColumn(16, statement)
+                    ),
+                    fileURLs: decodeArray(
+                        [String].self,
+                        from: dataColumn(19, statement),
+                        using: decoder
+                    ) ?? [],
+                    fileBookmarks: decodeArray(
+                        [Data].self,
+                        from: dataColumn(20, statement),
+                        using: decoder
+                    ) ?? []
                 )
             }
+            let protectedMetadata = privateMetadata.protectedMetadata
             var text: String?
             if var textData = dataColumn(2, statement) {
                 if isEncrypted {
@@ -148,16 +165,8 @@ extension StorageService {
                         from: dataColumn(18, statement),
                         using: decoder
                     ) ?? [],
-                    fileURLs: decodeArray(
-                        [String].self,
-                        from: dataColumn(19, statement),
-                        using: decoder
-                    ) ?? [],
-                    fileBookmarks: decodeArray(
-                        [Data].self,
-                        from: dataColumn(20, statement),
-                        using: decoder
-                    ) ?? [],
+                    fileURLs: privateMetadata.fileURLs,
+                    fileBookmarks: privateMetadata.fileBookmarks,
                     imageWidth: optionalIntColumn(21, statement),
                     imageHeight: optionalIntColumn(22, statement),
                     pageCount: optionalIntColumn(23, statement),
@@ -287,6 +296,15 @@ extension StorageService {
         defer { sqlite3_finalize(statement) }
         try bind(key, at: 1, to: statement)
         try bind(value, at: 2, to: statement)
+        guard sqlite3_step(statement) == SQLITE_DONE else {
+            throw DatabaseError.executionFailed(databaseMessage())
+        }
+    }
+
+    func deleteSettingValue(for key: String) throws {
+        let statement = try prepare("DELETE FROM Settings WHERE key = ?")
+        defer { sqlite3_finalize(statement) }
+        try bind(key, at: 1, to: statement)
         guard sqlite3_step(statement) == SQLITE_DONE else {
             throw DatabaseError.executionFailed(databaseMessage())
         }

@@ -5,18 +5,6 @@ struct ClipboardSettingsSecurityView: View {
 
     var body: some View {
         Form {
-            Section("Encryption") {
-                Picker("Encryption", selection: $viewModel.settings.encryptionMode) {
-                    ForEach(EncryptionMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-
-                Text("Keys are stored in the macOS login Keychain and access is bound to the stable Community Beta signing identity. Item type, dates, sizes, hashes, and source application remain visible as metadata.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
             Section("Application Lock") {
                 ClipboardApplicationLockControls(viewModel: viewModel)
 

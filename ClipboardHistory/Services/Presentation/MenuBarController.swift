@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class MenuBarController: NSObject, NSPopoverDelegate {
     var statusItems: [MenuBarItemID: NSStatusItem] = [:]
+    var renderedStatusStates: [MenuBarItemID: MenuBarRenderedState] = [:]
     var activeAnchorID: MenuBarItemID = .controlCenter
     private let popover: NSPopover
     let dependencies: MenuBarControllerDependencies
@@ -25,7 +26,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private var systemMetricsCancellable: AnyCancellable?
     private var audioMixerCancellable: AnyCancellable?
     private var panelClosingTask: Task<Void, Never>?
-    private var panelCloseCoordinator: PanelCloseCoordinator!
+    private var activityMonitor: Any?
+    private var panelCloseCoordinator: PanelCloseCoordinator?
     private lazy var shortcutMonitor = GlobalShortcutMonitor(
         action: { [weak self] in self?.shortcutPressed() },
         releaseAction: { [weak self] in self?.shortcutReleased() },
@@ -67,13 +69,13 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         )
         appModel.clipboard.requestClosePanel = { [weak self] in self?.closePopover() }
         appModel.clipboard.menuCommandDidRun = { [weak self] in
-            self?.panelCloseCoordinator.menuCommandDidRun()
+            self?.panelCloseCoordinator?.menuCommandDidRun()
         }
         appModel.clipboard.beginPanelModalInteraction = { [weak self] in
-            self?.panelCloseCoordinator.beginModalInteraction()
+            self?.panelCloseCoordinator?.beginModalInteraction()
         }
         appModel.clipboard.endPanelModalInteraction = { [weak self] in
-            self?.panelCloseCoordinator.endModalInteraction()
+            self?.panelCloseCoordinator?.endModalInteraction()
         }
         appModel.clipboard.requestPreview = { [weak self] item in
             guard let self else { return }
@@ -132,6 +134,18 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         audioMixerCancellable = appModel.audioMixer.$applications
             .sink { [weak self] _ in self?.updateStatusIcon() }
         updateStatusIcon()
+        activityMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [
+                .keyDown, .keyUp, .flagsChanged,
+                .leftMouseDown, .rightMouseDown, .otherMouseDown,
+                .scrollWheel
+            ]
+        ) { [weak self] event in
+            if self?.isPopoverShown == true {
+                self?.appModel.lockService.recordActivity()
+            }
+            return event
+        }
     }
 
     var isPopoverShown: Bool {
@@ -152,6 +166,14 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
 
     func showControlCenter() {
         showPopover(destination: .controlCenter, anchorID: .controlCenter)
+    }
+
+    func showActiveFeature() {
+        showPopover(
+            destination: appModel.router.activeFeature,
+            anchorID: activeAnchorID,
+            preparesDestination: false
+        )
     }
 
     func openFeature(
@@ -260,8 +282,12 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     func stop() {
         panelClosingTask?.cancel()
         panelClosingTask = nil
+        if let activityMonitor {
+            NSEvent.removeMonitor(activityMonitor)
+            self.activityMonitor = nil
+        }
         appModel.inputTools.prepareForShutdown()
-        panelCloseCoordinator.stop()
+        panelCloseCoordinator?.stop()
         shortcutMonitor.cancelHeldShortcut()
         shortcutMonitor.unregister()
         quickLookService.close()
@@ -269,10 +295,11 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         detachablePanel?.close()
         statusItems.values.forEach(dependencies.removeStatusItem)
         statusItems.removeAll()
+        renderedStatusStates.removeAll()
     }
 
     func popoverWillShow(_ notification: Notification) {
-        panelCloseCoordinator.start()
+        panelCloseCoordinator?.start()
         appModel.lockService.recordActivity()
     }
 

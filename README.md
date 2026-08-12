@@ -64,7 +64,7 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 - Per-application 0–100 audio gain on macOS 14.2+, plus authorized Chromium tab capture and directly controllable Safari HTML-media tabs
 - Optional application lock using Touch ID or the Mac login password
 - Local secret detection and temporary handling for sensitive clipboard items
-- AES-GCM history and note encryption with separate Keychain-backed keys and no plaintext fallback
+- Open local Clipboard storage plus AES-GCM encrypted Notes with a dedicated Keychain-backed key
 - Password-protected local archive export/import, including notes
 - Local Vision OCR, QR recognition, and color analysis
 - English and Turkish localization
@@ -73,7 +73,7 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 
 ClipboardHistory reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network. Audio samples, system-metric history, tab titles, URLs, and tab identifiers are never persisted.
 
-History is stored locally in SQLite. Encryption keys live in the macOS login Keychain; Keychain failures are handled fail-closed. The optional application lock is a viewing and interaction privacy layer and is disabled by default.
+Clipboard history is stored locally in SQLite without encryption. Note titles and bodies use a separate AES-GCM key in the macOS login Keychain. The optional application lock is a viewing and interaction privacy layer; Clipboard recording pauses while it is locked.
 
 See [Privacy and Threat Model](docs/PRIVACY_AND_THREAT_MODEL.md) and [Known Limitations](docs/KNOWN_LIMITATIONS.md) for the full boundary.
 

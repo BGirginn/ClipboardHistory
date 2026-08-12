@@ -9,6 +9,7 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
     private let promptedTrustEvaluator: (CFDictionary) -> Bool
     private let trustEvaluator: () -> Bool
     private let secureInputEvaluator: () -> Bool
+    private let accessibilitySettingsOpener: (URL) -> Void
     private var configuration = InputEventTapConfiguration()
     // Core Foundation run-loop handles are created and consumed on the main actor.
     // Unsafe isolation is limited to deterministic cleanup from nonisolated deinit.
@@ -20,11 +21,13 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
     init(
         promptedTrustEvaluator: @escaping (CFDictionary) -> Bool = AXIsProcessTrustedWithOptions,
         trustEvaluator: @escaping () -> Bool = AXIsProcessTrusted,
-        secureInputEvaluator: @escaping () -> Bool = IsSecureEventInputEnabled
+        secureInputEvaluator: @escaping () -> Bool = IsSecureEventInputEnabled,
+        accessibilitySettingsOpener: @escaping (URL) -> Void = { _ = NSWorkspace.shared.open($0) }
     ) {
         self.promptedTrustEvaluator = promptedTrustEvaluator
         self.trustEvaluator = trustEvaluator
         self.secureInputEvaluator = secureInputEvaluator
+        self.accessibilitySettingsOpener = accessibilitySettingsOpener
     }
 
     var isTrusted: Bool {
@@ -71,7 +74,7 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
         guard let url = URL(
             string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
         ) else { return }
-        NSWorkspace.shared.open(url)
+        accessibilitySettingsOpener(url)
     }
 
     private func apply(_ updated: InputEventTapConfiguration) -> Bool {
@@ -132,7 +135,7 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
         eventTap = nil
     }
 
-    private static func eventMask(for configuration: InputEventTapConfiguration) -> CGEventMask {
+    static func eventMask(for configuration: InputEventTapConfiguration) -> CGEventMask {
         var mask = CGEventMask(0)
         if configuration.blocksKeyboard {
             for type in [CGEventType.keyDown, .keyUp, .flagsChanged] {
@@ -156,7 +159,7 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
         }
     }
 
-    private func filter(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+    func filter(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             guard let eventTap else {
                 handleUnrecoverableInterruption()
@@ -253,7 +256,7 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
         value == .min ? .max : -value
     }
 
-    private func handleUnrecoverableInterruption() {
+    func handleUnrecoverableInterruption() {
         configuration = InputEventTapConfiguration()
         tearDownTap()
         interruptionHandler?()

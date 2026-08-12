@@ -29,6 +29,7 @@ struct SystemMonitorView: View {
                         systemImage: "cpu",
                         tint: .blue
                     )
+                    .accessibilityIdentifier("systemMonitor.cpu")
                     SystemCPUHistoryChart(history: controller.history)
                         .padding(AppDesign.cardPadding)
                         .background(Color(nsColor: .controlBackgroundColor))
@@ -48,6 +49,14 @@ struct SystemMonitorView: View {
                         systemImage: "memorychip",
                         tint: memoryTint
                     )
+                    .accessibilityIdentifier("systemMonitor.memory")
+                    SystemMetricHistoryChart(
+                        title: String(localized: "Memory usage history"),
+                        color: .green,
+                        history: controller.history,
+                        value: { $0.memory.usedPercent },
+                        fixedMaximum: 100
+                    )
                     metricBreakdown(title: String(localized: "Memory Breakdown"), rows: memoryRows)
                     SystemMetricCard(
                         title: String(localized: "CPU / SoC Temperature"),
@@ -56,6 +65,7 @@ struct SystemMonitorView: View {
                         systemImage: "thermometer.medium",
                         tint: .orange
                     )
+                    .accessibilityIdentifier("systemMonitor.temperature")
                     if !controller.snapshot.temperatures.isEmpty {
                         TemperatureSensorList(
                             readings: controller.snapshot.temperatures,
@@ -69,12 +79,34 @@ struct SystemMonitorView: View {
                         systemImage: "wifi",
                         tint: .cyan
                     )
+                    .accessibilityIdentifier("systemMonitor.network")
+                    SystemDualMetricHistoryChart(
+                        title: String(localized: "Network transfer history"),
+                        firstLabel: String(localized: "Download"),
+                        secondLabel: String(localized: "Upload"),
+                        firstColor: .cyan,
+                        secondColor: .blue,
+                        history: controller.history,
+                        firstValue: { $0.network.receivedBytesPerSecond },
+                        secondValue: { $0.network.sentBytesPerSecond }
+                    )
                     SystemMetricCard(
                         title: String(localized: "Disk"),
                         value: "R \(rate(controller.snapshot.disk.readBytesPerSecond))  W \(rate(controller.snapshot.disk.writtenBytesPerSecond))",
                         detail: String(localized: "Combined physical storage activity"),
                         systemImage: "internaldrive",
                         tint: .purple
+                    )
+                    .accessibilityIdentifier("systemMonitor.disk")
+                    SystemDualMetricHistoryChart(
+                        title: String(localized: "Disk activity history"),
+                        firstLabel: String(localized: "Read"),
+                        secondLabel: String(localized: "Write"),
+                        firstColor: .purple,
+                        secondColor: .pink,
+                        history: controller.history,
+                        firstValue: { $0.disk.readBytesPerSecond },
+                        secondValue: { $0.disk.writtenBytesPerSecond }
                     )
                     if !controller.snapshot.disk.devices.isEmpty {
                         metricBreakdown(

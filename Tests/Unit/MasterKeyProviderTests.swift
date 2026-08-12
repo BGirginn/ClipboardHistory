@@ -13,7 +13,7 @@ final class MasterKeyProviderTests: XCTestCase {
     }
 
     @MainActor
-    func testKeyProviderFailureStopsViewModelStorage() async {
+    func testKeyProviderFailureDoesNotStopOpenClipboardStorage() async {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "ClipboardHistoryKeyFailure-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -37,7 +37,7 @@ final class MasterKeyProviderTests: XCTestCase {
         await viewModel.loadHistory()
         viewModel.startMonitoring()
 
-        XCTAssertFalse(viewModel.isStorageAvailable)
-        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertTrue(viewModel.isStorageAvailable)
+        XCTAssertNil(viewModel.errorMessage)
     }
 }

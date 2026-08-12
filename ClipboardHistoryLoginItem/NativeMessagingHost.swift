@@ -1,55 +1,71 @@
 import Foundation
-import os
+
+private enum BrowserAudioBridgeXPC {
+    static let serviceName = "com.brgirgin.ClipboardHistory.BrowserAudioBridge"
+    static let maximumMessageSize = 256 * 1_024
+}
+
+@objc private protocol BrowserAudioBridgeServiceProtocol {
+    func registerController(withReply reply: @escaping (Bool) -> Void)
+    func exchange(_ payload: Data, withReply reply: @escaping (Data?) -> Void)
+}
 
 enum NativeMessagingHost {
     private static let allowedOrigin = "chrome-extension://cgflaocbdgjkjlnoiolchhogcaepfmpf/"
-    private static let requestName = Notification.Name("com.brgirgin.ClipboardHistory.BrowserAudio.Request")
-    private static let responseName = Notification.Name("com.brgirgin.ClipboardHistory.BrowserAudio.Response")
-    private static let maximumMessageSize = 256 * 1024
+    private static let emptyResponse = Data("{\"version\":1,\"commands\":[]}".utf8)
 
     static func shouldRun(arguments: [String]) -> Bool {
         arguments.dropFirst().contains(allowedOrigin)
     }
 
     static func run() {
+        let connection = NSXPCConnection(machServiceName: BrowserAudioBridgeXPC.serviceName)
+        connection.remoteObjectInterface = NSXPCInterface(with: BrowserAudioBridgeServiceProtocol.self)
+        connection.resume()
+        defer { connection.invalidate() }
+
         while let payload = readMessage() {
-            let requestID = UUID().uuidString
-            let responsePayload = OSAllocatedUnfairLock<String?>(initialState: nil)
-            let observer = DistributedNotificationCenter.default().addObserver(
-                forName: responseName,
-                object: requestID,
-                queue: nil
-            ) { notification in
-                let payload = notification.userInfo?["payload"] as? String
-                responsePayload.withLock { $0 = payload }
-            }
-            DistributedNotificationCenter.default().postNotificationName(
-                requestName,
-                object: requestID,
-                userInfo: ["payload": payload],
-                deliverImmediately: true
-            )
-            let deadline = Date.now.addingTimeInterval(0.4)
-            while responsePayload.withLock({ $0 }) == nil,
-                  RunLoop.current.run(mode: .default, before: deadline),
-                  Date.now < deadline {}
-            DistributedNotificationCenter.default().removeObserver(observer)
-            writeMessage(responsePayload.withLock { $0 } ?? "{\"version\":1,\"commands\":[]}")
+            writeMessage(exchange(payload, using: connection))
         }
     }
 
-    private static func readMessage() -> String? {
+    private static func exchange(_ payload: Data, using connection: NSXPCConnection) -> Data {
+        let condition = NSCondition()
+        var response: Data?
+        var completed = false
+        let proxy = connection.remoteObjectProxyWithErrorHandler { _ in
+            condition.lock()
+            completed = true
+            condition.signal()
+            condition.unlock()
+        } as? BrowserAudioBridgeServiceProtocol
+
+        condition.lock()
+        proxy?.exchange(payload) { data in
+            condition.lock()
+            response = data
+            completed = true
+            condition.signal()
+            condition.unlock()
+        }
+        let deadline = Date.now.addingTimeInterval(1)
+        while !completed, condition.wait(until: deadline) {}
+        condition.unlock()
+        return response ?? emptyResponse
+    }
+
+    private static func readMessage() -> Data? {
         let lengthData = FileHandle.standardInput.readData(ofLength: 4)
         guard lengthData.count == 4 else { return nil }
         let length = lengthData.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }.littleEndian
-        guard length > 0, length <= maximumMessageSize else { return nil }
+        guard length > 0, length <= BrowserAudioBridgeXPC.maximumMessageSize else { return nil }
         let data = FileHandle.standardInput.readData(ofLength: Int(length))
         guard data.count == Int(length) else { return nil }
-        return String(data: data, encoding: .utf8)
+        return data
     }
 
-    private static func writeMessage(_ message: String) {
-        guard let data = message.data(using: .utf8), data.count <= maximumMessageSize else { return }
+    private static func writeMessage(_ data: Data) {
+        guard data.count <= BrowserAudioBridgeXPC.maximumMessageSize else { return }
         var length = UInt32(data.count).littleEndian
         let header = Data(bytes: &length, count: MemoryLayout<UInt32>.size)
         FileHandle.standardOutput.write(header)

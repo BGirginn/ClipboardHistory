@@ -158,14 +158,14 @@ final class StorageDeepCoverageTests: XCTestCase {
             CREATE TEMP TRIGGER fail_item_delete BEFORE DELETE ON ClipboardItems
             BEGIN SELECT RAISE(ABORT, 'injected item delete failure'); END
             """)
-        await assertThrowsAsync { try await storage.deleteBatchThrowing(ids: [member.id]) }
-        await storage.deleteItem(member)
-        await storage.clearAll()
+        await assertThrowsAsync { _ = try await storage.deleteBatchThrowing(items: [member]) }
+        await assertThrowsAsync { _ = try await storage.deleteItem(member) }
+        await assertThrowsAsync { _ = try await storage.clearAll() }
         try await storage.execute("DROP TRIGGER fail_item_delete")
         await storage.close()
     }
 
-    func testSensitiveGuardsClosedWrappersMetricsCleanupAndMigrationStatuses() async throws {
+    func testOpenSensitiveStorageClosedWrappersMetricsCleanupAndMigrationStatuses() async throws {
         let root = temporaryDirectory("StorageWrapperDeepCoverage")
         defer { try? FileManager.default.removeItem(at: root) }
         let storage = StorageService(baseDirectory: root, encryptionService: .ephemeral())
@@ -177,14 +177,13 @@ final class StorageDeepCoverageTests: XCTestCase {
             isEncrypted: false
         )
         await storage.upsert(unsafe)
-        await assertThrowsAsync { try await storage.upsertThrowing(unsafe) }
-        await assertThrowsAsync { try await storage.upsertBatchThrowing([unsafe]) }
-        await assertThrowsAsync {
-            try await storage.importBatchThrowing(items: [unsafe], collections: [])
-        }
+        try await storage.upsertThrowing(unsafe)
+        try await storage.upsertBatchThrowing([unsafe])
+        try await storage.importBatchThrowing(items: [unsafe], collections: [])
         let guardedHistory = await storage.loadHistory()
-        XCTAssertTrue(guardedHistory.isEmpty)
-        try await storage.verifyEncryptionAvailable()
+        XCTAssertEqual(guardedHistory.map(\.id), [unsafe.id])
+        XCTAssertFalse(try XCTUnwrap(guardedHistory.first).isEncrypted)
+        try await storage.verifyStorageAvailable()
 
         let imageID = UUID()
         let storedImage = await storage.storeImage(Data(repeating: 1, count: 512), id: imageID)
@@ -216,11 +215,15 @@ final class StorageDeepCoverageTests: XCTestCase {
         let recent = ClipboardItem(type: .text, text: "recent", hash: "recent")
         await storage.saveHistory([image, recent])
         let associatedFileSize = await storage.associatedFileSize(for: image)
+        let imageReclaimableCost = try await storage.reclaimableStorageCost(for: image)
+        let textReclaimableCost = try await storage.reclaimableStorageCost(for: recent)
         let unsafeLogicalSize = await storage.logicalFileSize(
             "../unsafe",
             directory: storage.imagesDirectory
         )
         XCTAssertGreaterThan(associatedFileSize, 0)
+        XCTAssertGreaterThan(imageReclaimableCost, associatedFileSize)
+        XCTAssertGreaterThan(textReclaimableCost, 0)
         XCTAssertEqual(unsafeLogicalSize, 0)
         let metrics = await storage.storageMetrics()
         XCTAssertGreaterThan(metrics.totalBytes, 0)
@@ -245,15 +248,15 @@ final class StorageDeepCoverageTests: XCTestCase {
         let failedMigrationStatus = await storage.migrationStatus()
         XCTAssertTrue(failedMigrationStatus.contains("preserved after failure"))
         let historyForMigration = await storage.loadHistory()
-        await storage.migrateEncryption(items: historyForMigration, mode: .all)
+        try await storage.migrateEncryption(items: historyForMigration, mode: .all)
 
         await storage.close()
         await storage.close()
         let closedHistory = await storage.loadHistory()
         XCTAssertTrue(closedHistory.isEmpty)
         await storage.upsert(recent)
-        await storage.deleteItem(recent)
-        await storage.clearAll()
+        await assertThrowsAsync { _ = try await storage.deleteItem(recent) }
+        await assertThrowsAsync { _ = try await storage.clearAll() }
         let closedCleanup = await storage.cleanup(
             historyLimit: 1,
             retentionDays: 1,
@@ -263,18 +266,20 @@ final class StorageDeepCoverageTests: XCTestCase {
         XCTAssertEqual(closedCleanup, CleanupReport(removedItemCount: 0, reclaimedBytes: 0))
         let closedMigrationStatus = await storage.migrationStatus()
         XCTAssertEqual(closedMigrationStatus, "Database unavailable")
-        await storage.migrateEncryption(items: [recent], mode: .all)
+        await assertThrowsAsync {
+            try await storage.migrateEncryption(items: [recent], mode: .all)
+        }
     }
 
-    func testKeyProviderRotationAndDefaultStorageSelectionDoNotRequireAppleAccount() async throws {
+    func testClearAndDefaultOpenStorageDoNotRequireClipboardKey() async throws {
         let root = temporaryDirectory("KeyProviderRotationCoverage")
         defer { try? FileManager.default.removeItem(at: root) }
         let provider = RecordingMasterKeyProvider(key: Data(repeating: 4, count: 32))
         let storage = StorageService(baseDirectory: root, keyProvider: provider)
-        await storage.clearAll()
-        XCTAssertEqual(provider.loadCount, 1)
-        XCTAssertEqual(provider.replacementCount, 1)
-        try await storage.verifyEncryptionAvailable()
+        _ = try await storage.clearAll()
+        XCTAssertEqual(provider.loadCount, 0)
+        XCTAssertEqual(provider.replacementCount, 0)
+        try await storage.verifyStorageAvailable()
         await storage.close()
 
         let defaultStorage = StorageService()
@@ -385,14 +390,16 @@ final class StorageDeepCoverageTests: XCTestCase {
         }
         await bindingFailure.close()
 
-        let item = ClipboardItem(type: .text, text: "batch", hash: "batch")
+        let item = ClipboardItem(type: .text, text: "batch", hash: "batch", isEncrypted: true)
         try await storage.upsertBatchThrowing([item])
 
         try await storage.execute("""
             CREATE TEMP TRIGGER fail_migration_insert BEFORE INSERT ON ClipboardItems
             BEGIN SELECT RAISE(ABORT, 'migration failure'); END
             """)
-        await storage.migrateEncryption(items: [item], mode: .all)
+        await assertThrowsAsync {
+            try await storage.migrateEncryption(items: [item], mode: .all)
+        }
         try await storage.execute("DROP TRIGGER fail_migration_insert")
 
         let old = ClipboardItem(

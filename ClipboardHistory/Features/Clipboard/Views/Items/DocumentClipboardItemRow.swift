@@ -21,7 +21,7 @@ struct DocumentClipboardItemRow: View {
             }
 
             VStack(alignment: .leading, spacing: 5) {
-                Text(isLocked ? "Preview hidden while locked" : item.displayTitle ?? title)
+                Text(redactedTitle)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -43,7 +43,11 @@ struct DocumentClipboardItemRow: View {
 
     private var fileIcon: some View {
         Group {
-            if let path = item.fileURLs.first {
+            if isRedacted {
+                Image(systemName: "eye.slash")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            } else if let path = item.fileURLs.first {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: path))
                     .resizable()
                     .scaledToFit()
@@ -59,7 +63,16 @@ struct DocumentClipboardItemRow: View {
 
     private var title: String { item.type == .pdf ? "PDF Document" : "Files" }
 
+    private var isRedacted: Bool { isLocked || item.isSensitive }
+
+    private var redactedTitle: String {
+        if item.isSensitive { return "Sensitive content" }
+        if isLocked { return "Preview hidden while locked" }
+        return item.displayTitle ?? title
+    }
+
     private var detail: String {
+        if isRedacted { return item.isSensitive ? "Sensitive content" : "Clipboard History is locked" }
         if item.type == .pdf {
             return item.pageCount.map { "\($0) pages" } ?? "PDF"
         }

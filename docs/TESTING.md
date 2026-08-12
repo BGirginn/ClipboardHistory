@@ -2,20 +2,20 @@
 
 No single layer is sufficient. A beta tag requires retained evidence from the exact release commit and exact arm64 artifact for every row below.
 
-| Gate | Required evidence | Current local status (2026-08-01) |
+| Gate | Required evidence | Current stabilization status (2026-08-12) |
 |---|---|---|
-| Swift build | arm64 Debug, Release, CommunityRelease; macOS 14 minimum; zero compiler/analyzer/linker diagnostics | All three configurations passed the `lipo`, `file`, `otool`, and minimum-OS gate; analyzer passed locally |
-| Unit/integration | Model, pasteboard, storage, encryption, migration, lock lifecycle, search, stack, OCR/QR | 204 current tests passed across the unit/integration and optimized benchmark gates; 0 failed |
+| Swift build | arm64 Debug, Release, CommunityRelease; macOS 14.2 minimum; zero compiler/analyzer/linker diagnostics | All three configurations passed the arm64 and macOS 14.2 gate, including the login helper, XPC service, and Safari extension |
+| Unit/integration | Model, pasteboard, storage, legacy decryption migration, Notes encryption, lock lifecycle, search, stack, OCR/QR | 291 tests passed; 0 failed |
 | Fuzz | 10,000+ deterministic hostile inputs plus malformed archive/media cases | 10,000 hostile archive/HTML/path inputs and 512 malformed PNG/JPEG/GIF/TIFF/BMP/HEIC/PDF/RTF corpus cases passed |
-| Coverage | Every executable production Swift line, per file and aggregate, 100% | Passed: 11,880/11,880 executable production lines and every production Swift file at 100% |
-| UI automation | Status item, shortcut, panel/menu tracking, keyboard, settings, lock, paste, drag/drop, import/export | 7 isolated ad-hoc-signed UI tests passed. A self-signed Debug attempt remained in `XCUIApplication.launch()` for more than 10 minutes despite valid signatures and test entitlements; manual signed-app coverage remains pending |
+| Coverage | Every executable production Swift line, per file and aggregate, 100% | 291 unit and 10 UI tests passed during capture, but the gate failed at 95.76% aggregate. Native CoreAudio/event-tap lifecycle and remaining UI/error paths need more coverage; the threshold was not lowered |
+| UI automation | Status item, shortcut, panel/menu tracking, keyboard, settings, lock, paste, drag/drop, import/export | 10 ad-hoc coverage tests and 10 Community-signed UI tests passed |
 | Accessibility/visual | macOS 14/15/26, light/dark, high contrast, reduced motion/transparency, 200%, Turkish/English, VoiceOver/focus, small/multiple displays | Partial render and Turkish smoke evidence only; full matrix pending |
-| Performance | Optimized arm64 Release, warm-up, 10+ runs, p95 thresholds | Automated 5,000-item write/read/load/filter/panel-layout p95 gate passed with 20 repetitions; 10-sample idle smoke passed at 0.0% median CPU and 44,400 KB maximum RSS |
-| Sanitizers | ASan and TSan separately with `ENABLE_DEBUG_DYLIB=NO` and zero diagnostics | ASan 203 passed; TSan 203 passed; the optimized benchmark is intentionally separate; no warning or sanitizer diagnostic |
-| Mutation | Pasteboard identity, retention, authenticated decryption, search, archive, lock capture, key rotation | 7 killed, 0 survived |
-| Soak/Instruments | Eight hours; idle CPU <1%; RSS <75 MB; <10% post-warm-up growth; no crash/hang; SQLite integrity; Time Profiler/Leaks/Energy/Concurrency | Short CommunityRelease idle CPU/RSS and SQLite integrity smoke passed; eight-hour growth, crash/hang, and Instruments evidence remain pending |
+| Performance | Optimized arm64 Release, warm-up, 10+ runs, p95 thresholds | Optimized arm64 p95 benchmark passed; the new eight-hour and Instruments evidence is pending |
+| Sanitizers | ASan and TSan separately with `ENABLE_DEBUG_DYLIB=NO` and zero diagnostics | ASan 290 passed and TSan 290 passed; no sanitizer diagnostic |
+| Mutation | Pasteboard identity, retention, authenticated decryption, search, archive, lock capture, open-storage migration | 7 killed, 0 survived |
+| Soak/Instruments | Eight hours; idle CPU <1%; RSS <75 MB; <10% post-warm-up growth; no crash/hang; SQLite integrity; Time Profiler/Leaks/Energy/Concurrency | Not rerun for the stabilization candidate |
 | Compatibility | arm64 on macOS 14, 15, and 26 | macOS 26.5 arm64 passed locally; macOS 14/15 and exact release-commit matrix evidence pending |
-| Distribution | Stable self-signed certificate and encrypted backup, quarantined clean-user install, checksums, SPDX SBOM, Cask audit/install/upgrade/uninstall | Stable Community identity and `syft` 1.50.0 arm64 are installed; signed ZIP/DMG, checksums, SPDX SBOM, requirement, and fingerprint were produced and verified locally. Encrypted `.p12` backup, clean-machine evidence, tag, Release, and Cask are absent |
+| Distribution | Stable self-signed certificate and encrypted backup, quarantined clean-user install, checksums, SPDX SBOM, Cask audit/install/upgrade/uninstall | Signing identity and history/working-tree secret scans passed. Candidate selection, artifact creation, installation, tag, and publication remain blocked by the failed coverage and physical acceptance gates |
 
 For normal feature work, use the bounded development-test cache instead of a
 new `-derivedDataPath` for every run:
@@ -65,10 +65,15 @@ The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty
 
 The suite retains compact unit/UI JSON summaries and the merged coverage report/archive, then removes successful raw `.xcresult` bundles, transient DerivedData, and exported intermediate coverage directories on exit. Set `CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS=1` only when raw result bundles are required as release evidence. Failed runs retain their raw `.xcresult` bundles for diagnosis. Each UI test creates its isolated database under the test runner's temporary directory and removes that root plus its UserDefaults suite during teardown. This keeps reproducible evidence without accumulating rebuildable multi-gigabyte test trees in temporary storage.
 
+Coverage evidence directories named `clipboardhistory-coverage-*` or
+`ClipboardHistoryCoverage*` under `/private/tmp` participate in the same 2 GiB
+and 24-hour cleanup policy. Copy release evidence out of temporary storage when
+it must be retained longer.
+
 The self-signed UI attempt is a separate diagnostic. It requires the stable Community identity but no Apple account or provisioning profile:
 
 ```sh
 scripts/verify-community-signing.sh
 ```
 
-CI uses Apple-silicon `macos-14`, `macos-15`, and `macos-26` runners. The signed UI job remains opt-in on a protected interactive arm64 runner. The current macOS 26.5 attempt did not get beyond Xcode's application-launch handshake, so this job cannot be counted as passing and does not replace manual testing of the final self-signed artifact.
+CI uses Apple-silicon `macos-14`, `macos-15`, and `macos-26` runners. The signed UI job remains opt-in on a protected interactive arm64 runner. The current macOS 26.5 Community-signed UI run passed all ten automated tests, but it does not replace physical input/audio/browser checks or the external OS matrix.

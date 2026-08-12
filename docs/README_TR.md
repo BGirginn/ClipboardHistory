@@ -64,7 +64,7 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 - macOS 14.2+ üzerinde uygulama bazlı 0–100 ses düzeyi, yetkilendirilmiş Chromium sekme yakalama ve doğrudan denetlenebilen Safari HTML medya sekmeleri
 - Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
 - Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
-- Ayrı Keychain anahtarlarıyla AES-GCM geçmiş ve not şifrelemesi, plaintext'e düşmeyen hata davranışı
+- Açık yerel pano depolaması ve ayrı Keychain anahtarıyla AES-GCM şifreli Notlar
 - Notları da içeren parola korumalı yerel arşiv dışa/içe aktarma
 - Cihaz üzerinde Vision OCR, QR tanıma ve renk analizi
 - İngilizce ve Türkçe yerelleştirme
@@ -73,7 +73,7 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 
 ClipboardHistory yalnızca `NSPasteboard` üzerinden sunulan pano değişikliklerini okur. Masaüstünü veya başka klasörleri izlemez ve pano içeriğini ağ üzerinden göndermez. Ses örnekleri, sistem metriği geçmişi, sekme başlıkları, URL'ler ve sekme kimlikleri kalıcı olarak saklanmaz.
 
-Geçmiş yerel SQLite veritabanında saklanır. Şifreleme anahtarları macOS login Keychain'de tutulur; Keychain hatalarında işlem kapalı ve güvenli biçimde başarısız olur. İsteğe bağlı uygulama kilidi görüntüleme/etkileşim gizlilik katmanıdır ve varsayılan olarak kapalıdır.
+Pano geçmişi yerel SQLite veritabanında şifrelenmeden saklanır. Not başlıkları ve gövdeleri macOS login Keychain'deki ayrı bir AES-GCM anahtarıyla korunur. İsteğe bağlı uygulama kilidi görüntüleme/etkileşim gizlilik katmanıdır; kilitliyken pano kaydı duraklatılır.
 
 Tam sınırlar için [Gizlilik ve Tehdit Modeli](PRIVACY_AND_THREAT_MODEL.md) ile [Bilinen Sınırlar](KNOWN_LIMITATIONS.md) belgelerine bakın.
 

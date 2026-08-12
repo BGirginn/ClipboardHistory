@@ -14,12 +14,19 @@ final class ExportImportDeepCoverageTests: XCTestCase {
             text: "secret text",
             imageFilename: "image.png",
             hash: "metadata-only",
+            displayTitle: "Private title",
             thumbnailFilename: "thumb.png",
             payloadFilename: "payload.rtf",
             assetFilenames: ["group.png"],
             fileURLs: ["/tmp/file"],
             fileBookmarks: [Data([1])],
-            isEncrypted: true
+            isEncrypted: true,
+            protectedMetadata: ClipboardProtectedMetadata(
+                tags: ["private-tag"],
+                extractedText: "private OCR",
+                qrCodeText: "private QR",
+                colorHex: "#123456"
+            )
         )
         let excludedSensitive = ClipboardItem(
             type: .text,
@@ -52,6 +59,10 @@ final class ExportImportDeepCoverageTests: XCTestCase {
         XCTAssertTrue(redacted.assetFilenames.isEmpty)
         XCTAssertTrue(redacted.fileURLs.isEmpty)
         XCTAssertTrue(redacted.fileBookmarks.isEmpty)
+        XCTAssertNil(redacted.displayTitle)
+        XCTAssertEqual(redacted.protectedMetadata, ClipboardProtectedMetadata())
+        XCTAssertTrue(archive.collections.isEmpty)
+        XCTAssertTrue(archive.collectionHashes.isEmpty)
         XCTAssertFalse(redacted.isEncrypted)
         await assertThrowsAsync {
             _ = try await service.importArchive(
@@ -124,7 +135,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
         XCTAssertEqual(report, ImportReport(importedCount: 3, duplicateCount: 0, rejectedCount: 0))
         let imported = await destination.loadHistory()
         XCTAssertEqual(imported.count, 3)
-        XCTAssertTrue(imported.allSatisfy(\.isEncrypted))
+        XCTAssertTrue(imported.allSatisfy { !$0.isEncrypted })
         let importedCollections = try await destination.loadCollectionsThrowing()
         XCTAssertEqual(importedCollections.first?.id, collection.id)
         XCTAssertEqual(importedCollections.first?.name, collection.name)
@@ -181,7 +192,7 @@ final class ExportImportDeepCoverageTests: XCTestCase {
         XCTAssertEqual(report.rejectedCount, 5)
         let history = await storage.loadHistory()
         XCTAssertEqual(history.count, 2)
-        XCTAssertEqual(history.first { $0.hash == "sensitive-valid" }?.isEncrypted, true)
+        XCTAssertEqual(history.first { $0.hash == "sensitive-valid" }?.isEncrypted, false)
         await storage.close()
     }
 
