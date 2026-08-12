@@ -1,6 +1,6 @@
 # Known limitations
 
-- `v1.0.0-beta.3` is a Community prerelease, not a production or notarized release.
+- `v1.0.0-beta.4` is a Community prerelease, not a production or notarized release.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
 - Only macOS 26.5 arm64 has executed locally. The complete macOS 14/15/26 external OS matrix has not been recorded for this release.
 - Encrypted Notes and one-time migration of legacy encrypted Clipboard records depend on login-Keychain access and the stable signing identity. Current open Clipboard storage does not require Keychain access.

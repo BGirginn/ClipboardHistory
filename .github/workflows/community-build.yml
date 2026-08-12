@@ -1,0 +1,35 @@
+name: Community Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Run menu-bar regression tests
+        run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration Debug -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath /private/tmp/ClipboardHistoryCommunityTests \
+            CODE_SIGNING_ALLOWED=NO \
+            -only-testing:ClipboardHistoryTests/MenuBarControllerTests test
+      - name: Build unsigned CommunityRelease
+        run: |
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+            -configuration CommunityRelease -destination 'generic/platform=macOS' \
+            -derivedDataPath /private/tmp/ClipboardHistoryCommunityBuild \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          ditto -c -k --keepParent \
+            /private/tmp/ClipboardHistoryCommunityBuild/Build/Products/CommunityRelease/ClipboardHistory.app \
+            /private/tmp/ClipboardHistory-CommunityRelease-unsigned.zip
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ClipboardHistory-CommunityRelease-unsigned
+          path: /private/tmp/ClipboardHistory-CommunityRelease-unsigned.zip
+          if-no-files-found: error

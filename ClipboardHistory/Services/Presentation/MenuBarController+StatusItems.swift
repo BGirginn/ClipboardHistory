@@ -188,8 +188,21 @@ extension MenuBarController {
     }
 
     private func applyRenderedState(_ state: MenuBarRenderedState, to id: MenuBarItemID) {
-        guard renderedStatusStates[id] != state,
-              let button = statusItems[id]?.button else { return }
+        guard let item = statusItems[id],
+              let button = item.button else { return }
+        let desiredLength = state.title.isEmpty
+            ? NSStatusItem.squareLength
+            : NSStatusItem.variableLength
+        if item.length != desiredLength {
+            item.length = desiredLength
+        }
+        if let cell = button.cell as? NSButtonCell {
+            cell.wraps = false
+            cell.lineBreakMode = .byClipping
+        }
+        button.imagePosition = state.title.isEmpty ? .imageOnly : .imageLeading
+
+        guard renderedStatusStates[id] != state else { return }
         renderedStatusStates[id] = state
         button.title = state.title
         button.image = state.symbol.flatMap {

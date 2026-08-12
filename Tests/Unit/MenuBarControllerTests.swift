@@ -376,6 +376,52 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testMetricStatusItemsUseSingleLineVariableWidthWhileFeatureItemsStaySquare() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        var createdItems: [NSStatusItem] = []
+        let dependencies = MenuBarControllerDependencies(
+            makeStatusItem: {
+                let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                createdItems.append(item)
+                return item
+            },
+            removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+            makePopover: MenuPopoverStub.init,
+            makePanel: { _ in MenuPanelStub() },
+            quickLookPresenter: MenuQuickLookSpy()
+        )
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: dependencies,
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
+        context.appModel.controlCenter.setMetricVisible(true, metric: .networkDownload)
+        context.appModel.controlCenter.setMetricGroupVisible(true)
+
+        let notesItem = try XCTUnwrap(
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.notes" }
+        )
+        let metricItem = try XCTUnwrap(
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Metrics.Combined" }
+        )
+        let metricButton = try XCTUnwrap(metricItem.button)
+        let metricCell = try XCTUnwrap(metricButton.cell as? NSButtonCell)
+
+        XCTAssertEqual(notesItem.length, NSStatusItem.squareLength)
+        XCTAssertEqual(notesItem.button?.imagePosition, .imageOnly)
+        XCTAssertEqual(metricItem.length, NSStatusItem.variableLength)
+        XCTAssertEqual(metricButton.imagePosition, .imageLeading)
+        XCTAssertFalse(metricCell.wraps)
+        XCTAssertEqual(metricCell.lineBreakMode, .byClipping)
+        XCTAssertFalse(metricButton.title.contains("\n"))
+
+        controller.stop()
+        await cleanup(context)
+    }
+
     private func rightMouseEvent() -> NSEvent? {
         NSEvent.mouseEvent(
             with: .rightMouseUp,

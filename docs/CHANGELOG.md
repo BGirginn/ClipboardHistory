@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## Unreleased
 
+## 1.0.0-beta.4 - 2026-08-12
+
+- Fixed live menu-bar metrics using square icon width, which caused rate units such as `KB/s` to wrap onto a second line.
+- Kept icon-only status items square while giving metric items a single-line variable width without rebuilding them on every sample.
+
 ## 1.0.0-beta.3 - 2026-08-12
 
 - Converted the application into a modular Control Center with independently pinnable Clipboard, Notes, Input Tools, System Monitor, and experimental Audio Mixer features.
