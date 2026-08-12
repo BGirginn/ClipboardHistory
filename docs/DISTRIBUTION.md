@@ -1,6 +1,6 @@
 # Community beta distribution
 
-`v1.0.0-beta.3` is the prepared Community candidate for Apple silicon Macs running macOS 14.2 or later. It must not be described as distributed until the release gates, artifact publication, and Cask update have actually passed. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
+`v1.0.0-beta.3` is a public Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
 
 ## Stable signing identity
 

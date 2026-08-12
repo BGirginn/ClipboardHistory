@@ -16,7 +16,7 @@ ClipboardHistory is a modular menu-bar utility hub whose Clipboard, Notes, Input
 
 ## Current status
 
-- Current Community beta: [`v1.0.0-beta.2`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) (`1.0.0`, build `10002`)
+- Current Community beta: [`v1.0.0-beta.3`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.3) (`1.0.0`, build `10003`)
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
 - The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
@@ -47,7 +47,7 @@ Normal uninstall preserves clipboard history and preferences. `brew uninstall --
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2).
+The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.3).
 
 ## Features
 

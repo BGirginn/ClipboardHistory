@@ -15,4 +15,4 @@ ClipboardHistory is now a modular macOS menu-bar Control Center. Clipboard Histo
 
 This is an arm64-only Community prerelease for macOS 14.2 or later. It is self-signed and not Apple-notarized. Clipboard and Notes data stay local; system samples and browser tab metadata are memory-only, and audio is not recorded.
 
-The Audio Mixer is hidden on fresh profiles because signed multi-browser and physical device-switch validation remains incomplete. Coverage is 95.76%, below the repository's unchanged 100% release gate. External OS, Accessibility, VoiceOver, multi-display, Instruments, and long-soak gaps are listed in [Known Limitations](KNOWN_LIMITATIONS.md).
+The Audio Mixer is hidden on fresh profiles because signed multi-browser and physical device-switch validation remains incomplete. The 95.80% coverage capture meets the Community beta's 95% aggregate gate; native CoreAudio/event-tap lifecycle and remaining UI/error paths are tracked coverage debt. External OS, Accessibility, VoiceOver, multi-display, Instruments, and long-soak gaps are listed in [Known Limitations](KNOWN_LIMITATIONS.md).

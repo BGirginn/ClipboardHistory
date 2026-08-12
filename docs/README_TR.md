@@ -16,7 +16,7 @@ ClipboardHistory; Pano, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Miks
 
 ## Güncel durum
 
-- Güncel Community beta: [`v1.0.0-beta.2`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) (`1.0.0`, build `10002`)
+- Güncel Community beta: [`v1.0.0-beta.3`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.3) (`1.0.0`, build `10003`)
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
 - İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
@@ -47,7 +47,7 @@ Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall -
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, ClipboardHistory üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.2) sayfasından da indirilebilir.
+ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.3) sayfasından da indirilebilir.
 
 ## Özellikler
 

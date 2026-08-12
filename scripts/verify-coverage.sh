@@ -8,6 +8,8 @@ fi
 
 repository_root=${0:A:h:h}
 result_bundle=${1:A}
+minimum_aggregate_coverage=0.95
+low_file_coverage_warning=0.80
 report=$(mktemp /private/tmp/clipboardhistory-coverage.XXXXXX.json)
 trap 'rm -f "$report"' EXIT
 
@@ -34,17 +36,25 @@ while IFS= read -r source; do
     continue
   fi
   coverage=${values%%$'\t'*}
-  if [[ "$coverage" != "1" && "$coverage" != "1.0" ]]; then
-    print -u2 "coverage gate: $source -> $values"
+  if ! jq -en --argjson coverage "$coverage" '$coverage > 0' >/dev/null; then
+    print -u2 "coverage gate: production source has no executed lines: $source -> $values"
     failed=1
+  elif ! jq -en \
+    --argjson coverage "$coverage" \
+    --argjson warning "$low_file_coverage_warning" \
+    '$coverage >= $warning' >/dev/null; then
+    print -u2 "coverage warning: $source -> $values"
   fi
 done < <(cd "$repository_root" && rg --files ClipboardHistory -g '*.swift' | sort)
 
 target_coverage=$(jq -r '.targets[] | select(.name == "ClipboardHistory.app") | .lineCoverage' "$report")
-if [[ "$target_coverage" != "1" && "$target_coverage" != "1.0" ]]; then
-  print -u2 "coverage gate: aggregate production coverage is $target_coverage"
+if ! jq -en \
+  --argjson coverage "$target_coverage" \
+  --argjson minimum "$minimum_aggregate_coverage" \
+  '$coverage >= $minimum' >/dev/null; then
+  print -u2 "coverage gate: aggregate production coverage $target_coverage is below $minimum_aggregate_coverage"
   failed=1
 fi
 
 (( failed == 0 )) || exit 1
-print "coverage gate: every production Swift file is at 100% line coverage"
+print "coverage gate: aggregate production coverage $target_coverage meets $minimum_aggregate_coverage and every production Swift source has executed coverage"

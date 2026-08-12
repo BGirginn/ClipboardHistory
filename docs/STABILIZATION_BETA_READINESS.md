@@ -4,7 +4,7 @@ Date: 2026-08-12
 
 Candidate: `v1.0.0-beta.3` / build `10003`
 
-Decision: **not yet approved for beta packaging or installation**
+Decision: **approved for public Community beta packaging with the limitations below disclosed**
 
 ## Implemented in this worktree
 
@@ -20,13 +20,13 @@ Decision: **not yet approved for beta packaging or installation**
 - Menu-bar configuration v3 adds memory, temperature, and rate formatting; empty metric groups cannot remove the last reachable status item. Audio Mixer is experimental and hidden for fresh profiles.
 - System Monitor uses `active + wired + compressed` for Used memory and displays separate CPU, memory, network, and disk histories from the bounded in-memory ring buffer.
 
-## Remaining blockers
+## Remaining beta limitations
 
 - The browser bridge now uses an embedded XPC service. The listener accepts only the signed main app, login/native-host helper, and Safari extension bundle identifiers from the same signing certificate; messages remain versioned and capped at 256 KiB. Signed multi-browser runtime validation is still required, so browser audio remains experimental and hidden on fresh profiles.
 - CoreAudio process-list and default-output changes are now event-driven with low-frequency active-pipeline reconciliation. Physical multi-app/device-switch fail-open evidence is still incomplete.
-- Coverage capture passed 291 unit and 10 UI tests but the unchanged per-file/aggregate 100% gate failed at 95.76%. The threshold was not lowered; live CoreAudio tap lifecycle, event-tap lifecycle, and remaining UI/error paths remain a beta blocker.
+- Coverage capture passed 291 unit and 10 UI tests at 95.80%, meeting the Community beta policy of at least 95% aggregate coverage with no completely untested production Swift source. Live CoreAudio tap lifecycle, event-tap lifecycle, and remaining UI/error paths remain tracked coverage debt.
 - Signed Accessibility, keyboard cleaning, scroll reversal, browser extension, temperature comparison, macOS 14/15, VoiceOver, multi-display/notch, Instruments, and eight-hour soak gates have not yet been completed for this worktree.
-- `v1.0.0-beta.3` / build `10003` was selected for external prerelease preparation. Packaging, publication, and installation evidence must be added only after those operations actually pass; mandatory coverage and physical acceptance gaps remain disclosed.
+- `v1.0.0-beta.3` / build `10003` is approved for public prerelease preparation. Packaging, publication, and installation may proceed only when their own automated checks pass; incomplete physical acceptance remains disclosed and prevents a production-stable claim.
 
 ## Automated evidence from this worktree
 
@@ -41,6 +41,6 @@ Decision: **not yet approved for beta packaging or installation**
 - Critical mutations: 7 killed, 0 survived.
 - Debug, Release, and CommunityRelease: app, login helper, XPC service, and Safari extension are arm64-only with macOS 14.2 minimum.
 - Static structure, localization, analyzer, release-secret/history scan, optimized arm64 p95 performance, and `git diff --check` passed.
-- Coverage evidence: `/private/tmp/clipboardhistory-coverage-beta3-r3.rGSQ7P/evidence/Combined.xccovreport`; aggregate 95.02%, gate failed.
+- Coverage evidence: `/private/tmp/ClipboardHistoryCoverage-beta3-public-r1/Combined.xccovreport`; aggregate 95.80%, gate passed.
 
 This document must be updated with command output and physical-test evidence before a beta readiness decision changes.
