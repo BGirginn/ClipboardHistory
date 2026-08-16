@@ -42,11 +42,7 @@ struct ClipboardPasteStackView: View {
     }
 
     private func preview(for item: ClipboardItem) -> String {
-        guard !viewModel.isLocked, !item.isSensitive else {
-            return item.isSensitive
-                ? String(localized: "Sensitive content")
-                : String(localized: "Clipboard History is locked")
-        }
+        guard !item.isSensitive else { return String(localized: "Sensitive content") }
         return item.displayTitle ?? item.text ?? item.contentSubtype.rawValue
     }
 

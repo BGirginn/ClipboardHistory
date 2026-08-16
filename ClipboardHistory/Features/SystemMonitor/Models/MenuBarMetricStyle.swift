@@ -9,8 +9,8 @@ enum MenuBarMetricStyle: String, CaseIterable, Codable, Identifiable {
 
     var title: String {
         switch self {
-        case .compact: String(localized: "Compact")
-        case .value: String(localized: "Value Only")
+        case .compact: String(localized: "Value Only")
+        case .value: String(localized: "Label and Value")
         case .iconAndValue: String(localized: "Icon and Value")
         }
     }

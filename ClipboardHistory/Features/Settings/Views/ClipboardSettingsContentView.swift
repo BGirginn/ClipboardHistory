@@ -11,14 +11,8 @@ struct ClipboardSettingsContentView: View {
             ClipboardSettingsGeneralView(viewModel: viewModel)
         case .privacy:
             ClipboardSettingsPrivacyView(viewModel: viewModel)
-        case .security:
-            ClipboardSettingsSecurityView(viewModel: viewModel)
         case .storage:
             ClipboardSettingsStorageView(viewModel: viewModel)
-        case .systemMonitor:
-            SystemMonitorSettingsView(viewModel: viewModel)
-        case .audio:
-            AudioMixerSettingsView(viewModel: viewModel)
         case .advanced:
             ClipboardSettingsAdvancedView(viewModel: viewModel)
         }

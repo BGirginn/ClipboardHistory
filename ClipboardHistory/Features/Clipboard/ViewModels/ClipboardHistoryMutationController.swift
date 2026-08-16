@@ -12,10 +12,6 @@ extension ClipboardHistoryViewModel {
             AppLog.clipboard.debug("Clipboard capture skipped while recording is paused")
             return
         }
-        guard !isLocked else {
-            AppLog.clipboard.debug("Clipboard capture skipped while application lock is active")
-            return
-        }
         if let pasteboardIdentity,
            let expectedIdentity = lastProgrammaticallyWrittenIdentity {
             if pasteboardIdentity == expectedIdentity {
@@ -66,7 +62,7 @@ extension ClipboardHistoryViewModel {
             scheduleExpiration(for: item)
             if settings.sensitiveStoragePolicy == .ask {
                 pendingSensitiveItemIDs.append(item.id)
-                presentNextSensitiveConfirmationIfUnlocked()
+                presentNextSensitiveConfirmation()
             }
         } else {
             do {
@@ -403,6 +399,7 @@ extension ClipboardHistoryViewModel {
     }
 
     func confirmClearHistory() {
+        isShowingClearConfirmation = false
         Task { [weak self] in
             await self?.clearHistoryNow()
         }

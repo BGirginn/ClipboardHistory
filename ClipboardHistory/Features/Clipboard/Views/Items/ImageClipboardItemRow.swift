@@ -4,15 +4,13 @@ struct ImageClipboardItemRow: View {
     let item: ClipboardItem
     let storage: StorageService
     let thumbnailService: ThumbnailService
-    let isLocked: Bool
 
     var body: some View {
         HStack(spacing: 12) {
             ClipboardImageThumbnail(
                 item: item,
                 storage: storage,
-                thumbnailService: thumbnailService,
-                isLocked: isLocked
+                thumbnailService: thumbnailService
             )
 
             VStack(alignment: .leading, spacing: 5) {
@@ -40,7 +38,6 @@ struct ImageClipboardItemRow: View {
 
     private var title: String {
         if item.isSensitive { return "Sensitive content" }
-        if isLocked { return "Preview hidden while locked" }
         return item.displayTitle ?? (item.type == .imageGroup ? "Images" : "Image")
     }
 }

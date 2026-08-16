@@ -35,6 +35,7 @@ extension MenuBarController {
                 button.target = self
                 button.action = #selector(handleStatusItemAction(_:))
                 button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+                button.setAccessibilityIdentifier(itemID.accessibilityIdentifier)
                 button.setAccessibilityHelp(
                     String(localized: "Left-click to use this module. Right-click for options.")
                 )
@@ -163,15 +164,24 @@ extension MenuBarController {
         let tooltip = metrics.map {
             "\($0.title): \(appModel.systemMetrics.value(for: $0, formats: formats))"
         }.joined(separator: " · ") + String(localized: " — right-click for options")
-        let metric = style == .iconAndValue && metrics.count == 1 ? metrics.first : nil
+        let metric = metrics.count == 1 ? metrics.first : nil
+        let symbol = style == .iconAndValue
+            ? metric?.systemImage ?? "waveform.path.ecg"
+            : nil
         applyRenderedState(
             MenuBarRenderedState(
                 title: text,
-                symbol: metric?.systemImage,
+                symbol: symbol,
                 accessibilityDescription: metric?.title ?? tooltip,
                 tooltip: tooltip
             ),
-            to: id
+            to: id,
+            fixedLength: stableMetricItemLength(
+                metrics: metrics,
+                style: style,
+                formats: formats,
+                includesImage: symbol != nil
+            )
         )
     }
 
@@ -187,12 +197,16 @@ extension MenuBarController {
         )
     }
 
-    private func applyRenderedState(_ state: MenuBarRenderedState, to id: MenuBarItemID) {
+    private func applyRenderedState(
+        _ state: MenuBarRenderedState,
+        to id: MenuBarItemID,
+        fixedLength: CGFloat? = nil
+    ) {
         guard let item = statusItems[id],
               let button = item.button else { return }
         let desiredLength = state.title.isEmpty
             ? NSStatusItem.squareLength
-            : NSStatusItem.variableLength
+            : fixedLength ?? NSStatusItem.variableLength
         if item.length != desiredLength {
             item.length = desiredLength
         }
@@ -201,6 +215,10 @@ extension MenuBarController {
             cell.lineBreakMode = .byClipping
         }
         button.imagePosition = state.title.isEmpty ? .imageOnly : .imageLeading
+        button.alignment = state.title.isEmpty ? .center : .left
+        if !state.title.isEmpty {
+            button.font = metricFont
+        }
 
         guard renderedStatusStates[id] != state else { return }
         renderedStatusStates[id] = state
@@ -210,5 +228,81 @@ extension MenuBarController {
         }
         button.toolTip = state.tooltip
         button.setAccessibilityLabel(state.tooltip)
+    }
+
+    private var metricFont: NSFont {
+        NSFont.monospacedDigitSystemFont(
+            ofSize: NSFont.systemFontSize,
+            weight: .regular
+        )
+    }
+
+    private func stableMetricItemLength(
+        metrics: [MenuBarMetricID],
+        style: MenuBarMetricStyle,
+        formats: MetricFormatPreferences,
+        includesImage: Bool
+    ) -> CGFloat {
+        let attributes: [NSAttributedString.Key: Any] = [.font: metricFont]
+        let separatorWidth = ("  " as NSString).size(withAttributes: attributes).width
+        let textWidth = metrics.enumerated().reduce(CGFloat.zero) { width, entry in
+            let (index, metric) = entry
+            let prefix = style == .compact ? "" : "\(metric.title) "
+            let prefixWidth = (prefix as NSString).size(withAttributes: attributes).width
+            let valueWidth = stableValueCandidates(for: metric, formats: formats)
+                .map { ($0 as NSString).size(withAttributes: attributes).width }
+                .max() ?? 0
+            return width + (index == 0 ? 0 : separatorWidth) + prefixWidth + valueWidth
+        }
+        let imageWidth: CGFloat = includesImage ? 20 : 0
+        return ceil(textWidth + imageWidth + 8)
+    }
+
+    private func stableValueCandidates(
+        for metric: MenuBarMetricID,
+        formats: MetricFormatPreferences
+    ) -> [String] {
+        switch metric {
+        case .cpu:
+            return ["100%"]
+        case .memory where formats.memory == .usedAndTotal:
+            return ["999.99 TB/999.99 TB"]
+        case .memory:
+            return ["100%"]
+        case .temperature where formats.temperature == .fahrenheit:
+            return ["212°F"]
+        case .temperature:
+            return ["100°C"]
+        case .networkDownload, .networkUpload, .diskRead, .diskWrite:
+            return stableRateCandidates(unit: formats.rate)
+        }
+    }
+
+    private func stableRateCandidates(unit: RateMetricUnit) -> [String] {
+        switch unit {
+        case .automatic:
+            return [
+                "999 B/s",
+                "999.9 KB/s",
+                "999.9 MB/s",
+                "999.99 GB/s",
+                "999.99 TB/s"
+            ]
+        case .kilobytes:
+            return [fixedRateCandidate(suffix: " KB/s", maximumFractionDigits: 1)]
+        case .megabytes:
+            return [fixedRateCandidate(suffix: " MB/s", maximumFractionDigits: 1)]
+        case .gigabytes:
+            return [fixedRateCandidate(suffix: " GB/s", maximumFractionDigits: 2)]
+        }
+    }
+
+    private func fixedRateCandidate(
+        suffix: String,
+        maximumFractionDigits: Int
+    ) -> String {
+        9_999_999.9.formatted(
+            .number.precision(.fractionLength(maximumFractionDigits))
+        ) + suffix
     }
 }

@@ -39,50 +39,25 @@ final class AppSettingsMigrationTests: XCTestCase {
         }
     }
 
-    func testApplicationLockDefaultsToDisabledAndRemovesLockedCapturePreference() {
+    func testRemovedApplicationLockPreferencesArePurged() {
         withDefaults { defaults in
-            let settings = AppSettings(defaults: defaults)
-
-            XCTAssertFalse(settings.applicationLockEnabled)
-            XCTAssertEqual(settings.autoLockOption, .never)
-            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
-            XCTAssertEqual(defaults.integer(forKey: "applicationLockMigrationVersion"), 2)
-        }
-    }
-
-    func testLegacyAutomaticLockMigrationPreservesExistingPrivacyBehavior() {
-        withDefaults { defaults in
-            defaults.set(AutoLockOption.fiveMinutes.rawValue, forKey: "autoLockOption")
-
-            let settings = AppSettings(defaults: defaults)
-
-            XCTAssertTrue(settings.applicationLockEnabled)
-            XCTAssertEqual(settings.autoLockOption, .fiveMinutes)
-            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
-        }
-    }
-
-    func testMigratedApplicationLockPreferencesPersist() {
-        withDefaults { defaults in
-            defaults.set(1, forKey: "applicationLockMigrationVersion")
+            defaults.set("fiveMinutes", forKey: "autoLockOption")
             defaults.set(true, forKey: "applicationLockEnabled")
             defaults.set(false, forKey: "captureWhileLocked")
+            defaults.set(2, forKey: "applicationLockMigrationVersion")
 
-            let settings = AppSettings(defaults: defaults)
-            XCTAssertTrue(settings.applicationLockEnabled)
-            XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
+            _ = AppSettings(defaults: defaults)
 
-            settings.setApplicationLockEnabled(false)
-            let reopened = AppSettings(defaults: defaults)
-            XCTAssertFalse(reopened.applicationLockEnabled)
+            XCTAssertNil(defaults.object(forKey: "autoLockOption"))
+            XCTAssertNil(defaults.object(forKey: "applicationLockEnabled"))
             XCTAssertNil(defaults.object(forKey: "captureWhileLocked"))
+            XCTAssertNil(defaults.object(forKey: "applicationLockMigrationVersion"))
         }
     }
 
     func testEveryPreferencePersistsAndDerivedSetsNormalizeInput() {
         withDefaults { defaults in
             defaults.set(1, forKey: "closePanelAfterCopyingMigrationVersion")
-            defaults.set(1, forKey: "applicationLockMigrationVersion")
             let settings = AppSettings(defaults: defaults)
             settings.globalShortcutEnabled = false
             settings.thumbnailCacheMegabytes = 96

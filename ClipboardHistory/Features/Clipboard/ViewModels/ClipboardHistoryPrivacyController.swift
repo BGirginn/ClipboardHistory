@@ -138,10 +138,6 @@ extension ClipboardHistoryViewModel {
         guard !isShuttingDown else { return }
         refreshDisplayedItems()
         updateIgnoredPasteboardTypes()
-        lockService.configure(
-            enabled: settings.applicationLockEnabled,
-            option: settings.autoLockOption
-        )
         let maintenancePreferences = StorageMaintenancePreferences(
             historyLimit: settings.historyLimit,
             retentionDays: settings.retentionDays,
@@ -176,46 +172,6 @@ extension ClipboardHistoryViewModel {
         settings.launchAtLoginRequested = launchAtLoginService.isEnabled
     }
 
-    func unlock() {
-        Task { [weak self] in
-            await self?.unlockAndWait()
-        }
-    }
-
-    func unlockAndWait() async {
-        await lockService.unlock()
-        if !isLocked {
-            presentNextSensitiveConfirmationIfUnlocked()
-        }
-    }
-
-    func lock() {
-        lockService.lock()
-    }
-
-    func setApplicationLockEnabled(_ enabled: Bool) {
-        Task { [weak self] in
-            await self?.setApplicationLockEnabledAndWait(enabled)
-        }
-    }
-
-    @discardableResult
-    func setApplicationLockEnabledAndWait(_ enabled: Bool) async -> Bool {
-        guard enabled != settings.applicationLockEnabled else { return true }
-        guard await lockService.authenticateAndSetEnabled(enabled) else {
-            objectWillChange.send()
-            return false
-        }
-        if enabled, settings.autoLockOption == .never {
-            settings.autoLockOption = .whenMacLocks
-        }
-        settings.setApplicationLockEnabled(enabled)
-        if !isLocked {
-            presentNextSensitiveConfirmationIfUnlocked()
-        }
-        return true
-    }
-
     func dismissError() {
         errorMessage = nil
     }
@@ -225,20 +181,19 @@ extension ClipboardHistoryViewModel {
     }
 
     func confirmSensitiveSave() {
-        guard !isLocked,
-              let id = pendingSensitiveItemIDs.first,
+        guard let id = pendingSensitiveItemIDs.first,
               let content = temporaryContent[id] else { return }
         removeTemporaryItem(id: id)
-        presentNextSensitiveConfirmationIfUnlocked()
+        presentNextSensitiveConfirmation()
         Task { [weak self] in
             await self?.insertSensitivePermanently(content)
         }
     }
 
     func keepSensitiveTemporarily() {
-        guard !isLocked, !pendingSensitiveItemIDs.isEmpty else { return }
+        guard !pendingSensitiveItemIDs.isEmpty else { return }
         pendingSensitiveItemIDs.removeFirst()
-        presentNextSensitiveConfirmationIfUnlocked()
+        presentNextSensitiveConfirmation()
     }
 
     func exportArchive(

@@ -4,7 +4,6 @@ import Foundation
 @MainActor
 final class ControlCenterModel: ObservableObject {
     @Published private(set) var configuration: MenuBarConfiguration
-    @Published var feedbackMessage: String?
 
     let registry: FeatureRegistry
     private let store: MenuBarConfigurationStore
@@ -34,7 +33,6 @@ final class ControlCenterModel: ObservableObject {
     func setControlCenterItemVisible(_ isVisible: Bool) {
         var updated = configuration
         updated.showsControlCenterItem = isVisible
-        enforceVisibleItemInvariant(in: &updated)
         configuration = updated
         persist()
     }
@@ -44,7 +42,7 @@ final class ControlCenterModel: ObservableObject {
     }
 
     func setStandaloneItemVisible(_ isVisible: Bool, for id: UtilityFeatureID) {
-        updateFeature(id, enforcingVisibleItem: true) {
+        updateFeature(id) {
             $0.placement.showsStandaloneItem = isVisible
         }
     }
@@ -57,8 +55,10 @@ final class ControlCenterModel: ObservableObject {
 
     func setMetricGroupVisible(_ isVisible: Bool) {
         var updated = configuration
-        updated.metricGroup.isVisible = isVisible && !updated.metricGroup.metrics.isEmpty
-        enforceVisibleItemInvariant(in: &updated)
+        if isVisible && updated.metricGroup.metrics.isEmpty {
+            updated.metricGroup.metrics = [.cpu]
+        }
+        updated.metricGroup.isVisible = isVisible
         configuration = updated
         persist()
     }
@@ -66,7 +66,6 @@ final class ControlCenterModel: ObservableObject {
     func setMetricsAsSeparateItems(_ isSeparate: Bool) {
         var updated = configuration
         updated.metricGroup.showsSeparateItems = isSeparate
-        enforceVisibleItemInvariant(in: &updated)
         configuration = updated
         persist()
     }
@@ -84,13 +83,13 @@ final class ControlCenterModel: ObservableObject {
             if !updated.metricGroup.metrics.contains(metric) {
                 updated.metricGroup.metrics.append(metric)
             }
+            updated.metricGroup.isVisible = true
         } else {
             updated.metricGroup.metrics.removeAll { $0 == metric }
             if updated.metricGroup.metrics.isEmpty {
                 updated.metricGroup.isVisible = false
             }
         }
-        enforceVisibleItemInvariant(in: &updated)
         configuration = updated
         persist()
     }
@@ -114,27 +113,13 @@ final class ControlCenterModel: ObservableObject {
 
     private func updateFeature(
         _ id: UtilityFeatureID,
-        enforcingVisibleItem: Bool = false,
         mutation: (inout UtilityFeatureConfiguration) -> Void
     ) {
         var updated = configuration
         guard let index = updated.features.firstIndex(where: { $0.id == id }) else { return }
         mutation(&updated.features[index])
-        if enforcingVisibleItem {
-            enforceVisibleItemInvariant(in: &updated)
-        }
         configuration = updated
         persist()
-    }
-
-    private func enforceVisibleItemInvariant(in configuration: inout MenuBarConfiguration) {
-        guard !configuration.showsControlCenterItem,
-              !configuration.features.contains(where: { $0.placement.showsStandaloneItem }),
-              (!configuration.metricGroup.isVisible || configuration.metricGroup.metrics.isEmpty) else {
-            return
-        }
-        configuration.showsControlCenterItem = true
-        feedbackMessage = String(localized: "Control Center stays visible so the app remains accessible.")
     }
 
     private func persist() {

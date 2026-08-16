@@ -28,7 +28,6 @@ extension MenuBarController {
                       let destination = appModel.performStandaloneAction(for: id) else { return }
                 let preservesPreparedRoute = id == .notes
                     && action == .newNote
-                    && !appModel.isLocked
                 if isPopoverShown,
                    activeAnchorID == itemID,
                    appModel.router.activeFeature == destination,
@@ -62,6 +61,7 @@ extension MenuBarController {
 
     private func showStatusMenu(for itemID: MenuBarItemID) {
         guard let button = statusItems[itemID]?.button else { return }
+        activeAnchorID = itemID
         let menu = NSMenu()
         switch itemID {
         case .controlCenter:
@@ -103,10 +103,12 @@ extension MenuBarController {
             title: String(localized: "Open Control Center"),
             action: #selector(openControlCenter)
         ))
-        menu.addItem(makeMenuItem(
+        let settingsItem = makeMenuItem(
             title: String(localized: "Open Settings"),
-            action: #selector(openSettings)
-        ))
+            action: #selector(openRepresentedSettings)
+        )
+        settingsItem.representedObject = settingsSection(for: itemID).rawValue
+        menu.addItem(settingsItem)
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(
             title: String(localized: "Quit ClipboardHistory"),
@@ -138,8 +140,14 @@ extension MenuBarController {
         openFeature(.menuBarCustomization, anchorID: activeAnchorID)
     }
 
-    @objc private func openSettings() {
-        openFeature(.settings, anchorID: activeAnchorID)
+    @objc private func openRepresentedSettings(_ sender: NSMenuItem) {
+        guard let rawValue = sender.representedObject as? String,
+              let section = AppSettingsSection(rawValue: rawValue) else { return }
+        openFeature(
+            .settings,
+            anchorID: activeAnchorID,
+            settingsSection: section
+        )
     }
 
     @objc private func openSystemMonitor() {
@@ -164,13 +172,34 @@ extension MenuBarController {
             if let destination {
                 let preservesPreparedRoute = id == .notes
                     && quickAction == .newNote
-                    && !appModel.isLocked
                 openFeature(
                     destination,
                     anchorID: .feature(id),
                     preparesDestination: !preservesPreparedRoute
                 )
             }
+        }
+    }
+
+    private func settingsSection(for itemID: MenuBarItemID) -> AppSettingsSection {
+        switch itemID {
+        case .controlCenter:
+            .general
+        case let .feature(id):
+            switch id {
+            case .clipboard:
+                .clipboard
+            case .systemMonitor:
+                .systemMonitor
+            case .audioMixer:
+                .audioMixer
+            case .notes:
+                .notes
+            case .keyboardCleaning, .scrollReverse:
+                .inputTools
+            }
+        case .metricGroup, .metric:
+            .menuBar
         }
     }
 }

@@ -8,7 +8,6 @@ struct ClipboardHistoryListView: View {
     let selectedItemIDs: Set<UUID>
     let copiedItemID: UUID?
     let hasSearch: Bool
-    let isLocked: Bool
     let storage: StorageService
     let thumbnailService: ThumbnailService
     let actions: ClipboardItemActions
@@ -31,7 +30,6 @@ struct ClipboardHistoryListView: View {
                                         selectedItemID: selectedItemID,
                                         selectedItemIDs: selectedItemIDs,
                                         copiedItemID: copiedItemID,
-                                        isLocked: isLocked,
                                         storage: storage,
                                         thumbnailService: thumbnailService,
                                         actions: actions
@@ -47,7 +45,6 @@ struct ClipboardHistoryListView: View {
                                         selectedItemID: selectedItemID,
                                         selectedItemIDs: selectedItemIDs,
                                         copiedItemID: copiedItemID,
-                                        isLocked: isLocked,
                                         storage: storage,
                                         thumbnailService: thumbnailService,
                                         actions: actions

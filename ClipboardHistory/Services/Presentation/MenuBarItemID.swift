@@ -14,4 +14,13 @@ enum MenuBarItemID: Hashable {
         case let .metric(id): "ClipboardHistory.Metric.\(id.rawValue)"
         }
     }
+
+    var accessibilityIdentifier: String {
+        switch self {
+        case .controlCenter: "menuBar.controlCenter"
+        case let .feature(id): "menuBar.feature.\(id.rawValue)"
+        case .metricGroup: "menuBar.metrics.combined"
+        case let .metric(id): "menuBar.metric.\(id.rawValue)"
+        }
+    }
 }

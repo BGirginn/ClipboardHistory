@@ -5,7 +5,6 @@ struct DocumentClipboardItemRow: View {
     let item: ClipboardItem
     let storage: StorageService
     let thumbnailService: ThumbnailService
-    let isLocked: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -13,8 +12,7 @@ struct DocumentClipboardItemRow: View {
                 ClipboardImageThumbnail(
                     item: item,
                     storage: storage,
-                    thumbnailService: thumbnailService,
-                    isLocked: isLocked
+                    thumbnailService: thumbnailService
                 )
             } else {
                 fileIcon
@@ -63,16 +61,15 @@ struct DocumentClipboardItemRow: View {
 
     private var title: String { item.type == .pdf ? "PDF Document" : "Files" }
 
-    private var isRedacted: Bool { isLocked || item.isSensitive }
+    private var isRedacted: Bool { item.isSensitive }
 
     private var redactedTitle: String {
         if item.isSensitive { return "Sensitive content" }
-        if isLocked { return "Preview hidden while locked" }
         return item.displayTitle ?? title
     }
 
     private var detail: String {
-        if isRedacted { return item.isSensitive ? "Sensitive content" : "Clipboard History is locked" }
+        if isRedacted { return "Sensitive content" }
         if item.type == .pdf {
             return item.pageCount.map { "\($0) pages" } ?? "PDF"
         }

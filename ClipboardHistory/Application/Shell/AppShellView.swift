@@ -54,76 +54,59 @@ struct AppShellView: View {
                 audioMixer: audioMixer,
                 showFeature: showFeature,
                 customizeMenuBar: model.showMenuBarCustomization,
-                openSettings: model.openSettings,
-                unlock: clipboard.unlock
+                openSettings: { model.openSettings() }
             )
         case .clipboard:
-            if clipboard.isLocked {
-                LockedFeatureView(
-                    title: String(localized: "Clipboard"),
-                    backToHome: model.showControlCenter,
-                    openSettings: model.openSettings,
-                    unlock: clipboard.unlock
-                )
-            } else {
-                ClipboardPanelView(
-                    viewModel: clipboard,
-                    backToHome: model.showControlCenter,
-                    openSettings: model.openSettings
-                )
-            }
+            ClipboardPanelView(
+                viewModel: clipboard,
+                backToHome: model.showControlCenter,
+                openSettings: { model.openSettings(section: .clipboard) }
+            )
         case .notes:
-            if clipboard.isLocked {
-                LockedFeatureView(
-                    title: String(localized: "Notes"),
-                    backToHome: model.showControlCenter,
-                    openSettings: model.openSettings,
-                    unlock: clipboard.unlock
-                )
-            } else {
-                NotesContainerView(
-                    controller: notes,
-                    closeToHome: { model.requestLeaveNotes(to: .controlCenter) },
-                    openSettings: { model.requestLeaveNotes(to: .settings) },
-                    beginModalInteraction: { clipboard.beginPanelModalInteraction?() },
-                    endModalInteraction: { clipboard.endPanelModalInteraction?() },
-                    menuCommandDidRun: { clipboard.menuCommandDidRun?() }
-                )
-            }
+            NotesContainerView(
+                controller: notes,
+                closeToHome: { model.requestLeaveNotes(to: .controlCenter) },
+                openSettings: {
+                    model.requestLeaveNotes(to: .settings, settingsSection: .notes)
+                },
+                beginModalInteraction: { clipboard.beginPanelModalInteraction?() },
+                endModalInteraction: { clipboard.endPanelModalInteraction?() },
+                menuCommandDidRun: { clipboard.menuCommandDidRun?() }
+            )
         case .keyboardCleaning:
             KeyboardCleaningView(
                 controller: model.inputTools.keyboardCleaning,
-                isLocked: clipboard.isLocked,
                 close: model.showControlCenter,
-                openSettings: model.openSettings
+                openSettings: { model.openSettings(section: .inputTools) }
             )
         case .scrollReverse:
             ScrollReverseView(
                 controller: model.inputTools.scrollReversal,
                 close: model.showControlCenter,
-                openSettings: model.openSettings
+                openSettings: { model.openSettings(section: .inputTools) }
             )
         case .systemMonitor:
             SystemMonitorView(
                 controller: systemMetrics,
                 close: model.showControlCenter,
-                openSettings: model.openSettings
+                openSettings: { model.openSettings(section: .systemMonitor) }
             )
         case .audioMixer:
             AudioMixerView(
                 controller: audioMixer,
                 close: model.showControlCenter,
-                openSettings: model.openSettings
+                openSettings: { model.openSettings(section: .audioMixer) }
             )
         case .menuBarCustomization:
             MenuBarCustomizationView(
                 model: model.controlCenter,
                 close: model.showControlCenter,
-                openSettings: model.openSettings
+                openSettings: { model.openSettings(section: .menuBar) }
             )
         case .settings:
-            ClipboardSettingsView(
+            AppSettingsView(
                 viewModel: model.settingsFeature,
+                initialSection: router.settingsSection,
                 close: model.closeSettings
             )
         }
@@ -146,8 +129,6 @@ struct AppShellView: View {
             clipboard.closePanel()
             return true
         }
-        guard !clipboard.isLocked else { return false }
-
         if router.activeFeature == .notes, modifiers == .command {
             switch event.charactersIgnoringModifiers?.lowercased() {
             case "n":

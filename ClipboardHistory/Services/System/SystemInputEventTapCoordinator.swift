@@ -6,8 +6,7 @@ import Foundation
 
 @MainActor
 final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
-    private let promptedTrustEvaluator: (CFDictionary) -> Bool
-    private let trustEvaluator: () -> Bool
+    private let accessibilityAuthorization: any AccessibilityAuthorizing
     private let secureInputEvaluator: () -> Bool
     private let accessibilitySettingsOpener: (URL) -> Void
     private var configuration = InputEventTapConfiguration()
@@ -19,24 +18,27 @@ final class SystemInputEventTapCoordinator: InputEventTapCoordinating {
     var interruptionHandler: (@MainActor () -> Void)?
 
     init(
+        accessibilityAuthorization: (any AccessibilityAuthorizing)? = nil,
         promptedTrustEvaluator: @escaping (CFDictionary) -> Bool = AXIsProcessTrustedWithOptions,
         trustEvaluator: @escaping () -> Bool = AXIsProcessTrusted,
         secureInputEvaluator: @escaping () -> Bool = IsSecureEventInputEnabled,
         accessibilitySettingsOpener: @escaping (URL) -> Void = { _ = NSWorkspace.shared.open($0) }
     ) {
-        self.promptedTrustEvaluator = promptedTrustEvaluator
-        self.trustEvaluator = trustEvaluator
+        self.accessibilityAuthorization = accessibilityAuthorization
+            ?? SystemAccessibilityAuthorization(
+                promptedTrustEvaluator: promptedTrustEvaluator,
+                trustEvaluator: trustEvaluator
+            )
         self.secureInputEvaluator = secureInputEvaluator
         self.accessibilitySettingsOpener = accessibilitySettingsOpener
     }
 
     var isTrusted: Bool {
-        trustEvaluator()
+        accessibilityAuthorization.isTrusted
     }
 
     func requestAccessibilityAccess() -> Bool {
-        let options = ["AXTrustedCheckOptionPrompt": true]
-        return promptedTrustEvaluator(options as CFDictionary)
+        accessibilityAuthorization.requestAccessIfNeeded()
     }
 
     func setKeyboardBlocking(_ enabled: Bool) -> Bool {

@@ -5,7 +5,6 @@ struct ClipboardItemRows: View {
     let selectedItemID: UUID?
     let selectedItemIDs: Set<UUID>
     let copiedItemID: UUID?
-    let isLocked: Bool
     let storage: StorageService
     let thumbnailService: ThumbnailService
     let actions: ClipboardItemActions
@@ -16,7 +15,6 @@ struct ClipboardItemRows: View {
                 item: item,
                 isSelected: selectedItemID == item.id || selectedItemIDs.contains(item.id),
                 isCopied: copiedItemID == item.id,
-                isLocked: isLocked,
                 storage: storage,
                 thumbnailService: thumbnailService,
                 actions: actions

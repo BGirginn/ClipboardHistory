@@ -93,6 +93,37 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testControllerUsesApplicationWindowWhenNoStatusItemAnchorExists() async {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setControlCenterItemVisible(false)
+        let windowPresenter = MenuApplicationWindowPresenterSpy()
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    XCTFail("A status item should not be created for a window-only configuration")
+                    return NSStatusItem()
+                },
+                makePopover: NSPopover.init,
+                makePanel: { _ in NSPanel() },
+                quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub(),
+            applicationWindowPresenter: windowPresenter
+        )
+
+        context.appModel.showClipboard()
+        controller.showControlCenter()
+
+        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
+        XCTAssertEqual(windowPresenter.showActiveFeatureCount, 1)
+        XCTAssertTrue(windowPresenter.isWindowVisible)
+
+        controller.stop()
+        await cleanup(context)
+    }
+
     func testPopoverDetachableStatusActionShortcutAndPublisherCallbacks() async throws {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
@@ -149,6 +180,9 @@ final class MenuBarControllerTests: XCTestCase {
         statusItem.button?.performClick(nil)
         await Task.yield()
         XCTAssertTrue(popover.isShown, "Control Center status item should show the popover")
+        XCTAssertTrue(popover.positioningView === anchor)
+        XCTAssertEqual(popover.recordedPositioningRect, anchor.bounds)
+        XCTAssertEqual(popover.recordedPreferredEdge, .minY)
         statusItemEvent = NSEvent.mouseEvent(
             with: .rightMouseUp,
             location: .zero,
@@ -215,6 +249,7 @@ final class MenuBarControllerTests: XCTestCase {
         var currentEvent: NSEvent?
         var presentedMenu: NSMenu?
         let popover = MenuPopoverStub()
+        let windowPresenter = MenuApplicationWindowPresenterSpy()
         let dependencies = MenuBarControllerDependencies(
             makeStatusItem: {
                 let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -234,21 +269,34 @@ final class MenuBarControllerTests: XCTestCase {
         let controller = MenuBarController(
             appModel: context.appModel,
             dependencies: dependencies,
-            panelEventMonitor: MenuPanelEventMonitorStub()
+            panelEventMonitor: MenuPanelEventMonitorStub(),
+            applicationWindowPresenter: windowPresenter
         )
 
         XCTAssertEqual(createdItems.count, 1)
         XCTAssertEqual(createdItems.first?.autosaveName, "ClipboardHistory.ControlCenter")
+        XCTAssertEqual(
+            createdItems.first?.button?.accessibilityIdentifier(),
+            "menuBar.controlCenter"
+        )
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
         XCTAssertEqual(createdItems.count, 2)
         XCTAssertEqual(createdItems.last?.autosaveName, "ClipboardHistory.Feature.notes")
+        XCTAssertEqual(
+            createdItems.last?.button?.accessibilityIdentifier(),
+            "menuBar.feature.notes"
+        )
 
         controller.showControlCenter()
         XCTAssertTrue(popover.isShown)
+        popover.presentationFailuresRemaining = 2
         context.appModel.controlCenter.setControlCenterItemVisible(false)
+        try? await Task.sleep(for: .milliseconds(200))
         XCTAssertTrue(popover.isShown)
         XCTAssertEqual(controller.activeAnchorID, .feature(.notes))
+        XCTAssertTrue(popover.positioningView === controller.statusItems[.feature(.notes)]?.button)
+        XCTAssertEqual(popover.showCallCount, 4)
         XCTAssertEqual(removedItems.count, 1)
 
         currentEvent = NSEvent.mouseEvent(
@@ -279,13 +327,16 @@ final class MenuBarControllerTests: XCTestCase {
         )
 
         context.appModel.controlCenter.setStandaloneItemVisible(false, for: .notes)
+        await settleMenuAction()
         XCTAssertEqual(removedItems.count, 2)
-        XCTAssertEqual(createdItems.count, 3)
+        XCTAssertEqual(createdItems.count, 2)
         XCTAssertEqual(controller.activeAnchorID, .controlCenter)
-        XCTAssertTrue(popover.isShown)
+        XCTAssertFalse(popover.isShown)
+        XCTAssertEqual(windowPresenter.showActiveFeatureCount, 1)
+        XCTAssertTrue(windowPresenter.isWindowVisible)
 
         controller.stop()
-        XCTAssertEqual(removedItems.count, 3)
+        XCTAssertEqual(removedItems.count, 2)
         await cleanup(context)
     }
 
@@ -323,6 +374,7 @@ final class MenuBarControllerTests: XCTestCase {
         )
         currentEvent = rightMouseEvent()
         systemItem.button?.performClick(nil)
+        XCTAssertEqual(controller.activeAnchorID, .feature(.systemMonitor))
         let featureMenu = try XCTUnwrap(presentedMenu)
         XCTAssertEqual(controller.quickActionTitle(for: .systemMonitor), "Open System Monitor")
         XCTAssertEqual(controller.quickActionState(for: .systemMonitor), .off)
@@ -339,8 +391,29 @@ final class MenuBarControllerTests: XCTestCase {
         performMenuAction(featureMenu.items[6])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.activeFeature, .settings)
+        XCTAssertEqual(context.appModel.router.settingsSection, .systemMonitor)
         performMenuAction(featureMenu.items[8])
         XCTAssertEqual(terminationCount, 1)
+
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
+        let notesItem = try XCTUnwrap(
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.notes" }
+        )
+        notesItem.button?.performClick(nil)
+        performMenuAction(try XCTUnwrap(presentedMenu).items[6])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.settingsSection, .notes)
+
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .keyboardCleaning)
+        let inputToolsItem = try XCTUnwrap(
+            createdItems.first {
+                $0.autosaveName == "ClipboardHistory.Feature.keyboardCleaning"
+            }
+        )
+        inputToolsItem.button?.performClick(nil)
+        performMenuAction(try XCTUnwrap(presentedMenu).items[6])
+        await settleMenuAction()
+        XCTAssertEqual(context.appModel.router.settingsSection, .inputTools)
 
         context.appModel.controlCenter.setMetricVisible(true, metric: .cpu)
         context.appModel.controlCenter.setMetricGroupVisible(true)
@@ -348,6 +421,7 @@ final class MenuBarControllerTests: XCTestCase {
             createdItems.first { $0.autosaveName == "ClipboardHistory.Metrics.Combined" }
         )
         metricItem.button?.performClick(nil)
+        XCTAssertEqual(controller.activeAnchorID, .metricGroup)
         let metricMenu = try XCTUnwrap(presentedMenu)
         performMenuAction(metricMenu.items[0])
         await settleMenuAction()
@@ -361,6 +435,7 @@ final class MenuBarControllerTests: XCTestCase {
         performMenuAction(metricMenu.items[4])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.activeFeature, .settings)
+        XCTAssertEqual(context.appModel.router.settingsSection, .menuBar)
         performMenuAction(metricMenu.items[6])
         XCTAssertEqual(terminationCount, 2)
 
@@ -376,15 +451,12 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
-    func testMetricStatusItemsUseSingleLineVariableWidthWhileFeatureItemsStaySquare() async throws {
+    func testMetricStatusItemsUseSingleLineStableWidthWhileFeatureItemsStaySquare() async throws {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
-        var createdItems: [NSStatusItem] = []
         let dependencies = MenuBarControllerDependencies(
             makeStatusItem: {
-                let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-                createdItems.append(item)
-                return item
+                NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
             },
             removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
             makePopover: MenuPopoverStub.init,
@@ -400,23 +472,44 @@ final class MenuBarControllerTests: XCTestCase {
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
         context.appModel.controlCenter.setMetricVisible(true, metric: .networkDownload)
         context.appModel.controlCenter.setMetricGroupVisible(true)
+        try await Task.sleep(for: .milliseconds(200))
 
-        let notesItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.notes" }
-        )
-        let metricItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Metrics.Combined" }
-        )
+        let notesItem = try XCTUnwrap(controller.statusItems[.feature(.notes)])
+        let metricItem = try XCTUnwrap(controller.statusItems[.metricGroup])
         let metricButton = try XCTUnwrap(metricItem.button)
         let metricCell = try XCTUnwrap(metricButton.cell as? NSButtonCell)
 
         XCTAssertEqual(notesItem.length, NSStatusItem.squareLength)
         XCTAssertEqual(notesItem.button?.imagePosition, .imageOnly)
-        XCTAssertEqual(metricItem.length, NSStatusItem.variableLength)
+        XCTAssertNotEqual(metricItem.length, NSStatusItem.variableLength)
+        XCTAssertGreaterThan(metricItem.length, NSStatusItem.squareLength)
         XCTAssertEqual(metricButton.imagePosition, .imageLeading)
+        XCTAssertEqual(
+            metricButton.font?.fontName,
+            NSFont.monospacedDigitSystemFont(
+                ofSize: NSFont.systemFontSize,
+                weight: .regular
+            ).fontName
+        )
         XCTAssertFalse(metricCell.wraps)
         XCTAssertEqual(metricCell.lineBreakMode, .byClipping)
+        XCTAssertEqual(metricButton.alignment, .left)
         XCTAssertFalse(metricButton.title.contains("\n"))
+        XCTAssertNotNil(metricButton.image)
+
+        context.appModel.controlCenter.setMetricStyle(.compact)
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertNil(metricButton.image)
+        XCTAssertFalse(metricButton.title.contains("CPU"))
+
+        context.appModel.controlCenter.setMetricStyle(.value)
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertNil(metricButton.image)
+        XCTAssertTrue(metricButton.title.contains("CPU"))
+
+        context.appModel.controlCenter.setMetricStyle(.iconAndValue)
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertNotNil(metricButton.image)
 
         controller.stop()
         await cleanup(context)
@@ -496,8 +589,34 @@ final class MenuBarControllerTests: XCTestCase {
 }
 
 @MainActor
+private final class MenuApplicationWindowPresenterSpy: ApplicationWindowPresenting {
+    private(set) var isWindowVisible = false
+    private(set) var showControlCenterCount = 0
+    private(set) var showActiveFeatureCount = 0
+
+    func showControlCenter() {
+        showControlCenterCount += 1
+        isWindowVisible = true
+    }
+
+    func showActiveFeature() {
+        showActiveFeatureCount += 1
+        isWindowVisible = true
+    }
+
+    func stop() {
+        isWindowVisible = false
+    }
+}
+
+@MainActor
 private final class MenuPopoverStub: NSPopover {
     private var presented = false
+    var presentationFailuresRemaining = 0
+    private(set) var showCallCount = 0
+    private(set) var recordedPositioningRect: NSRect?
+    private(set) weak var positioningView: NSView?
+    private(set) var recordedPreferredEdge: NSRectEdge?
 
     override var isShown: Bool { presented }
 
@@ -506,6 +625,14 @@ private final class MenuPopoverStub: NSPopover {
         of positioningView: NSView,
         preferredEdge: NSRectEdge
     ) {
+        showCallCount += 1
+        recordedPositioningRect = positioningRect
+        self.positioningView = positioningView
+        recordedPreferredEdge = preferredEdge
+        if presentationFailuresRemaining > 0 {
+            presentationFailuresRemaining -= 1
+            return
+        }
         presented = true
         delegate?.popoverWillShow?(Notification(name: NSPopover.willShowNotification, object: self))
     }

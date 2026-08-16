@@ -1,0 +1,11 @@
+name: Setup required tools
+description: Install command-line tools used by ClipboardHistory build and quality scripts
+runs:
+  using: composite
+  steps:
+    - name: Install ripgrep when absent
+      shell: bash
+      run: |
+        if ! command -v rg >/dev/null 2>&1; then
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install ripgrep
+        fi

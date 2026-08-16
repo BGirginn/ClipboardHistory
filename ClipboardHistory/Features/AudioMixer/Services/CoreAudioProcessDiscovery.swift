@@ -118,15 +118,18 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
         let reportedBundleID = stringProperty(objectID, selector: kAudioProcessPropertyBundleID)
             .flatMap { $0.isEmpty ? nil : $0 }
         let runningApplication = NSRunningApplication(processIdentifier: pid)
-        let bundleID = reportedBundleID ?? runningApplication?.bundleIdentifier ?? "pid.\(pid)"
-        let name = runningApplication?.localizedName
-            ?? bundleID.split(separator: ".").last.map(String.init)
-            ?? String(localized: "Unknown Application")
+        let identity = AudioApplicationIdentityResolver.resolve(
+            reportedBundleID: reportedBundleID ?? runningApplication?.bundleIdentifier ?? "pid.\(pid)",
+            runningName: runningApplication?.localizedName,
+            bundleURL: runningApplication?.bundleURL,
+            executableURL: runningApplication?.executableURL
+                ?? AudioApplicationIdentityResolver.executableURL(for: pid)
+        )
         return ProcessRecord(
             objectID: objectID,
             processID: pid,
-            bundleID: bundleID,
-            name: name,
+            bundleID: identity.bundleID,
+            name: identity.name,
             isProducingOutput: running != 0
         )
     }

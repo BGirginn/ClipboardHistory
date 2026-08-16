@@ -294,21 +294,35 @@ final class RemainingServiceCoverageTests: XCTestCase {
         var appModelFactoryCount = 0
         var controllerFactoryCount = 0
         var createdController: MenuBarController?
+        let windowPresenter = ApplicationWindowPresenterSpy(
+            showControlCenterHandler: appModel.prepareForNormalPresentation
+        )
+        var activationPolicies: [NSApplication.ActivationPolicy] = []
         let delegate = ClipboardHistoryAppDelegate(
             environment: [:],
             appModelFactory: {
                 appModelFactoryCount += 1
                 return appModel
             },
-            menuBarControllerFactory: { providedAppModel in
+            applicationWindowPresenterFactory: { providedAppModel in
+                XCTAssertTrue(providedAppModel === appModel)
+                return windowPresenter
+            },
+            menuBarControllerFactory: { providedAppModel, providedWindowPresenter in
                 controllerFactoryCount += 1
                 XCTAssertTrue(providedAppModel === appModel)
+                XCTAssertTrue((providedWindowPresenter as AnyObject) === windowPresenter)
                 let controller = MenuBarController(
                     appModel: providedAppModel,
-                    panelEventMonitor: ApplicationDelegatePanelEventMonitorStub()
+                    panelEventMonitor: ApplicationDelegatePanelEventMonitorStub(),
+                    applicationWindowPresenter: providedWindowPresenter
                 )
                 createdController = controller
                 return controller
+            },
+            activationPolicySetter: {
+                activationPolicies.append($0)
+                return true
             }
         )
 
@@ -318,6 +332,8 @@ final class RemainingServiceCoverageTests: XCTestCase {
         )
         XCTAssertEqual(appModelFactoryCount, 1)
         XCTAssertEqual(controllerFactoryCount, 1)
+        XCTAssertEqual(activationPolicies, [.accessory])
+        XCTAssertEqual(windowPresenter.showControlCenterCount, 0)
         await waitUntil("normal launch routes to Control Center") {
             appModel.router.activeFeature == .controlCenter
         }
@@ -332,6 +348,18 @@ final class RemainingServiceCoverageTests: XCTestCase {
             appModel.router.activeFeature == .controlCenter
         }
         XCTAssertEqual(appModel.router.activeFeature, .controlCenter)
+
+        createdController?.closePopover()
+        appModel.controlCenter.setControlCenterItemVisible(false)
+        XCTAssertEqual(activationPolicies.last, .regular)
+        appModel.showClipboard()
+        XCTAssertFalse(
+            delegate.applicationShouldHandleReopen(.shared, hasVisibleWindows: false)
+        )
+        XCTAssertEqual(windowPresenter.showActiveFeatureCount, 1)
+        XCTAssertEqual(appModel.router.activeFeature, .clipboard)
+        appModel.controlCenter.setControlCenterItemVisible(true)
+        XCTAssertEqual(activationPolicies.last, .accessory)
         delegate.applicationWillTerminate(
             Notification(name: NSApplication.willTerminateNotification)
         )
@@ -343,14 +371,16 @@ final class RemainingServiceCoverageTests: XCTestCase {
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },
-            menuBarControllerFactory: { model in
+            menuBarControllerFactory: { model, windowPresenter in
                 let controller = MenuBarController(
                     appModel: model,
-                    panelEventMonitor: ApplicationDelegatePanelEventMonitorStub()
+                    panelEventMonitor: ApplicationDelegatePanelEventMonitorStub(),
+                    applicationWindowPresenter: windowPresenter
                 )
                 backgroundController = controller
                 return controller
             },
+            activationPolicySetter: { _ in true },
             terminationReply: { _, canTerminate in
                 terminationReplies.append(canTerminate)
                 terminationExpectation.fulfill()
@@ -363,8 +393,14 @@ final class RemainingServiceCoverageTests: XCTestCase {
         await Task.yield()
         XCTAssertFalse(backgroundController?.isPopoverShown == true)
         XCTAssertEqual(appModel.router.activeFeature, .clipboard)
-        XCTAssertEqual(backgroundDelegate.applicationShouldTerminate(.shared), .terminateLater)
-        XCTAssertEqual(backgroundDelegate.applicationShouldTerminate(.shared), .terminateLater)
+        XCTAssertEqual(
+            backgroundDelegate.applicationShouldTerminate(.shared),
+            NSApplication.TerminateReply.terminateLater
+        )
+        XCTAssertEqual(
+            backgroundDelegate.applicationShouldTerminate(.shared),
+            NSApplication.TerminateReply.terminateLater
+        )
         await fulfillment(of: [terminationExpectation], timeout: 2)
         XCTAssertEqual(terminationReplies, [true])
         backgroundDelegate.applicationWillTerminate(
@@ -416,7 +452,8 @@ final class RemainingServiceCoverageTests: XCTestCase {
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },
-            menuBarControllerFactory: { _ in controller },
+            menuBarControllerFactory: { _, _ in controller },
+            activationPolicySetter: { _ in true },
             terminationReply: { _, canTerminate in
                 replies.append(canTerminate)
                 blockedReply.fulfill()
@@ -444,7 +481,8 @@ final class RemainingServiceCoverageTests: XCTestCase {
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },
-            menuBarControllerFactory: { _ in controller },
+            menuBarControllerFactory: { _, _ in controller },
+            activationPolicySetter: { _ in true },
             terminationReply: { _, canTerminate in
                 replies.append(canTerminate)
                 successfulReply.fulfill()
@@ -501,6 +539,36 @@ final class RemainingServiceCoverageTests: XCTestCase {
         )
         bitmap.setColor(.systemPurple, atX: 0, y: 0)
         return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+    }
+}
+
+@MainActor
+private final class ApplicationWindowPresenterSpy: ApplicationWindowPresenting {
+    private let showControlCenterHandler: () -> Void
+
+    private(set) var isWindowVisible = false
+    private(set) var showControlCenterCount = 0
+    private(set) var showActiveFeatureCount = 0
+    private(set) var stopCount = 0
+
+    init(showControlCenterHandler: @escaping () -> Void = {}) {
+        self.showControlCenterHandler = showControlCenterHandler
+    }
+
+    func showControlCenter() {
+        showControlCenterCount += 1
+        isWindowVisible = true
+        showControlCenterHandler()
+    }
+
+    func showActiveFeature() {
+        showActiveFeatureCount += 1
+        isWindowVisible = true
+    }
+
+    func stop() {
+        stopCount += 1
+        isWindowVisible = false
     }
 }
 

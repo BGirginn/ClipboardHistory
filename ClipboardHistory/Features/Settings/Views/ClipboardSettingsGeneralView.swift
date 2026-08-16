@@ -2,14 +2,6 @@ import SwiftUI
 
 struct ClipboardSettingsGeneralView: View {
     @ObservedObject var viewModel: SettingsFeatureModel
-    @ObservedObject private var launchAtLoginService: LaunchAtLoginService
-
-    init(viewModel: SettingsFeatureModel) {
-        self.viewModel = viewModel
-        _launchAtLoginService = ObservedObject(
-            wrappedValue: viewModel.launchAtLoginService
-        )
-    }
 
     var body: some View {
         Form {
@@ -60,24 +52,6 @@ struct ClipboardSettingsGeneralView: View {
             }
 
             Section("Presentation") {
-                Picker("Appearance", selection: $viewModel.settings.appearance) {
-                    ForEach(AppAppearance.allCases) { appearance in
-                        Text(appearance.title).tag(appearance)
-                    }
-                }
-                .accessibilityIdentifier("settings.appearance")
-
-                Picker("Panel style", selection: $viewModel.settings.panelPresentationMode) {
-                    ForEach(PanelPresentationMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                Picker("Screen edge", selection: $viewModel.settings.panelScreenEdge) {
-                    ForEach(PanelScreenEdge.allCases) { edge in
-                        Text(edge.title).tag(edge)
-                    }
-                }
-                .disabled(viewModel.settings.panelPresentationMode == .popover)
                 Picker("Default filter", selection: $viewModel.settings.selectedFilter) {
                     ForEach(ClipboardFilter.allCases) { filter in
                         Text(filter.title).tag(filter)
@@ -90,28 +64,9 @@ struct ClipboardSettingsGeneralView: View {
                     }
                 }
             }
-
-            Section("Startup") {
-                Toggle("Launch at login", isOn: launchAtLoginBinding)
-                    .accessibilityIdentifier("settings.launchAtLogin")
-
-                ClipboardSettingsMessage(
-                    message: launchAtLoginService.errorMessage,
-                    color: .red,
-                    usesLabel: true
-                )
-            }
         }
         .formStyle(.grouped)
         .accessibilityIdentifier("settings.general")
     }
 
-    var launchAtLoginBinding: Binding<Bool> {
-        Binding(
-            get: { launchAtLoginService.isEnabled },
-            set: { enabled in
-                viewModel.setLaunchAtLogin(enabled)
-            }
-        )
-    }
 }

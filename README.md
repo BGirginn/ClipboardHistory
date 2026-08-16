@@ -62,7 +62,6 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 - A unified Control Center plus optional independent menu-bar icons for each module, with configurable left-click actions and right-click safety menus
 - Live CPU/core, RAM/pressure, CPU/SoC die temperature, network, and per-device disk activity with configurable combined or independent menu-bar metrics
 - Per-application 0–100 audio gain on macOS 14.2+, plus authorized Chromium tab capture and directly controllable Safari HTML-media tabs
-- Optional application lock using Touch ID or the Mac login password
 - Local secret detection and temporary handling for sensitive clipboard items
 - Open local Clipboard storage plus AES-GCM encrypted Notes with a dedicated Keychain-backed key
 - Password-protected local archive export/import, including notes
@@ -73,7 +72,7 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 
 ClipboardHistory reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network. Audio samples, system-metric history, tab titles, URLs, and tab identifiers are never persisted.
 
-Clipboard history is stored locally in SQLite without encryption. Note titles and bodies use a separate AES-GCM key in the macOS login Keychain. The optional application lock is a viewing and interaction privacy layer; Clipboard recording pauses while it is locked.
+Clipboard history is stored locally in SQLite without encryption. Note titles and bodies use a separate AES-GCM key in the macOS login Keychain. Sensitive clipboard-item access can require Touch ID or the Mac login password.
 
 See [Privacy and Threat Model](docs/PRIVACY_AND_THREAT_MODEL.md) and [Known Limitations](docs/KNOWN_LIMITATIONS.md) for the full boundary.
 
@@ -115,7 +114,7 @@ The certificate private key remains in the user's login Keychain and must never 
 
 ## Usage
 
-ClipboardHistory runs as a menu-bar application and does not appear in the Dock. Opening it from Finder presents Control Center. Use **Customize Menu Bar** to place each module in Control Center, on its own menu-bar icon, in both places, or hide it; the last reachable menu-bar icon is always retained. Press `Command-Shift-V` to open Clipboard directly regardless of icon placement. Login launch stays silent through the bundled helper.
+ClipboardHistory defaults to a menu-bar-only application. Use **Customize Menu Bar** to place each module in Control Center, on its own menu-bar icon, in both places, or hide it. Hiding the main Control Center icon switches the app to a Dock-accessible mode: opening it from Finder or clicking its Dock icon presents the same interface in a standard resizable window. Re-enabling the main icon returns it to menu-bar-only mode. Press `Command-Shift-V` to open Clipboard directly regardless of icon placement. Login launch stays silent through the bundled helper.
 
 Clipboard history and managed assets are stored under:
 
@@ -151,7 +150,7 @@ Project documentation:
 
 ## Distribution
 
-`v1.0.0-beta.2` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
+`v1.0.0-beta.4` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
 
 ## License
 

@@ -23,7 +23,6 @@ actor SystemMetricsProvider: SystemMetricsProviding {
 
     private let temperatureProvider: any TemperatureSensorProviding
     private var previousCPU: CPUTicks?
-    private var previousCoreTicks: [CPUTicks] = []
     private var previousNetwork: ByteCounters?
     private var previousDisk: ByteCounters?
     private var previousDiskDevices: [String: (read: UInt64, written: UInt64)] = [:]
@@ -42,7 +41,6 @@ actor SystemMetricsProvider: SystemMetricsProviding {
 
     func resetBaselines() {
         previousCPU = nil
-        previousCoreTicks = []
         previousNetwork = nil
         previousDisk = nil
         previousDiskDevices = [:]
@@ -72,19 +70,11 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         guard let current = hostCPUTicks() else { return .empty }
         let total = percentageSnapshot(previous: previousCPU, current: current)
         previousCPU = current
-
-        let currentCores = processorCPUTicks()
-        let corePercentages = currentCores.enumerated().map { index, ticks in
-            guard previousCoreTicks.indices.contains(index) else { return 0.0 }
-            return percentageSnapshot(previous: previousCoreTicks[index], current: ticks).totalPercent
-        }
-        previousCoreTicks = currentCores
         return CPUUsageSnapshot(
             totalPercent: total.totalPercent,
             userPercent: total.userPercent,
             systemPercent: total.systemPercent,
-            idlePercent: total.idlePercent,
-            perCorePercent: corePercentages
+            idlePercent: total.idlePercent
         )
     }
 
@@ -101,8 +91,7 @@ actor SystemMetricsProvider: SystemMetricsProviding {
             totalPercent: Double(user + system + nice) / divisor * 100,
             userPercent: Double(user + nice) / divisor * 100,
             systemPercent: Double(system) / divisor * 100,
-            idlePercent: Double(idle) / divisor * 100,
-            perCorePercent: []
+            idlePercent: Double(idle) / divisor * 100
         )
     }
 
@@ -118,36 +107,6 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         }
         guard result == KERN_SUCCESS else { return nil }
         return ticks(from: info.cpu_ticks)
-    }
-
-    private func processorCPUTicks() -> [CPUTicks] {
-        var processorCount: natural_t = 0
-        var infoPointer: processor_info_array_t?
-        var infoCount: mach_msg_type_number_t = 0
-        let result = host_processor_info(
-            mach_host_self(),
-            PROCESSOR_CPU_LOAD_INFO,
-            &processorCount,
-            &infoPointer,
-            &infoCount
-        )
-        guard result == KERN_SUCCESS, let infoPointer else { return [] }
-        defer {
-            vm_deallocate(
-                mach_task_self_,
-                vm_address_t(UInt(bitPattern: infoPointer)),
-                vm_size_t(infoCount) * vm_size_t(MemoryLayout<integer_t>.stride)
-            )
-        }
-        return (0..<Int(processorCount)).map { processor in
-            let offset = processor * Int(CPU_STATE_MAX)
-            return CPUTicks(
-                user: UInt64(infoPointer[offset + Int(CPU_STATE_USER)]),
-                system: UInt64(infoPointer[offset + Int(CPU_STATE_SYSTEM)]),
-                idle: UInt64(infoPointer[offset + Int(CPU_STATE_IDLE)]),
-                nice: UInt64(infoPointer[offset + Int(CPU_STATE_NICE)])
-            )
-        }
     }
 
     private func ticks(from tuple: (UInt32, UInt32, UInt32, UInt32)) -> CPUTicks {

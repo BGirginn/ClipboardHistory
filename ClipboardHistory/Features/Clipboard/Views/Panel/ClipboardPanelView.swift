@@ -28,16 +28,6 @@ struct ClipboardPanelView: View {
                     systemImage: "externaldrive.badge.exclamationmark",
                     description: Text("Open Settings from Control Center to inspect or recover clipboard storage.")
                 )
-            } else if viewModel.isLocked {
-                VStack(spacing: 0) {
-                    ClipboardPanelHeaderView(
-                        viewModel: viewModel,
-                        backToHome: backToHome,
-                        openSettings: openSettings
-                    )
-                    Divider()
-                    ClipboardLockedHistoryView(unlock: viewModel.unlock)
-                }
             } else {
                 panelContent
             }
@@ -134,7 +124,6 @@ struct ClipboardPanelView: View {
                     selectedItemIDs: viewModel.selectedItemIDs,
                     copiedItemID: viewModel.copiedItemID,
                     hasSearch: false,
-                    isLocked: viewModel.isLocked,
                     storage: viewModel.storage,
                     thumbnailService: viewModel.thumbnailService,
                     actions: itemActions,
@@ -150,8 +139,6 @@ struct ClipboardPanelView: View {
             viewModel.closePanel()
             return true
         }
-        guard !viewModel.isLocked else { return false }
-
         if modifiers.contains(.command), event.keyCode == 51 {
             if modifiers.contains(.shift) {
                 viewModel.clearHistory()

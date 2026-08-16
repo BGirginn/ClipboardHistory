@@ -34,14 +34,6 @@ struct SystemMonitorView: View {
                         .padding(AppDesign.cardPadding)
                         .background(Color(nsColor: .controlBackgroundColor))
                         .clipShape(.rect(cornerRadius: AppDesign.cardCornerRadius))
-                    if !controller.snapshot.cpu.perCorePercent.isEmpty {
-                        metricBreakdown(
-                            title: String(localized: "CPU Cores"),
-                            rows: controller.snapshot.cpu.perCorePercent.enumerated().map {
-                                (String(localized: "Core \($0.offset + 1)"), percent($0.element))
-                            }
-                        )
-                    }
                     SystemMetricCard(
                         title: String(localized: "Memory"),
                         value: percent(controller.snapshot.memory.usedPercent),
@@ -198,6 +190,6 @@ struct SystemMonitorView: View {
     }
 
     private func rate(_ value: Double) -> String {
-        Int64(max(0, value)).formatted(.byteCount(style: .file)) + "/s"
+        controller.rateValue(value)
     }
 }

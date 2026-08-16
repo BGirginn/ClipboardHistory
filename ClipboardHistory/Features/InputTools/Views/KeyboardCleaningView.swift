@@ -2,7 +2,6 @@ import SwiftUI
 
 struct KeyboardCleaningView: View {
     @ObservedObject var controller: KeyboardCleaningController
-    let isLocked: Bool
     let close: () -> Void
     let openSettings: () -> Void
 
@@ -19,7 +18,7 @@ struct KeyboardCleaningView: View {
             ) { EmptyView() }
             Divider()
             ScrollView {
-                KeyboardCleaningCardView(controller: controller, isLocked: isLocked)
+                KeyboardCleaningCardView(controller: controller)
                     .padding(AppDesign.horizontalPadding)
             }
         }

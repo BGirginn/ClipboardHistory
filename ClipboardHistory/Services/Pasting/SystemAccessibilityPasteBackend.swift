@@ -4,15 +4,18 @@ import Foundation
 
 @MainActor
 final class SystemAccessibilityPasteBackend: AccessibilityPasteBackend {
-    private let promptedTrustEvaluator: (CFDictionary) -> Bool
-    private let trustEvaluator: () -> Bool
+    private let accessibilityAuthorization: any AccessibilityAuthorizing
 
     init(
+        accessibilityAuthorization: (any AccessibilityAuthorizing)? = nil,
         promptedTrustEvaluator: @escaping (CFDictionary) -> Bool = AXIsProcessTrustedWithOptions,
         trustEvaluator: @escaping () -> Bool = AXIsProcessTrusted
     ) {
-        self.promptedTrustEvaluator = promptedTrustEvaluator
-        self.trustEvaluator = trustEvaluator
+        self.accessibilityAuthorization = accessibilityAuthorization
+            ?? SystemAccessibilityAuthorization(
+                promptedTrustEvaluator: promptedTrustEvaluator,
+                trustEvaluator: trustEvaluator
+            )
     }
 
     var frontmostProcessIdentifier: pid_t? {
@@ -20,11 +23,9 @@ final class SystemAccessibilityPasteBackend: AccessibilityPasteBackend {
     }
 
     func isTrusted(prompt: Bool) -> Bool {
-        if prompt {
-            let options = ["AXTrustedCheckOptionPrompt": true]
-            return promptedTrustEvaluator(options as CFDictionary)
-        }
-        return trustEvaluator()
+        prompt
+            ? accessibilityAuthorization.requestAccessIfNeeded()
+            : accessibilityAuthorization.isTrusted
     }
 
     func isProcessAvailable(_ processIdentifier: pid_t) -> Bool {

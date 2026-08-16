@@ -13,20 +13,17 @@ final class AppModel: ObservableObject {
     let controlCenter: ControlCenterModel
     let settingsFeature: SettingsFeatureModel
     let settings: AppSettings
-    let lockService: AppLockService
-
-    private var lockCancellable: AnyCancellable?
 
     init(
         storage: StorageService = StorageService(),
         monitor: ClipboardMonitor = ClipboardMonitor(),
         restorePasteboard: NSPasteboard = .general,
         clipboardWriter: (any ClipboardWriting)? = nil,
-        pasteService: any ActiveApplicationPasting = AccessibilityPasteService(),
+        pasteService: (any ActiveApplicationPasting)? = nil,
         dragProvider: any ClipboardDragProviding = SystemClipboardDragProvider(),
         settings: AppSettings = AppSettings(),
         launchAtLoginService: LaunchAtLoginService = LaunchAtLoginService(),
-        lockService: AppLockService = AppLockService(),
+        sensitiveContentAuthenticator: any SystemAuthenticating = LocalSystemAuthenticator(),
         thumbnailService: ThumbnailService = .shared,
         exportImportService: ExportImportService = ExportImportService(),
         archivePanelSelector: any ArchivePanelSelecting = SystemArchivePanelSelector(),
@@ -45,9 +42,16 @@ final class AppModel: ObservableObject {
         router: AppRouter = AppRouter(),
         startsAutomatically: Bool = true
     ) {
-        let coordinator = inputEventTapCoordinator ?? SystemInputEventTapCoordinator()
+        let accessibilityAuthorization = SystemAccessibilityAuthorization()
+        let coordinator = inputEventTapCoordinator ?? SystemInputEventTapCoordinator(
+            accessibilityAuthorization: accessibilityAuthorization
+        )
+        let pasteService = pasteService ?? AccessibilityPasteService(
+            backend: SystemAccessibilityPasteBackend(
+                accessibilityAuthorization: accessibilityAuthorization
+            )
+        )
         self.settings = settings
-        self.lockService = lockService
         self.router = router
         self.controlCenter = controlCenter ?? ControlCenterModel()
         systemMetrics = systemMetricsController ?? SystemMetricsController()
@@ -56,7 +60,6 @@ final class AppModel: ObservableObject {
         inputTools = InputToolsController(
             coordinator: coordinator,
             settings: settings,
-            lockService: lockService,
             keyboardCleaning: keyboardCleaningController,
             scrollReversal: scrollReversalController
         )
@@ -69,7 +72,7 @@ final class AppModel: ObservableObject {
             dragProvider: dragProvider,
             settings: settings,
             launchAtLoginService: launchAtLoginService,
-            lockService: lockService,
+            sensitiveContentAuthenticator: sensitiveContentAuthenticator,
             thumbnailService: thumbnailService,
             exportImportService: exportImportService,
             archivePanelSelector: archivePanelSelector,
@@ -84,20 +87,15 @@ final class AppModel: ObservableObject {
         settingsFeature = SettingsFeatureModel(
             clipboard: clipboard,
             controlCenter: self.controlCenter,
+            notes: notes,
+            inputTools: inputTools,
             systemMetrics: systemMetrics,
             audioMixer: audioMixer
         )
         clipboard.notesDidImport = { [weak notes] in
             await notes?.reload()
         }
-        lockCancellable = lockService.$state
-            .dropFirst()
-            .sink { [weak router] state in
-                router?.applicationLockDidChange(isLocked: state.isLocked)
-            }
     }
-
-    var isLocked: Bool { lockService.isLocked }
 
     func showControlCenter() {
         router.showControlCenter()
@@ -141,15 +139,18 @@ final class AppModel: ObservableObject {
         router.showMenuBarCustomization()
     }
 
-    func openSettings() {
-        router.openSettings()
+    func openSettings(section: AppSettingsSection = .general) {
+        router.openSettings(section: section)
     }
 
     func closeSettings() {
         router.closeSettings()
     }
 
-    func requestLeaveNotes(to feature: AppFeature) {
+    func requestLeaveNotes(
+        to feature: AppFeature,
+        settingsSection: AppSettingsSection? = nil
+    ) {
         Task { [weak self] in
             guard let self else { return }
             let outcome = await notes.flushPendingSave()
@@ -170,7 +171,7 @@ final class AppModel: ObservableObject {
             case .menuBarCustomization:
                 router.showMenuBarCustomization()
             case .settings:
-                router.openSettings()
+                router.openSettings(section: settingsSection ?? .general)
             case .notes:
                 router.showNotes()
             }
@@ -205,15 +206,12 @@ final class AppModel: ObservableObject {
         case (_, .open):
             return route(for: id)
         case (.clipboard, .toggleClipboardRecording):
-            guard !isLocked else { return .clipboard }
             clipboard.isPaused ? clipboard.resumeRecording() : clipboard.pauseRecording(minutes: 60)
             return nil
         case (.notes, .newNote):
-            guard !isLocked else { return .notes }
             showQuickNote()
             return .notes
         case (.keyboardCleaning, .toggleKeyboardCleaning):
-            guard !isLocked else { return .keyboardCleaning }
             if inputTools.keyboardCleaning.isActive {
                 inputTools.keyboardCleaning.stop()
                 return nil
@@ -234,7 +232,6 @@ final class AppModel: ObservableObject {
     }
 
     func prepareForShutdown() {
-        lockCancellable = nil
         inputTools.prepareForShutdown()
         systemMetrics.stop()
         audioMixer.stop()

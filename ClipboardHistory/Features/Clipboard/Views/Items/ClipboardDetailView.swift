@@ -37,7 +37,6 @@ struct ClipboardDetailView: View {
                 Spacer()
                 Button("Copy", systemImage: "doc.on.doc", action: copyItem)
                     .buttonStyle(.borderless)
-                    .disabled(viewModel.isLocked)
                     .accessibilityIdentifier("detail.copy")
             }
             .padding(12)
@@ -107,17 +106,17 @@ struct ClipboardDetailView: View {
 
     @ViewBuilder
     private var preview: some View {
-        if viewModel.isLocked || !viewModel.isSensitiveDetailRevealed(item) {
+        if !viewModel.isSensitiveDetailRevealed(item) {
             VStack(spacing: 8) {
                 Image(systemName: "eye.slash")
                     .font(.largeTitle)
                     .foregroundStyle(.secondary)
-                Text(item.isSensitive ? "Sensitive Content" : "Clipboard History Locked")
+                Text("Sensitive Content")
                     .font(.headline)
                 Text("The preview is hidden.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                if item.isSensitive, !viewModel.isLocked {
+                if item.isSensitive {
                     Button("Reveal Sensitive Content", systemImage: "touchid") {
                         viewModel.revealSensitiveDetails(item)
                     }

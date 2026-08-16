@@ -2,7 +2,6 @@ import SwiftUI
 
 struct KeyboardCleaningCardView: View {
     @ObservedObject var controller: KeyboardCleaningController
-    let isLocked: Bool
 
     var body: some View {
         GroupBox {
@@ -46,13 +45,7 @@ struct KeyboardCleaningCardView: View {
 
                     KeyboardCleaningAvailabilityView(controller: controller)
 
-                    if isLocked {
-                        Label(
-                            "Unlock the app to start Keyboard Cleaning.",
-                            systemImage: "lock.fill"
-                        )
-                        .foregroundStyle(.secondary)
-                    } else if !controller.permissionRequired {
+                    if !controller.permissionRequired {
                         Button(
                             "Start Keyboard Cleaning",
                             systemImage: "lock.keyboard",

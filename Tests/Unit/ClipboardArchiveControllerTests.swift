@@ -307,7 +307,10 @@ private final class ArchiveOpenPanelStub: ArchiveOpenPanelPresenting {
 private final class ArchivePanelSelectorStub: ArchivePanelSelecting {
     var saveDestinations: [URL?] = []
     var openSources: [URL?] = []
+    var onSaveSelection: (() -> Void)?
+    var onOpenSelection: (() -> Void)?
     private(set) var saveCallCount = 0
+    private(set) var openCallCount = 0
     private(set) var lastSuggestedName: String?
     private(set) var lastAllowedTypes: [UTType] = []
 
@@ -315,11 +318,14 @@ private final class ArchivePanelSelectorStub: ArchivePanelSelecting {
         saveCallCount += 1
         lastSuggestedName = suggestedName
         lastAllowedTypes = allowedTypes
+        onSaveSelection?()
         return saveDestinations.isEmpty ? nil : saveDestinations.removeFirst()
     }
 
     func openSource(allowedTypes: [UTType]) async -> URL? {
+        openCallCount += 1
         lastAllowedTypes = allowedTypes
+        onOpenSelection?()
         return openSources.isEmpty ? nil : openSources.removeFirst()
     }
 }

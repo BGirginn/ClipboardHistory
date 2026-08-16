@@ -2,7 +2,6 @@ import SwiftUI
 
 struct TextClipboardItemRow: View {
     let item: ClipboardItem
-    let isLocked: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -13,8 +12,8 @@ struct TextClipboardItemRow: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
-                if isLocked || item.isSensitive {
-                    Label(item.isSensitive ? "Sensitive content" : "Clipboard History is locked", systemImage: "eye.slash")
+                if item.isSensitive {
+                    Label("Sensitive content", systemImage: "eye.slash")
                         .lineLimit(1)
                 } else {
                     Text(item.text ?? "")
@@ -68,8 +67,7 @@ private extension ClipboardContentSubtype {
             type: .text,
             text: "A copied text item that can span up to three lines in the history.",
             hash: "preview"
-        ),
-        isLocked: false
+        )
     )
     .frame(width: 360)
     .padding()

@@ -100,13 +100,39 @@ final class SystemMetricsController: ObservableObject {
                 return value.formatted(.number.precision(.fractionLength(0))) + unit
             } ?? "—"
         case .networkDownload:
-            return rateString(snapshot.network.receivedBytesPerSecond, unit: formats.rate)
+            return rateValue(snapshot.network.receivedBytesPerSecond, unit: formats.rate)
         case .networkUpload:
-            return rateString(snapshot.network.sentBytesPerSecond, unit: formats.rate)
+            return rateValue(snapshot.network.sentBytesPerSecond, unit: formats.rate)
         case .diskRead:
-            return rateString(snapshot.disk.readBytesPerSecond, unit: formats.rate)
+            return rateValue(snapshot.disk.readBytesPerSecond, unit: formats.rate)
         case .diskWrite:
-            return rateString(snapshot.disk.writtenBytesPerSecond, unit: formats.rate)
+            return rateValue(snapshot.disk.writtenBytesPerSecond, unit: formats.rate)
+        }
+    }
+
+    func rateValue(_ value: Double, unit: RateMetricUnit = .automatic) -> String {
+        let clamped = max(0, value)
+        switch unit {
+        case .automatic:
+            if clamped < 1_000 {
+                return clamped.formatted(.number.precision(.fractionLength(0))) + " B/s"
+            }
+            if clamped < 1_000_000 {
+                return formattedRate(clamped / 1_000, suffix: " KB/s", maximumFractionDigits: 1)
+            }
+            if clamped < 1_000_000_000 {
+                return formattedRate(clamped / 1_000_000, suffix: " MB/s", maximumFractionDigits: 1)
+            }
+            if clamped < 1_000_000_000_000 {
+                return formattedRate(clamped / 1_000_000_000, suffix: " GB/s", maximumFractionDigits: 2)
+            }
+            return formattedRate(clamped / 1_000_000_000_000, suffix: " TB/s", maximumFractionDigits: 2)
+        case .kilobytes:
+            return formattedRate(clamped / 1_000, suffix: " KB/s", maximumFractionDigits: 1)
+        case .megabytes:
+            return formattedRate(clamped / 1_000_000, suffix: " MB/s", maximumFractionDigits: 1)
+        case .gigabytes:
+            return formattedRate(clamped / 1_000_000_000, suffix: " GB/s", maximumFractionDigits: 2)
         }
     }
 
@@ -147,18 +173,14 @@ final class SystemMetricsController: ObservableObject {
             : nil
     }
 
-    private func rateString(_ value: Double, unit: RateMetricUnit) -> String {
-        let clamped = max(0, value)
-        switch unit {
-        case .automatic:
-            return Int64(clamped).formatted(.byteCount(style: .file)) + "/s"
-        case .kilobytes:
-            return (clamped / 1_000).formatted(.number.precision(.fractionLength(0...1))) + " KB/s"
-        case .megabytes:
-            return (clamped / 1_000_000).formatted(.number.precision(.fractionLength(0...1))) + " MB/s"
-        case .gigabytes:
-            return (clamped / 1_000_000_000).formatted(.number.precision(.fractionLength(0...2))) + " GB/s"
-        }
+    private func formattedRate(
+        _ value: Double,
+        suffix: String,
+        maximumFractionDigits: Int
+    ) -> String {
+        value.formatted(
+            .number.precision(.fractionLength(0...maximumFractionDigits))
+        ) + suffix
     }
 
     private func compactBytes(_ value: UInt64) -> String {

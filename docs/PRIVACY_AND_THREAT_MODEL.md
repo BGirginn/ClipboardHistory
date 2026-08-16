@@ -16,13 +16,15 @@ The app intentionally has no telemetry, analytics, account, sync, remote preview
 
 System metric samples stay in a time-bounded in-memory ring buffer and are not added to SQLite, archives, logs, or telemetry. Audio processing is real-time and memory-only: samples are not recorded, logged, analyzed, or persisted. Only per-application gain preferences keyed by bundle identifier are stored. Browser tab titles, URLs, identifiers, incognito state, and volume state are memory-only; incognito tabs are rejected by default. Safari lists only pages where the extension can directly modify non-DRM HTML media elements. Chromium tab capture starts only after the user invokes the extension action for that tab.
 
-Input Tools use one local CoreGraphics session event tap after explicit macOS Accessibility approval. Keyboard Cleaning discards key-down, key-up, modifier, and media-key events while active; it does not record, inspect, persist, or log typed content. Mouse and scroll events remain available, the mode automatically releases after 60 seconds, and lock/sleep/termination paths stop it. Scroll Reverse changes only enabled vertical/horizontal delta fields on the incoming event and preserves its phase, momentum, timestamp, and source; it never stores or logs event values or application content. Missing or revoked permission leaves native input unchanged.
+Input Tools use one local CoreGraphics session event tap after explicit macOS Accessibility approval. Keyboard Cleaning discards key-down, key-up, modifier, and media-key events while active; it does not record, inspect, persist, or log typed content. Mouse and scroll events remain available, the mode automatically releases after 60 seconds, and sleep, session-resignation, or termination paths stop it. Scroll Reverse changes only enabled vertical/horizontal delta fields on the incoming event and preserves its phase, momentum, timestamp, and source; it never stores or logs event values or application content. Missing or revoked permission leaves native input unchanged.
+
+Direct Paste and Input Tools share one Accessibility authorization coordinator. The system prompt is user-action driven and can appear at most once during an application session; if access is still unavailable, subsequent actions fail open and direct the user to macOS Accessibility Settings without repeatedly requesting the same approval.
 
 ## Keychain and signing
 
 Notes use the classic login Keychain because a stable signing requirement is needed across upgrades. Clipboard history no longer uses a Keychain key. Builds keep the same self-signed certificate and have no keychain access-group entitlement. This requires no Apple account or provisioning profile. A certificate fingerprint is required in release notes.
 
-Application Lock is a local presentation and interaction boundary, not disk encryption. Clipboard recording pauses while the app is locked so new plaintext records cannot be persisted behind a locked interface. Notes remain encrypted independently.
+Sensitive clipboard-item previews and restore operations require device-owner authentication when local detection marks an item as sensitive. Notes remain encrypted independently.
 
 The community beta is not Apple-trusted or notarized. Documentation may explain macOS's visible Open Anyway flow, but installers and scripts must never delete quarantine metadata or call `xattr` to suppress Gatekeeper.
 

@@ -58,6 +58,47 @@ private enum AudioTestError: LocalizedError {
 
 @MainActor
 final class AudioMixerControllerTests: XCTestCase {
+    func testAudioApplicationIdentityCollapsesHelperProcessIntoOwningApplication() {
+        let helperURL = URL(
+            fileURLWithPath: "/Applications/Brave Browser.app/Contents/Frameworks/Brave Browser Helper.app"
+        )
+
+        let identity = AudioApplicationIdentityResolver.resolve(
+            reportedBundleID: "com.brave.Browser.helper",
+            runningName: "Brave Browser Helper",
+            bundleURL: helperURL,
+            executableURL: nil
+        )
+
+        XCTAssertEqual(identity.bundleID, "com.brave.Browser")
+        XCTAssertEqual(identity.name, "Brave Browser")
+    }
+
+    func testAudioApplicationIdentityUsesApplicationNameInsteadOfPIDFallback() {
+        let identity = AudioApplicationIdentityResolver.resolve(
+            reportedBundleID: "pid.61433",
+            runningName: nil,
+            bundleURL: nil,
+            executableURL: URL(
+                fileURLWithPath: "/Applications/Spotify.app/Contents/MacOS/Spotify"
+            )
+        )
+
+        XCTAssertEqual(identity.name, "Spotify")
+    }
+
+    func testLiveCoreAudioDiscoveryDoesNotExposeHelperProcessIdentity() {
+        let applications = CoreAudioProcessDiscovery().applications()
+
+        XCTAssertFalse(
+            applications.contains { $0.bundleID.lowercased().hasSuffix(".helper") }
+        )
+        if let brave = applications.first(where: { $0.bundleID == "com.brave.Browser" }) {
+            XCTAssertEqual(brave.name, "Brave Browser")
+            XCTAssertGreaterThanOrEqual(brave.processObjectIDs.count, 1)
+        }
+    }
+
     func testBrowserBridgeMergesSourcesRejectsUncontrollableTabsAndNamespacesCommands() throws {
         let bridge = BrowserAudioBridge()
         var observed: [BrowserAudioTab] = []

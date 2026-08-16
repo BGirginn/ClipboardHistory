@@ -73,18 +73,6 @@ final class PrivacySecurityTests: XCTestCase {
         )
     }
 
-    func testScreenLockNotificationAutomaticallyLocks() {
-        let lockService = AppLockService()
-        lockService.configure(enabled: true, option: .whenMacLocks)
-
-        NSWorkspace.shared.notificationCenter.post(
-            name: NSWorkspace.sessionDidResignActiveNotification,
-            object: nil
-        )
-
-        XCTAssertTrue(lockService.isLocked)
-    }
-
     func testGlobalShortcutRegistersAndDisablesWithoutError() {
         let monitor = GlobalShortcutMonitor(action: {})
 
@@ -306,17 +294,19 @@ final class PrivacySecurityTests: XCTestCase {
         await context.storage.close()
     }
 
-    func testManualLockHidesAndBlocksRestoration() async throws {
-        let context = try makeViewModel()
+    func testCancelledAuthenticationBlocksSensitiveRestoration() async throws {
+        let context = try makeViewModel(
+            sensitiveContentAuthenticator: StubSystemAuthenticator { _ in false }
+        )
         defer { cleanup(context) }
-        await context.viewModel.insert(.text(value: "locked", hash: "locked"))
+        let secret = "Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345"
+        await context.viewModel.insert(.text(value: secret, hash: HashUtility.sha256(text: secret)))
         let item = try XCTUnwrap(context.viewModel.items.first)
-        context.viewModel.lockService.configure(enabled: true, option: .never)
-        context.viewModel.lock()
 
         await context.viewModel.restoreAndWait(item)
 
-        XCTAssertTrue(context.viewModel.isLocked)
+        XCTAssertNil(context.viewModel.copiedItemID)
+        XCTAssertEqual(context.viewModel.errorMessage, "System authentication was cancelled.")
         await context.storage.close()
     }
 
@@ -328,7 +318,9 @@ final class PrivacySecurityTests: XCTestCase {
         let defaultsSuite: String
     }
 
-    private func makeViewModel() throws -> Context {
+    private func makeViewModel(
+        sensitiveContentAuthenticator: any SystemAuthenticating = StubSystemAuthenticator { _ in true }
+    ) throws -> Context {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "PrivacySecurityTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -344,6 +336,7 @@ final class PrivacySecurityTests: XCTestCase {
             monitor: monitor,
             restorePasteboard: pasteboard,
             settings: settings,
+            sensitiveContentAuthenticator: sensitiveContentAuthenticator,
             startsAutomatically: false
         )
         return Context(

@@ -31,7 +31,7 @@ struct MenuBarConfigurationStore {
         registry: FeatureRegistry
     ) -> MenuBarConfiguration {
         let storedByID = Dictionary(uniqueKeysWithValues: configuration.features.map { ($0.id, $0) })
-        var normalized = MenuBarConfiguration(
+        return MenuBarConfiguration(
             version: MenuBarConfiguration.currentVersion,
             showsControlCenterItem: configuration.showsControlCenterItem,
             features: registry.descriptors.map { descriptor in
@@ -49,11 +49,5 @@ struct MenuBarConfigurationStore {
             metricGroup: configuration.metricGroup,
             metricFormats: configuration.metricFormats
         )
-        if !normalized.showsControlCenterItem
-            && !normalized.features.contains(where: { $0.placement.showsStandaloneItem })
-            && (!normalized.metricGroup.isVisible || normalized.metricGroup.metrics.isEmpty) {
-            normalized.showsControlCenterItem = true
-        }
-        return normalized
     }
 }

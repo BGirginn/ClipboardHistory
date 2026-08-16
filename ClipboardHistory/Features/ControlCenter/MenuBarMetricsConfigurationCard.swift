@@ -32,25 +32,26 @@ struct MenuBarMetricsConfigurationCard: View {
                     Text("MB/s").tag(RateMetricUnit.megabytes)
                     Text("GB/s").tag(RateMetricUnit.gigabytes)
                 }
-                Divider()
-                ForEach(MenuBarMetricID.allCases) { metric in
-                    HStack {
-                        Toggle(metric.title, isOn: metricBinding(metric))
-                        Spacer()
-                        if model.configuration.metricGroup.metrics.contains(metric) {
-                            Button("Move Up", systemImage: "chevron.up") {
-                                model.moveMetric(metric, direction: -1)
-                            }
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.borderless)
-                            .disabled(model.configuration.metricGroup.metrics.first == metric)
-                            Button("Move Down", systemImage: "chevron.down") {
-                                model.moveMetric(metric, direction: 1)
-                            }
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.borderless)
-                            .disabled(model.configuration.metricGroup.metrics.last == metric)
+            }
+            Divider()
+            ForEach(MenuBarMetricID.allCases) { metric in
+                HStack {
+                    Toggle(metric.title, isOn: metricBinding(metric))
+                    Spacer()
+                    if model.configuration.metricGroup.metrics.contains(metric),
+                       !model.configuration.metricGroup.showsSeparateItems {
+                        Button("Move Up", systemImage: "chevron.up") {
+                            model.moveMetric(metric, direction: -1)
                         }
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.borderless)
+                        .disabled(model.configuration.metricGroup.metrics.first == metric)
+                        Button("Move Down", systemImage: "chevron.down") {
+                            model.moveMetric(metric, direction: 1)
+                        }
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.borderless)
+                        .disabled(model.configuration.metricGroup.metrics.last == metric)
                     }
                 }
             }

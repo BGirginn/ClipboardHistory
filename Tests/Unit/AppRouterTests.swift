@@ -25,23 +25,27 @@ final class AppRouterTests: XCTestCase {
     func testSettingsReturnsToCallingFeature() {
         let router = AppRouter(activeFeature: .notes)
 
-        router.openSettings()
+        router.openSettings(section: .menuBar)
         XCTAssertEqual(router.activeFeature, .settings)
         XCTAssertEqual(router.settingsReturnFeature, .notes)
+        XCTAssertEqual(router.settingsSection, .menuBar)
+
+        router.openSettings(section: .inputTools)
+        XCTAssertEqual(router.settingsReturnFeature, .notes)
+        XCTAssertEqual(router.settingsSection, .inputTools)
 
         router.closeSettings()
         XCTAssertEqual(router.activeFeature, .notes)
     }
 
-    func testLockRecordsLocationWithoutReplacingIt() {
-        let router = AppRouter(activeFeature: .notes)
+    func testEverySettingsSectionOwnsItsDefaultSubsection() {
+        let allSubsections = AppSettingsSection.allCases.flatMap(\.subsections)
 
-        router.applicationLockDidChange(isLocked: true)
-        XCTAssertEqual(router.featureBeforeLock, .notes)
-        XCTAssertEqual(router.activeFeature, .notes)
-
-        router.applicationLockDidChange(isLocked: false)
-        XCTAssertNil(router.featureBeforeLock)
-        XCTAssertEqual(router.activeFeature, .notes)
+        for section in AppSettingsSection.allCases {
+            XCTAssertFalse(section.subsections.isEmpty)
+            XCTAssertTrue(section.subsections.contains(section.defaultSubsection))
+        }
+        XCTAssertEqual(Set(allSubsections).count, allSubsections.count)
     }
+
 }

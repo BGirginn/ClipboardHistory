@@ -1,30 +1,40 @@
 import AppKit
+import Combine
 import Foundation
 
 @MainActor
 final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     typealias AppModelFactory = @MainActor () -> AppModel
-    typealias MenuBarControllerFactory = @MainActor (AppModel) -> MenuBarController
+    typealias ApplicationWindowPresenterFactory = @MainActor (AppModel) -> any ApplicationWindowPresenting
+    typealias MenuBarControllerFactory = @MainActor (
+        AppModel,
+        any ApplicationWindowPresenting
+    ) -> MenuBarController
+    typealias ActivationPolicySetter = @MainActor (NSApplication.ActivationPolicy) -> Bool
     typealias TerminationReply = @MainActor (NSApplication, Bool) -> Void
 
     private let environment: [String: String]
     private let arguments: [String]
     private let appModelFactory: AppModelFactory
+    private let applicationWindowPresenterFactory: ApplicationWindowPresenterFactory
     private let menuBarControllerFactory: MenuBarControllerFactory
+    private let activationPolicySetter: ActivationPolicySetter
     private let terminationReply: TerminationReply
     private var appModel: AppModel?
+    private var applicationWindowPresenter: (any ApplicationWindowPresenting)?
     private var menuBarController: MenuBarController?
+    private var menuBarConfigurationCancellable: AnyCancellable?
     private var terminationTask: Task<Void, Never>?
-    #if DEBUG
-    private var uiTestAnchorWindow: NSWindow?
-    #endif
-
     override convenience init() {
         self.init(
             environment: ProcessInfo.processInfo.environment,
             arguments: ProcessInfo.processInfo.arguments,
             appModelFactory: { AppModel() },
-            menuBarControllerFactory: { MenuBarController(appModel: $0) },
+            applicationWindowPresenterFactory: { ApplicationWindowController(appModel: $0) },
+            menuBarControllerFactory: {
+                MenuBarController(appModel: $0, applicationWindowPresenter: $1)
+            },
+            activationPolicySetter: { NSApplication.shared.setActivationPolicy($0) },
             terminationReply: { $0.reply(toApplicationShouldTerminate: $1) }
         )
     }
@@ -33,7 +43,13 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         environment: [String: String],
         arguments: [String] = [],
         appModelFactory: @escaping AppModelFactory,
+        applicationWindowPresenterFactory: @escaping ApplicationWindowPresenterFactory = {
+            ApplicationWindowController(appModel: $0)
+        },
         menuBarControllerFactory: @escaping MenuBarControllerFactory,
+        activationPolicySetter: @escaping ActivationPolicySetter = {
+            NSApplication.shared.setActivationPolicy($0)
+        },
         terminationReply: @escaping TerminationReply = {
             $0.reply(toApplicationShouldTerminate: $1)
         }
@@ -41,7 +57,9 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         self.environment = environment
         self.arguments = arguments
         self.appModelFactory = appModelFactory
+        self.applicationWindowPresenterFactory = applicationWindowPresenterFactory
         self.menuBarControllerFactory = menuBarControllerFactory
+        self.activationPolicySetter = activationPolicySetter
         self.terminationReply = terminationReply
         super.init()
     }
@@ -58,23 +76,22 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         }
         #endif
         let appModel = appModelFactory()
-        self.appModel = appModel
-        let controller = menuBarControllerFactory(appModel)
-        menuBarController = controller
+        let usesApplicationWindow = configurePresentation(for: appModel)
         if !arguments.contains("--background-launch") {
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 await Task.yield()
-                controller.showControlCenter()
+                self?.showControlCenterInterface()
             }
         }
-        AppLog.lifecycle.notice("Application launched; interface=menu-bar")
+        let interface = usesApplicationWindow ? "application-window" : "menu-bar"
+        AppLog.lifecycle.notice("Application launched; interface=\(interface, privacy: .public)")
     }
 
     func applicationShouldHandleReopen(
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
     ) -> Bool {
-        menuBarController?.showControlCenter()
+        showControlCenterInterface(preservingActiveFeature: true)
         return false
     }
 
@@ -110,13 +127,7 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             startsAutomatically: false
         )
         appModel.controlCenter.setShownInControlCenter(true, for: .audioMixer)
-        self.appModel = appModel
-        let anchorWindow = makeUITestAnchorWindow()
-        uiTestAnchorWindow = anchorWindow
-        let controller = MenuBarController(appModel: appModel) { [weak anchorWindow] in
-            anchorWindow?.contentView
-        }
-        menuBarController = controller
+        _ = configurePresentation(for: appModel)
         let seedItems = [
             ClipboardItem(type: .text, text: "Alpha clipboard item", hash: "ui-alpha"),
             ClipboardItem(type: .text, text: "Beta clipboard item", hash: "ui-beta"),
@@ -126,7 +137,6 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         appModel.clipboard.items = seedItems
         appModel.clipboard.collections = [seedCollection]
         appModel.clipboard.refreshDisplayedItems()
-        controller.showPopover()
         Task {
             for item in seedItems {
                 try? await appModel.clipboard.storage.upsertThrowing(item)
@@ -136,29 +146,6 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
     }
 
-    private func makeUITestAnchorWindow() -> NSWindow {
-        let screen = NSScreen.screens.first { $0.frame.contains(NSPoint(x: 1, y: 1)) }
-            ?? NSScreen.main
-        let visibleFrame = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1, height: 1)
-        let window = NSWindow(
-            contentRect: NSRect(
-                x: visibleFrame.midX,
-                y: visibleFrame.maxY - 1,
-                width: 1,
-                height: 1
-            ),
-            styleMask: .borderless,
-            backing: .buffered,
-            defer: false
-        )
-        window.level = .statusBar
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.alphaValue = 0.01
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.orderFrontRegardless()
-        return window
-    }
     #endif
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -176,10 +163,11 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
             }
             if canTerminate {
                 menuBarController?.stop()
+                applicationWindowPresenter?.stop()
                 if let sender { terminationReply(sender, true) }
             } else {
                 terminationTask = nil
-                menuBarController?.showActiveFeature()
+                showActiveInterface()
                 if let sender { terminationReply(sender, false) }
             }
         }
@@ -192,12 +180,63 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         }
         terminationTask?.cancel()
         terminationTask = nil
+        menuBarConfigurationCancellable?.cancel()
+        menuBarConfigurationCancellable = nil
         menuBarController?.stop()
+        applicationWindowPresenter?.stop()
         menuBarController = nil
-        #if DEBUG
-        uiTestAnchorWindow?.close()
-        uiTestAnchorWindow = nil
-        #endif
+        applicationWindowPresenter = nil
         appModel = nil
+    }
+
+    private func configurePresentation(
+        for appModel: AppModel
+    ) -> Bool {
+        self.appModel = appModel
+        let windowPresenter = applicationWindowPresenterFactory(appModel)
+        applicationWindowPresenter = windowPresenter
+        let menuBarController = menuBarControllerFactory(appModel, windowPresenter)
+        self.menuBarController = menuBarController
+        menuBarConfigurationCancellable = appModel.controlCenter.$configuration
+            .map(\.showsControlCenterItem)
+            .removeDuplicates()
+            .sink { [weak self] showsControlCenterItem in
+                self?.applyActivationPolicy(showsControlCenterItem: showsControlCenterItem)
+            }
+        return !appModel.controlCenter.configuration.showsControlCenterItem
+    }
+
+    private func applyActivationPolicy(showsControlCenterItem: Bool) {
+        let policy: NSApplication.ActivationPolicy = showsControlCenterItem ? .accessory : .regular
+        if activationPolicySetter(policy) { return }
+        AppLog.lifecycle.error(
+            "Application activation policy could not change to \(String(describing: policy), privacy: .public)"
+        )
+        if !showsControlCenterItem {
+            appModel?.controlCenter.setControlCenterItemVisible(true)
+        }
+    }
+
+    private func showControlCenterInterface(preservingActiveFeature: Bool = false) {
+        guard let appModel else { return }
+        if appModel.controlCenter.configuration.showsControlCenterItem {
+            menuBarController?.showControlCenter()
+        } else {
+            menuBarController?.closePopover()
+            if preservingActiveFeature {
+                applicationWindowPresenter?.showActiveFeature()
+            } else {
+                applicationWindowPresenter?.showControlCenter()
+            }
+        }
+    }
+
+    private func showActiveInterface() {
+        guard let appModel else { return }
+        if appModel.controlCenter.configuration.showsControlCenterItem {
+            menuBarController?.showActiveFeature()
+        } else {
+            applicationWindowPresenter?.showActiveFeature()
+        }
     }
 }

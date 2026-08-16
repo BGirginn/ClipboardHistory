@@ -60,29 +60,39 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let context = makeContext()
         do {
             context.viewModel.setPrivateModeEnabled(true)
-            context.viewModel.lockService.configure(
-                enabled: true,
-                option: .never
-            )
-            context.viewModel.lock()
             try render(
                 ClipboardPanelView(viewModel: context.viewModel),
-                named: "panel-private-locked-light",
+                named: "panel-private-light",
                 colorScheme: .light
             )
 
-            for (index, section) in ClipboardSettingsSection.allCases.enumerated() {
-                let colorScheme: ColorScheme = index.isMultiple(of: 2) ? .light : .dark
-                try render(
-                    ClipboardSettingsView(
-                        viewModel: context.appModel.settingsFeature,
-                        initialSection: section
+            let settingsSections = AppSettingsSection.allCases
+            for (index, section) in settingsSections.enumerated() {
+                for subsection in section.subsections {
+                    try render(
+                        AppSettingsView(
+                            viewModel: context.appModel.settingsFeature,
+                            initialSection: section,
+                            initialSubsection: subsection
+                        )
+                        .frame(width: 380, height: 500),
+                        named: "settings-\(section.rawValue)-\(subsection.rawValue)",
+                        colorScheme: index.isMultiple(of: 2) ? .light : .dark
                     )
-                    .frame(width: 380, height: 500),
-                    named: "settings-\(section.rawValue)-\(colorScheme == .dark ? "dark" : "light")",
-                    colorScheme: colorScheme
-                )
+                }
             }
+            try render(
+                AppSettingsView(
+                    viewModel: context.appModel.settingsFeature,
+                    initialSection: .inputTools,
+                    initialSubsection: .inputScrollReverse
+                )
+                .frame(width: 340, height: 500),
+                named: "settings-input-tools-scroll-dark-tr-340",
+                colorScheme: .dark,
+                locale: Locale(identifier: "tr"),
+                width: 340
+            )
         } catch {
             await cleanup(context)
             throw error
@@ -227,8 +237,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 ClipboardImageThumbnail(
                     item: image,
                     storage: context.storage,
-                    thumbnailService: context.viewModel.thumbnailService,
-                    isLocked: false
+                    thumbnailService: context.viewModel.thumbnailService
                 ),
                 named: "thumbnail-image",
                 colorScheme: .light
@@ -237,8 +246,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 ClipboardImageThumbnail(
                     item: sensitiveImage,
                     storage: context.storage,
-                    thumbnailService: context.viewModel.thumbnailService,
-                    isLocked: false
+                    thumbnailService: context.viewModel.thumbnailService
                 ),
                 named: "thumbnail-sensitive",
                 colorScheme: .dark
@@ -247,8 +255,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 ClipboardImageThumbnail(
                     item: missingImage,
                     storage: context.storage,
-                    thumbnailService: context.viewModel.thumbnailService,
-                    isLocked: false
+                    thumbnailService: context.viewModel.thumbnailService
                 ),
                 named: "thumbnail-missing",
                 colorScheme: .light
@@ -258,8 +265,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     ClipboardItemRowContent(
                         item: item,
                         storage: context.storage,
-                        thumbnailService: context.viewModel.thumbnailService,
-                        isLocked: index.isMultiple(of: 2)
+                        thumbnailService: context.viewModel.thumbnailService
                     ),
                     named: "row-content-\(index)",
                     colorScheme: index.isMultiple(of: 2) ? .dark : .light
@@ -274,8 +280,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 DocumentClipboardItemRow(
                     item: filesWithoutURL,
                     storage: context.storage,
-                    thumbnailService: context.viewModel.thumbnailService,
-                    isLocked: false
+                    thumbnailService: context.viewModel.thumbnailService
                 ),
                 named: "document-no-url",
                 colorScheme: .light
@@ -285,8 +290,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 ImageClipboardItemRow(
                     item: imageGroup,
                     storage: context.storage,
-                    thumbnailService: context.viewModel.thumbnailService,
-                    isLocked: false
+                    thumbnailService: context.viewModel.thumbnailService
                 ),
                 named: "image-group-row",
                 colorScheme: .light
@@ -309,7 +313,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     selectedItemIDs: [text.id, rich.id],
                     copiedItemID: text.id,
                     hasSearch: false,
-                    isLocked: false,
                     storage: context.storage,
                     thumbnailService: context.viewModel.thumbnailService,
                     actions: actions,
@@ -327,7 +330,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     selectedItemIDs: [],
                     copiedItemID: nil,
                     hasSearch: false,
-                    isLocked: false,
                     storage: context.storage,
                     thumbnailService: context.viewModel.thumbnailService,
                     actions: actions,
@@ -345,7 +347,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     selectedItemIDs: [],
                     copiedItemID: nil,
                     hasSearch: true,
-                    isLocked: false,
                     storage: context.storage,
                     thumbnailService: context.viewModel.thumbnailService,
                     actions: actions,
@@ -359,7 +360,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     item: text,
                     isSelected: true,
                     isCopied: true,
-                    isLocked: false,
                     storage: context.storage,
                     thumbnailService: context.viewModel.thumbnailService,
                     actions: actions
@@ -375,12 +375,11 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                     item: pinned,
                     isSelected: false,
                     isCopied: false,
-                    isLocked: true,
                     storage: context.storage,
                     thumbnailService: context.viewModel.thumbnailService,
                     actions: actions
                 ),
-                named: "item-row-pinned-locked",
+                named: "item-row-pinned",
                 colorScheme: .light
             )
             try render(
@@ -450,20 +449,11 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 locale: Locale(identifier: "tr"),
                 width: 340
             )
-            context.appModel.router.showNotes()
-            context.viewModel.lockService.configure(enabled: true, option: .never, startsLocked: true)
-            try render(
-                AppShellView(model: context.appModel),
-                named: "notes-hidden-while-locked",
-                colorScheme: .dark
-            )
-            context.viewModel.lockService.configure(enabled: false, option: .never)
             context.appModel.router.showControlCenter()
 
             try render(
                 KeyboardCleaningView(
                     controller: context.appModel.inputTools.keyboardCleaning,
-                    isLocked: false,
                     close: {},
                     openSettings: {}
                 ),
@@ -484,7 +474,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(
                 KeyboardCleaningView(
                     controller: context.appModel.inputTools.keyboardCleaning,
-                    isLocked: false,
                     close: {},
                     openSettings: {}
                 ),
@@ -519,16 +508,6 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             context.viewModel.pauseUntil = .now.addingTimeInterval(60)
             try render(ClipboardPanelStatusView(viewModel: context.viewModel), named: "status-paused", colorScheme: .dark)
             context.viewModel.pauseUntil = nil
-            context.viewModel.lockService.configure(enabled: true, option: .never, startsLocked: true)
-            try render(
-                ClipboardPanelHeaderView(
-                    viewModel: context.viewModel,
-                    backToHome: {},
-                    openSettings: {}
-                ),
-                named: "header-locked",
-                colorScheme: .light
-            )
         } catch {
             await cleanup(context)
             throw error
@@ -968,8 +947,7 @@ private actor RenderingSystemMetricsProvider: SystemMetricsProviding {
                 totalPercent: 42 + Double(index),
                 userPercent: 28,
                 systemPercent: 14,
-                idlePercent: 58,
-                perCorePercent: [20, 40, 60, 80]
+                idlePercent: 58
             ),
             memory: MemoryUsageSnapshot(
                 totalBytes: 16_000_000_000,

@@ -11,6 +11,7 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - name: Build unsigned CommunityRelease
         run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \

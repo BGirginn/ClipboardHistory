@@ -8,13 +8,11 @@ final class InputToolsController: ObservableObject {
     let scrollReversal: ScrollReversalController
 
     private let coordinator: any InputEventTapCoordinating
-    private var lockCancellable: AnyCancellable?
     private var workspaceCancellables: Set<AnyCancellable> = []
 
     init(
         coordinator: any InputEventTapCoordinating,
         settings: AppSettings,
-        lockService: AppLockService,
         keyboardCleaning: KeyboardCleaningController? = nil,
         scrollReversal: ScrollReversalController? = nil
     ) {
@@ -28,13 +26,6 @@ final class InputToolsController: ObservableObject {
             self?.keyboardCleaning.eventTapDidFail()
             self?.scrollReversal.eventTapDidFail()
         }
-        lockCancellable = lockService.$state
-            .dropFirst()
-            .sink { [weak self] state in
-                if state.isLocked {
-                    self?.keyboardCleaning.stop()
-                }
-            }
         observeWorkspaceLifecycle()
         self.scrollReversal.activatePersistedPreference()
     }
@@ -43,7 +34,6 @@ final class InputToolsController: ObservableObject {
         keyboardCleaning.stop()
         scrollReversal.suspend()
         coordinator.stopAll()
-        lockCancellable = nil
         workspaceCancellables.removeAll()
     }
 

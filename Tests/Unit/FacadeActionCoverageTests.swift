@@ -75,7 +75,6 @@ final class FacadeActionCoverageTests: XCTestCase {
     func testAppModelRoutesStandaloneActionsAndNoteTransitions() async {
         let context = makeContext()
 
-        XCTAssertFalse(context.appModel.isLocked)
         XCTAssertEqual(context.appModel.route(for: .clipboard), .clipboard)
         XCTAssertEqual(context.appModel.route(for: .notes), .notes)
         XCTAssertEqual(context.appModel.route(for: .keyboardCleaning), .keyboardCleaning)
@@ -145,31 +144,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         )
         context.appModel.controlCenter.setClickAction(.open, for: .clipboard)
         XCTAssertEqual(context.appModel.performStandaloneAction(for: .clipboard), .clipboard)
-
-        context.appModel.lockService.configure(
-            enabled: true,
-            option: .never,
-            startsLocked: true
-        )
-        XCTAssertEqual(
-            context.appModel.performStandaloneAction(
-                for: .clipboard,
-                action: .toggleClipboardRecording
-            ),
-            .clipboard
-        )
-        XCTAssertEqual(
-            context.appModel.performStandaloneAction(for: .notes, action: .newNote),
-            .notes
-        )
-        XCTAssertEqual(
-            context.appModel.performStandaloneAction(
-                for: .keyboardCleaning,
-                action: .toggleKeyboardCleaning
-            ),
-            .keyboardCleaning
-        )
-        context.appModel.lockService.configure(enabled: false, option: .never)
 
         let destinations: [AppFeature] = [
             .controlCenter, .clipboard, .keyboardCleaning, .scrollReverse,
@@ -328,7 +302,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         await cleanup(context)
     }
 
-    func testPrivacyTimersSettingsLockSensitiveAndMaintenanceCommands() async throws {
+    func testPrivacyTimersSettingsSensitiveAndMaintenanceCommands() async throws {
         let clock = RecordingSleepClock()
         let context = makeContext(clock: clock)
         var privacyChanges: [Bool] = []
@@ -356,15 +330,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.dismissError()
         context.viewModel.setGlobalShortcutError("shortcut")
         XCTAssertEqual(context.viewModel.globalShortcutError, "shortcut")
-
-        context.viewModel.setApplicationLockEnabled(true)
-        await waitUntil { context.settings.applicationLockEnabled }
-        context.viewModel.lock()
-        XCTAssertTrue(context.viewModel.isLocked)
-        context.viewModel.unlock()
-        await waitUntil { !context.viewModel.isLocked }
-        context.viewModel.setApplicationLockEnabled(false)
-        await waitUntil { !context.settings.applicationLockEnabled }
 
         context.settings.sensitiveStoragePolicy = .ask
         let firstSecret = "Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345"
@@ -538,16 +503,16 @@ final class FacadeActionCoverageTests: XCTestCase {
         pasteStack.reset()
         XCTAssertTrue(context.viewModel.pasteStackItemIDs.isEmpty)
         context.appModel.router.openSettings()
-        ClipboardSettingsView(
+        AppSettingsView(
             viewModel: context.appModel.settingsFeature,
             close: context.appModel.closeSettings
         ).closeSettings()
         XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
-        let generalSettings = ClipboardSettingsGeneralView(
+        let appSettings = AppPreferencesView(
             viewModel: context.appModel.settingsFeature
         )
-        _ = generalSettings.launchAtLoginBinding.wrappedValue
-        generalSettings.launchAtLoginBinding.wrappedValue = true
+        _ = appSettings.launchAtLoginBinding.wrappedValue
+        appSettings.launchAtLoginBinding.wrappedValue = true
         XCTAssertTrue(context.viewModel.launchAtLoginService.isEnabled)
         let privacySettings = ClipboardSettingsPrivacyView(
             viewModel: context.appModel.settingsFeature
@@ -556,17 +521,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         privacySettings.privateModeBinding.wrappedValue = true
         XCTAssertTrue(context.viewModel.isPrivateMode)
         privacySettings.privateModeBinding.wrappedValue = false
-        let securitySettings = ClipboardSettingsSecurityView(
-            viewModel: context.appModel.settingsFeature
-        )
-        securitySettings.changeApplicationLockSetting()
-        await waitUntil { context.viewModel.isApplicationLockEnabled }
-        securitySettings.toggleLock()
-        XCTAssertTrue(context.viewModel.isLocked)
-        securitySettings.toggleLock()
-        await waitUntil { !context.viewModel.isLocked }
-        securitySettings.changeApplicationLockSetting()
-        await waitUntil { !context.viewModel.isApplicationLockEnabled }
         let advancedSettings = ClipboardSettingsAdvancedView(
             viewModel: context.appModel.settingsFeature,
             newCollectionName: "View Actions"
@@ -789,7 +743,6 @@ final class FacadeActionCoverageTests: XCTestCase {
             item: item,
             isSelected: true,
             isCopied: false,
-            isLocked: false,
             storage: context.storage,
             thumbnailService: .shared,
             actions: rowActions
@@ -808,8 +761,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         _ = ImageClipboardItemRow(
             item: encryptedImage,
             storage: context.storage,
-            thumbnailService: .shared,
-            isLocked: false
+            thumbnailService: .shared
         ).body
         _ = DocumentClipboardItemRow(
             item: ClipboardItem(
@@ -819,8 +771,7 @@ final class FacadeActionCoverageTests: XCTestCase {
                 isEncrypted: true
             ),
             storage: context.storage,
-            thumbnailService: .shared,
-            isLocked: false
+            thumbnailService: .shared
         ).body
 
         let png = try makePNG()
@@ -851,28 +802,19 @@ final class FacadeActionCoverageTests: XCTestCase {
         let thumbnail = ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
-            thumbnailService: .shared,
-            isLocked: false
+            thumbnailService: .shared
         )
         await thumbnail.loadThumbnail()
-        await ClipboardImageThumbnail(
-            item: imageItem,
-            storage: context.storage,
-            thumbnailService: .shared,
-            isLocked: true
-        ).loadThumbnail()
         _ = ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
             thumbnailService: .shared,
-            isLocked: false,
             image: NSImage(size: NSSize(width: 2, height: 2))
         ).body
         _ = ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
             thumbnailService: .shared,
-            isLocked: false,
             didFail: true
         ).body
 
@@ -936,12 +878,6 @@ final class FacadeActionCoverageTests: XCTestCase {
             pauseUntil: .now.addingTimeInterval(60)
         ).body
         _ = ClipboardRecordingStatusView(isPrivateMode: false, pauseUntil: nil).body
-        XCTAssertTrue(
-            ClipboardSettingsSecurityView(viewModel: context.appModel.settingsFeature)
-                .applicationLockAccessibilityLabel("failure")
-                .contains("failure")
-        )
-
         let storageSettings = ClipboardSettingsStorageView(
             viewModel: context.appModel.settingsFeature,
             archivePassword: "password",
@@ -952,6 +888,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         storageSettings.exportMetadata()
         storageSettings.exportEncrypted()
         storageSettings.requestUnencryptedExport()
+        storageSettings.requestClearHistory()
         storageSettings.exportUnencrypted()
         storageSettings.importArchive()
         storageSettings.cancelDialog()
@@ -981,22 +918,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 2_592_000)
         header.openSettings()
         XCTAssertTrue(didOpenSettings)
-        context.viewModel.setApplicationLockEnabled(true)
-        await waitUntil { context.viewModel.isApplicationLockEnabled }
-        let lockControls = ClipboardApplicationLockControls(
-            viewModel: context.appModel.settingsFeature
-        )
-        _ = lockControls.body
-        lockControls.toggleLock()
-        XCTAssertTrue(context.viewModel.isLocked)
-        _ = lockControls.body
-        lockControls.toggleLock()
-        await waitUntil { !context.viewModel.isLocked }
-        historyActions.toggleLock()
-        XCTAssertTrue(context.viewModel.isLocked)
-        historyActions.toggleLock()
-        await waitUntil { !context.viewModel.isLocked }
-
         let panel = ClipboardPanelView(viewModel: context.viewModel)
         _ = panel.body
         panel.cancelDialog()
@@ -1018,8 +939,6 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.appModel.closeSettings()
         XCTAssertEqual(context.appModel.router.activeFeature, .keyboardCleaning)
         context.appModel.showClipboard()
-        context.viewModel.lockService.lock()
-        XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 125)))
 
         var scrollActions = 0
         ClipboardHistoryListView.scrollToSelected(reduceMotion: true) { scrollActions += 1 }
@@ -1048,7 +967,10 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.pasteboardIdentityByItemID[oldItem.id] = .init(changeCount: 90)
         context.viewModel.pasteboardIdentityByItemID[item.id] = .init(changeCount: 91)
         context.settings.retentionDays = 1
-        await context.viewModel.runRetentionCleanup()
+        historyActions.runCleanup()
+        await waitUntil("history action cleanup") {
+            context.viewModel.pasteboardIdentityByItemID[oldItem.id] == nil
+        }
         XCTAssertNil(context.viewModel.pasteboardIdentityByItemID[oldItem.id])
         await cleanup(context)
     }
@@ -1139,7 +1061,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             pasteService: pasteService,
             settings: settings,
             launchAtLoginService: LaunchAtLoginService(backend: FacadeLaunchAtLoginBackend()),
-            lockService: AppLockService(authenticator: StubSystemAuthenticator { _ in true }),
+            sensitiveContentAuthenticator: StubSystemAuthenticator { _ in true },
             archivePanelSelector: panels,
             storageRecoveryImporter: FacadeRecoveryImporter(),
             workspaceRevealer: workspaceRevealer,

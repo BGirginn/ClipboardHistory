@@ -39,7 +39,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     let storage: StorageService
     var settings: AppSettings
     let launchAtLoginService: LaunchAtLoginService
-    let lockService: AppLockService
+    let sensitiveContentAuthenticator: any SystemAuthenticating
     let thumbnailService: ThumbnailService
     let exportImportService: ExportImportService
     let archivePanelSelector: any ArchivePanelSelecting
@@ -78,7 +78,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var pendingItemWriteFailureIDs: Set<UUID> = []
     var maintenanceTask: Task<Void, Never>?
     var settingsCancellable: AnyCancellable?
-    var lockCancellable: AnyCancellable?
     var backgroundCancellable: AnyCancellable?
     var insertionsSinceCleanup = 0
     var pendingSensitiveItemIDs: [UUID] = []
@@ -94,7 +93,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         dragProvider: any ClipboardDragProviding = SystemClipboardDragProvider(),
         settings: AppSettings = AppSettings(),
         launchAtLoginService: LaunchAtLoginService = LaunchAtLoginService(),
-        lockService: AppLockService = AppLockService(),
+        sensitiveContentAuthenticator: any SystemAuthenticating = LocalSystemAuthenticator(),
         thumbnailService: ThumbnailService = .shared,
         exportImportService: ExportImportService = ExportImportService(),
         archivePanelSelector: any ArchivePanelSelecting = SystemArchivePanelSelector(),
@@ -115,7 +114,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
         self.dragProvider = dragProvider
         self.settings = settings
         self.launchAtLoginService = launchAtLoginService
-        self.lockService = lockService
+        self.sensitiveContentAuthenticator = sensitiveContentAuthenticator
         self.thumbnailService = thumbnailService
         self.exportImportService = exportImportService
         self.archivePanelSelector = archivePanelSelector
@@ -141,11 +140,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
             self?.errorMessage = violation.localizedDescription
         }
         updateIgnoredPasteboardTypes()
-        lockService.configure(
-            enabled: settings.applicationLockEnabled,
-            option: settings.autoLockOption,
-            startsLocked: settings.applicationLockEnabled
-        )
         observeSharedState()
 
         if startsAutomatically {
@@ -174,14 +168,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
         return pauseUntil > .now
     }
 
-    var isLocked: Bool {
-        lockService.isLocked
-    }
-
-    var isApplicationLockEnabled: Bool {
-        lockService.isEnabled
-    }
-
     func isSensitiveDetailRevealed(_ item: ClipboardItem) -> Bool {
         !item.isSensitive || sensitiveDetailItemID == item.id
     }
@@ -189,12 +175,18 @@ final class ClipboardHistoryViewModel: ObservableObject {
     @discardableResult
     func authorizeSensitiveAccess(to item: ClipboardItem) async -> Bool {
         guard item.isSensitive else { return true }
-        guard !isLocked else {
-            errorMessage = String(localized: "Unlock Clipboard History before accessing a sensitive item.")
-            return false
-        }
-        guard await lockService.authenticateSensitiveContentAccess() else {
-            errorMessage = lockService.errorMessage
+        do {
+            guard try await sensitiveContentAuthenticator.authenticate(
+                reason: String(localized: "Authenticate to access this sensitive clipboard item")
+            ) else {
+                errorMessage = String(localized: "System authentication was cancelled.")
+                return false
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            AppLog.lifecycle.error(
+                "Sensitive content authentication failed; category=\(String(describing: type(of: error)), privacy: .public)"
+            )
             return false
         }
         sensitiveDetailItemID = item.id
@@ -246,7 +238,6 @@ final class ClipboardHistoryViewModel: ObservableObject {
         isShuttingDown = true
         stopMonitoring()
         settingsCancellable = nil
-        lockCancellable = nil
         backgroundCancellable = nil
         maintenanceTask?.cancel()
         maintenanceTask = nil

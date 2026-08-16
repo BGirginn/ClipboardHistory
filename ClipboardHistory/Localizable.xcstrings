@@ -13,6 +13,12 @@
     },
     "%arg %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg %2$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -23,6 +29,12 @@
     },
     "%arg audio apps · %arg controlled tabs": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg audio apps · %2$arg controlled tabs"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -73,6 +85,12 @@
     },
     "%arg of %arg · Pressure: %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg of %2$arg · Pressure: %3$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -341,36 +359,6 @@
         }
       }
     },
-    "After 1 Minute": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 Dakika Sonra"
-          }
-        }
-      }
-    },
-    "After 15 Minutes": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 Dakika Sonra"
-          }
-        }
-      }
-    },
-    "After 5 Minutes": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5 Dakika Sonra"
-          }
-        }
-      }
-    },
     "After preparing the files, open Brave, Chrome, Edge, or Arc Extensions, enable Developer Mode, choose Load unpacked, and select the revealed folder.": {
       "localizations": {
         "tr": {
@@ -441,32 +429,12 @@
         }
       }
     },
-    "Application Lock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uygulama Kilidi"
-          }
-        }
-      }
-    },
     "Application Rules": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Uygulama Kuralları"
-          }
-        }
-      }
-    },
-    "Application lock error: %arg": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uygulama kilidi hatası: %arg"
           }
         }
       }
@@ -531,32 +499,12 @@
         }
       }
     },
-    "Audio and Browsers": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ses ve Tarayıcılar"
-          }
-        }
-      }
-    },
     "Audio is processed in memory only. ClipboardHistory never records, stores, analyzes, or logs audio samples.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Ses yalnızca bellekte işlenir. ClipboardHistory ses örneklerini kaydetmez, depolamaz, analiz etmez veya günlüğe yazmaz."
-          }
-        }
-      }
-    },
-    "Authenticate and Unlock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kimlik Doğrula ve Kilidi Aç"
           }
         }
       }
@@ -571,32 +519,12 @@
         }
       }
     },
-    "Authenticate with Touch ID or your Mac login password to view, copy, or paste saved items.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kaydedilmiş öğeleri görüntülemek, kopyalamak veya yapıştırmak için Touch ID ya da Mac oturum açma parolanızla kimliğinizi doğrulayın."
-          }
-        }
-      }
-    },
     "Automatic": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Otomatik"
-          }
-        }
-      }
-    },
-    "Automatic lock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otomatik kilit"
           }
         }
       }
@@ -697,16 +625,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "CPU / SoC Sıcaklığı"
-          }
-        }
-      }
-    },
-    "CPU Cores": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU Çekirdekleri"
           }
         }
       }
@@ -841,6 +759,16 @@
         }
       }
     },
+    "Changes are saved automatically while editing.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikler düzenleme sırasında otomatik olarak kaydedilir."
+          }
+        }
+      }
+    },
     "Choose Duration": {
       "localizations": {
         "tr": {
@@ -861,12 +789,32 @@
         }
       }
     },
+    "Chromium": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium"
+          }
+        }
+      }
+    },
     "Chromium Companion Extension": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Chromium Yardımcı Eklentisi"
+          }
+        }
+      }
+    },
+    "Clean Clipboard History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Geçmişini Temizle"
           }
         }
       }
@@ -961,32 +909,12 @@
         }
       }
     },
-    "Clipboard History Locked": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clipboard History Kilitli"
-          }
-        }
-      }
-    },
     "Clipboard History could not create a paste keyboard event.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Clipboard History yapıştırma klavye olayı oluşturamadı."
-          }
-        }
-      }
-    },
-    "Clipboard History is locked": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pano Geçmişi kilitli"
           }
         }
       }
@@ -1037,16 +965,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pano geçmişi silindi ancak kalıntı temizliği tamamlanamadı. Temizleme yeniden denenecek."
-          }
-        }
-      }
-    },
-    "Clipboard recording pauses while the application is locked.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uygulama kilitliyken pano kaydı duraklatılır."
           }
         }
       }
@@ -1151,16 +1069,6 @@
         }
       }
     },
-    "Compact": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kompakt"
-          }
-        }
-      }
-    },
     "Compressed": {
       "localizations": {
         "tr": {
@@ -1171,32 +1079,12 @@
         }
       }
     },
-    "Control": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Denetim"
-          }
-        }
-      }
-    },
     "Control Center": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Kontrol Merkezi"
-          }
-        }
-      }
-    },
-    "Control Center stays visible so the app remains accessible.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uygulamaya erişiminiz kaybolmasın diye Kontrol Merkezi görünür tutuldu."
           }
         }
       }
@@ -1257,16 +1145,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Başlamak için metin kopyalayın veya ekran görüntüsü alın."
-          }
-        }
-      }
-    },
-    "Core %arg": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Çekirdek %arg"
           }
         }
       }
@@ -1511,16 +1389,6 @@
         }
       }
     },
-    "Disable Clipboard History application lock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clipboard History uygulama kilidini devre dışı bırak"
-          }
-        }
-      }
-    },
     "Disable Scroll Reverse": {
       "localizations": {
         "tr": {
@@ -1681,16 +1549,6 @@
         }
       }
     },
-    "Enable Clipboard History application lock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clipboard History uygulama kilidini etkinleştir"
-          }
-        }
-      }
-    },
     "Enable ClipboardHistory Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.": {
       "localizations": {
         "tr": {
@@ -1793,6 +1651,12 @@
     },
     "Excluded application, %arg, %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Excluded application, %1$arg, %2$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -1991,6 +1855,16 @@
         }
       }
     },
+    "Hiding this icon keeps ClipboardHistory available in the Dock.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ikonu gizlediğinizde ClipboardHistory Dock üzerinden kullanılabilir kalır."
+          }
+        }
+      }
+    },
     "History age": {
       "localizations": {
         "tr": {
@@ -2113,6 +1987,12 @@
     },
     "Imported %arg clipboard items and %arg notes; skipped %arg duplicates.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Imported %1$arg clipboard items and %2$arg notes; skipped %3$arg duplicates."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2147,6 +2027,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Görsel ve belgeleri dahil et"
+          }
+        }
+      }
+    },
+    "Input Tools": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giriş Araçları"
           }
         }
       }
@@ -2331,6 +2221,16 @@
         }
       }
     },
+    "Label and Value": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiket ve Değer"
+          }
+        }
+      }
+    },
     "Last 10 Items": {
       "localizations": {
         "tr": {
@@ -2471,26 +2371,6 @@
         }
       }
     },
-    "Lock Now": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şimdi Kilitle"
-          }
-        }
-      }
-    },
-    "Locked": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kilitli"
-          }
-        }
-      }
-    },
     "Lowercase": {
       "localizations": {
         "tr": {
@@ -2571,16 +2451,6 @@
         }
       }
     },
-    "Menu Bar Metrics": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menü Çubuğu Metrikleri"
-          }
-        }
-      }
-    },
     "Menu Bar Popover": {
       "localizations": {
         "tr": {
@@ -2611,6 +2481,16 @@
         }
       }
     },
+    "Metrics": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Göstergeler"
+          }
+        }
+      }
+    },
     "Migration": {
       "localizations": {
         "tr": {
@@ -2623,6 +2503,12 @@
     },
     "Min %arg · Avg %arg · Max %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Min %1$arg · Avg %2$arg · Max %3$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -2631,12 +2517,12 @@
         }
       }
     },
-    "More": {
+    "Modules": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Daha Fazla"
+            "value": "Modüller"
           }
         }
       }
@@ -2737,16 +2623,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ağ aktarım geçmişi"
-          }
-        }
-      }
-    },
-    "Never": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Asla"
           }
         }
       }
@@ -2971,6 +2847,16 @@
         }
       }
     },
+    "Note titles and bodies are encrypted in local storage.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not başlıkları ve içerikleri yerel depolamada şifrelenir."
+          }
+        }
+      }
+    },
     "Notes": {
       "localizations": {
         "tr": {
@@ -2987,16 +2873,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notlar yüklenemedi: %arg"
-          }
-        }
-      }
-    },
-    "OK": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tamam"
           }
         }
       }
@@ -3643,6 +3519,12 @@
     },
     "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -3733,6 +3615,12 @@
     },
     "Removed %arg items and reclaimed %arg.": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Removed %1$arg items and reclaimed %2$arg."
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
@@ -3971,6 +3859,16 @@
         }
       }
     },
+    "Safari": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari"
+          }
+        }
+      }
+    },
     "Safari Companion Extension": {
       "localizations": {
         "tr": {
@@ -4027,6 +3925,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaydedildi"
+          }
+        }
+      }
+    },
+    "Saving": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetme"
           }
         }
       }
@@ -4207,16 +4115,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ayarlar"
-          }
-        }
-      }
-    },
-    "Settings Section": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ayarlar Bölümü"
           }
         }
       }
@@ -4417,6 +4315,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Depolama"
+          }
+        }
+      }
+    },
+    "Stored Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı Notlar"
           }
         }
       }
@@ -5041,66 +4949,6 @@
         }
       }
     },
-    "Unlock": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kilidi Aç"
-          }
-        }
-      }
-    },
-    "Unlock Clipboard History": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clipboard History Kilidini Aç"
-          }
-        }
-      }
-    },
-    "Unlock Clipboard History before accessing a sensitive item.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hassas bir öğeye erişmeden önce Clipboard History kilidini açın."
-          }
-        }
-      }
-    },
-    "Unlock Clipboard History before restoring an item.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bir öğeyi geri yüklemeden önce Clipboard History kilidini açın."
-          }
-        }
-      }
-    },
-    "Unlock the app to start Keyboard Cleaning.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klavye Temizliğini başlatmak için uygulamanın kilidini açın."
-          }
-        }
-      }
-    },
-    "Unlocked": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kilidi Açık"
-          }
-        }
-      }
-    },
     "Untitled Note": {
       "localizations": {
         "tr": {
@@ -5173,30 +5021,16 @@
     },
     "User %arg · System %arg": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "User %1$arg · System %2$arg"
+          }
+        },
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Kullanıcı %1$arg · Sistem %2$arg"
-          }
-        }
-      }
-    },
-    "Uses Touch ID or your Mac login password. Clipboard History does not create a separate password.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Touch ID veya Mac oturum açma parolanızı kullanır. Clipboard History ayrı bir parola oluşturmaz."
-          }
-        }
-      }
-    },
-    "Uses system authentication. Clipboard History does not store a separate password.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sistem kimlik doğrulamasını kullanır. Clipboard History ayrı bir parola saklamaz."
           }
         }
       }
@@ -5237,16 +5071,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%arg tarayıcı sekmesi için ses düzeyi"
-          }
-        }
-      }
-    },
-    "When Mac Locks": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mac Kilitlendiğinde"
           }
         }
       }
@@ -5302,5 +5126,5 @@
       }
     }
   },
-  "version": "1.2"
+  "version": "1.3"
 }

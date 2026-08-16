@@ -14,8 +14,6 @@ final class AppSettings: ObservableObject {
     @Published var sensitiveRetentionSeconds: Int { didSet { save() } }
     @Published var excludedBundleIdentifiersText: String { didSet { save() } }
     @Published var allowedBundleIdentifiersText: String { didSet { save() } }
-    @Published var autoLockOption: AutoLockOption { didSet { save() } }
-    @Published private(set) var applicationLockEnabled: Bool { didSet { save() } }
     @Published var retentionDays: Int { didSet { save() } }
     @Published var imageRetentionDays: Int { didSet { save() } }
     @Published var maximumStorageMegabytes: Int { didSet { save() } }
@@ -83,24 +81,10 @@ final class AppSettings: ObservableObject {
             ?? Self.suggestedExcludedApplications
         allowedBundleIdentifiersText = defaults.string(forKey: Key.allowedBundleIdentifiersText) ?? ""
         defaults.removeObject(forKey: Key.encryptionMode)
-        let storedAutoLockOption = AutoLockOption(
-            rawValue: defaults.string(forKey: Key.autoLockOption) ?? ""
-        ) ?? .never
-        autoLockOption = storedAutoLockOption
-        if defaults.integer(forKey: Key.applicationLockMigrationVersion) < 1 {
-            let migratedLockEnabled = storedAutoLockOption != .never
-            applicationLockEnabled = migratedLockEnabled
-            defaults.set(migratedLockEnabled, forKey: Key.applicationLockEnabled)
-        } else {
-            applicationLockEnabled = defaults.object(
-                forKey: Key.applicationLockEnabled
-            ) as? Bool ?? false
-        }
+        defaults.removeObject(forKey: Key.autoLockOption)
+        defaults.removeObject(forKey: Key.applicationLockEnabled)
         defaults.removeObject(forKey: Key.captureWhileLocked)
-        defaults.set(
-            Self.applicationLockMigrationVersion,
-            forKey: Key.applicationLockMigrationVersion
-        )
+        defaults.removeObject(forKey: Key.applicationLockMigrationVersion)
         retentionDays = max(1, defaults.integer(forKey: Key.retentionDays).nonzero(or: 90))
         imageRetentionDays = max(
             1,
@@ -187,10 +171,6 @@ final class AppSettings: ObservableObject {
             ?? GlobalShortcut.defaultShortcut
     }
 
-    func setApplicationLockEnabled(_ enabled: Bool) {
-        applicationLockEnabled = enabled
-    }
-
     private func parseBundleIdentifiers(_ value: String) -> Set<String> {
         Set(
             value.split { character in
@@ -211,8 +191,6 @@ final class AppSettings: ObservableObject {
         defaults.set(sensitiveRetentionSeconds, forKey: Key.sensitiveRetentionSeconds)
         defaults.set(excludedBundleIdentifiersText, forKey: Key.excludedBundleIdentifiersText)
         defaults.set(allowedBundleIdentifiersText, forKey: Key.allowedBundleIdentifiersText)
-        defaults.set(autoLockOption.rawValue, forKey: Key.autoLockOption)
-        defaults.set(applicationLockEnabled, forKey: Key.applicationLockEnabled)
         defaults.set(retentionDays, forKey: Key.retentionDays)
         defaults.set(imageRetentionDays, forKey: Key.imageRetentionDays)
         defaults.set(maximumStorageMegabytes, forKey: Key.maximumStorageMegabytes)
@@ -249,8 +227,6 @@ final class AppSettings: ObservableObject {
     com.apple.keychainaccess
     """
     private static let closePanelAfterCopyingMigrationVersion = 1
-    private static let applicationLockMigrationVersion = 2
-
     private enum Key {
         static let globalShortcutEnabled = "globalShortcutEnabled"
         static let closePanelAfterCopying = "closePanelAfterCopying"

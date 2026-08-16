@@ -4,10 +4,17 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## Unreleased
 
-## 1.0.0-beta.4 - 2026-08-12
+## 1.0.0-beta.4 - 2026-08-16
 
-- Fixed live menu-bar metrics using square icon width, which caused rate units such as `KB/s` to wrap onto a second line.
-- Kept icon-only status items square while giving metric items a single-line variable width without rebuilding them on every sample.
+- Reorganized Settings into two compact icon shelves separating application areas from feature-specific options.
+- Moved Private Mode, retention cleanup, and Clear History closer to Clipboard content and removed the obsolete Application Lock feature.
+- Added a normal Dock-accessible, resizable application window when the main Control Center menu-bar icon is hidden.
+- Fixed popover anchoring so actions open beneath the menu-bar item that initiated them.
+- Made menu-bar metrics configurable and visually stable with byte-based rates, numeric zeroes, monospaced digits, and predictable widths.
+- Removed the per-core CPU list and its unnecessary sampling work.
+- Resolved Audio Mixer entries to application names such as Brave Browser and Spotify instead of helper/PID identities.
+- Shared Accessibility authorization across Direct Paste and Input Tools to avoid duplicate macOS prompts within one application session.
+- Restored GitHub runner compatibility when `ripgrep` is absent from the base image.
 
 ## 1.0.0-beta.3 - 2026-08-12
 

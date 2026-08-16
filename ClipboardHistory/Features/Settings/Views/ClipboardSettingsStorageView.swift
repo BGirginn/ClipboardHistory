@@ -6,22 +6,29 @@ struct ClipboardSettingsStorageView: View {
     @State private var includeArchiveAssets = true
     @State private var includeArchiveFileReferences = true
     @State private var confirmUnencryptedExport = false
+    @State private var isShowingClearHistoryConfirmation = false
 
     init(
         viewModel: SettingsFeatureModel,
         archivePassword: String = "",
         includeArchiveAssets: Bool = true,
         includeArchiveFileReferences: Bool = true,
-        confirmUnencryptedExport: Bool = false
+        confirmUnencryptedExport: Bool = false,
+        confirmClearHistory: Bool = false
     ) {
         self.viewModel = viewModel
         _archivePassword = State(initialValue: archivePassword)
         _includeArchiveAssets = State(initialValue: includeArchiveAssets)
         _includeArchiveFileReferences = State(initialValue: includeArchiveFileReferences)
         _confirmUnencryptedExport = State(initialValue: confirmUnencryptedExport)
+        _isShowingClearHistoryConfirmation = State(initialValue: confirmClearHistory)
     }
 
     var body: some View {
+        storageForm
+    }
+
+    private var storageForm: some View {
         Form {
             Section("Retention") {
                 LabeledContent("History age") {
@@ -103,10 +110,20 @@ struct ClipboardSettingsStorageView: View {
                         "Clear History",
                         systemImage: "trash",
                         role: .destructive,
-                        action: viewModel.clearHistory
+                        action: requestClearHistory
                     )
                 }
                 .buttonStyle(.bordered)
+
+                ClipboardSettingsMessage(
+                    message: viewModel.cleanupMessage,
+                    color: .secondary
+                )
+                ClipboardSettingsMessage(
+                    message: viewModel.errorMessage,
+                    color: .red,
+                    usesLabel: true
+                )
             }
 
             Section("Local Archive") {
@@ -149,7 +166,27 @@ struct ClipboardSettingsStorageView: View {
         } message: {
             Text("The export can contain clipboard text, note content, and document data in readable form.")
         }
+        .confirmationDialog(
+            "Clear all clipboard history?",
+            isPresented: $isShowingClearHistoryConfirmation
+        ) {
+            Button(
+                "Clear All History",
+                role: .destructive,
+                action: clearHistory
+            )
+            Button("Cancel", role: .cancel, action: cancelDialog)
+        } message: {
+            Text("Pinned items and all associated files and thumbnails will also be removed.")
+        }
+        .onChange(of: confirmUnencryptedExport) { _, isPresented in
+            if !isPresented { viewModel.endPanelModalInteraction() }
+        }
+        .onChange(of: isShowingClearHistoryConfirmation) { _, isPresented in
+            if !isPresented { viewModel.endPanelModalInteraction() }
+        }
         .accessibilityIdentifier("settings.storage")
+        .task { await viewModel.refreshStorageInformation() }
     }
 
     private func daysLabel(_ value: Int) -> some View {
@@ -182,10 +219,17 @@ struct ClipboardSettingsStorageView: View {
     }
 
     func requestUnencryptedExport() {
+        viewModel.beginPanelModalInteraction()
         confirmUnencryptedExport = true
     }
 
+    func requestClearHistory() {
+        viewModel.beginPanelModalInteraction()
+        isShowingClearHistoryConfirmation = true
+    }
+
     func exportUnencrypted() {
+        finishModalInteraction()
         viewModel.exportArchive(
             mode: .fullUnencrypted,
             includeImagesAndDocuments: includeArchiveAssets,
@@ -199,5 +243,17 @@ struct ClipboardSettingsStorageView: View {
         )
     }
 
-    func cancelDialog() {}
+    func clearHistory() {
+        finishModalInteraction()
+        viewModel.confirmClearHistory()
+    }
+
+    func cancelDialog() {
+        finishModalInteraction()
+    }
+
+    private func finishModalInteraction() {
+        viewModel.notifyMenuCommandDidRun()
+        viewModel.endPanelModalInteraction()
+    }
 }

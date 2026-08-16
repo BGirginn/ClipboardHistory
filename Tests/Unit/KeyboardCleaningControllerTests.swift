@@ -188,7 +188,7 @@ final class KeyboardCleaningControllerTests: XCTestCase {
         XCTAssertFalse(controller.permissionRequired)
     }
 
-    func testApplicationLockAndShutdownPreparationAlwaysReleaseKeyboard() async {
+    func testShutdownPreparationAlwaysReleasesKeyboard() async {
         let coordinator = InputEventTapCoordinatorStub(isTrusted: true)
         let controller = KeyboardCleaningController(coordinator: coordinator)
         let directory = FileManager.default.temporaryDirectory.appending(
@@ -205,20 +205,12 @@ final class KeyboardCleaningControllerTests: XCTestCase {
             startsAutomatically: false
         )
 
-        appModel.lockService.configure(enabled: true, option: AutoLockOption.never)
         appModel.inputTools.scrollReversal.isEnabled = true
-        controller.start()
-        appModel.lockService.lock()
-
-        XCTAssertFalse(controller.isActive)
-        XCTAssertTrue(appModel.inputTools.scrollReversal.isActive)
-        XCTAssertEqual(coordinator.keyboardValues, [true, false])
-
         controller.start()
         appModel.prepareForShutdown()
 
         XCTAssertFalse(controller.isActive)
-        XCTAssertEqual(coordinator.keyboardValues, [true, false, true, false])
+        XCTAssertEqual(coordinator.keyboardValues, [true, false])
         await storage.close()
         defaults.removePersistentDomain(forName: suite)
         try? FileManager.default.removeItem(at: directory)

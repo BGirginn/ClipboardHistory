@@ -5,10 +5,6 @@ struct ClipboardPanelStatusView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            if viewModel.isLocked {
-                Label("Locked", systemImage: "lock.fill")
-            }
-
             if viewModel.isPrivateMode {
                 HStack(spacing: 4) {
                     Text("Private Mode")

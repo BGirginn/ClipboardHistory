@@ -13,6 +13,7 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-static-quality.sh
 
   build-and-test:
@@ -23,6 +24,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - name: Unit and integration tests
         run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
@@ -45,6 +47,7 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - name: Produce coverage result
         run: scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
       - if: always()
@@ -60,6 +63,7 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
@@ -70,24 +74,28 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-arm64-builds.sh
 
   sanitizers:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-sanitizers.sh
 
   performance:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-performance.sh
 
   mutations:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/run-critical-mutations.sh
 
   signed-ui:
@@ -95,6 +103,7 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, macOS-26, signed-ui]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-community-signing.sh
       - run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \

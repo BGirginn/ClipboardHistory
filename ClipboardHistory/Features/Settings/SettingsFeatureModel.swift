@@ -5,9 +5,10 @@ import Foundation
 final class SettingsFeatureModel: ObservableObject {
     let clipboard: ClipboardHistoryViewModel
     var settings: AppSettings
-    let lockService: AppLockService
     let launchAtLoginService: LaunchAtLoginService
     let controlCenter: ControlCenterModel
+    let notes: NoteController
+    let inputTools: InputToolsController
     let systemMetrics: SystemMetricsController
     let audioMixer: AudioMixerController
 
@@ -16,14 +17,17 @@ final class SettingsFeatureModel: ObservableObject {
     init(
         clipboard: ClipboardHistoryViewModel,
         controlCenter: ControlCenterModel,
+        notes: NoteController,
+        inputTools: InputToolsController,
         systemMetrics: SystemMetricsController,
         audioMixer: AudioMixerController
     ) {
         self.clipboard = clipboard
         settings = clipboard.settings
-        lockService = clipboard.lockService
         launchAtLoginService = clipboard.launchAtLoginService
         self.controlCenter = controlCenter
+        self.notes = notes
+        self.inputTools = inputTools
         self.systemMetrics = systemMetrics
         self.audioMixer = audioMixer
         clipboardCancellable = clipboard.objectWillChange.sink { [weak self] in
@@ -31,32 +35,19 @@ final class SettingsFeatureModel: ObservableObject {
         }
     }
 
-    convenience init(clipboard: ClipboardHistoryViewModel) {
-        self.init(
-            clipboard: clipboard,
-            controlCenter: ControlCenterModel(),
-            systemMetrics: SystemMetricsController(),
-            audioMixer: AudioMixerController()
-        )
-    }
-
     var collections: [ClipboardCollection] { clipboard.collections }
     var pasteStackItems: [ClipboardItem] { clipboard.pasteStackItems }
     var storageMetrics: StorageMetrics { clipboard.storageMetrics }
     var migrationStatus: String { clipboard.migrationStatus }
+    var cleanupMessage: String? { clipboard.cleanupMessage }
     var globalShortcutError: String? { clipboard.globalShortcutError }
     var archiveStatusMessage: String? { clipboard.archiveStatusMessage }
     var errorMessage: String? { clipboard.errorMessage }
-    var isApplicationLockEnabled: Bool { clipboard.isApplicationLockEnabled }
-    var isLocked: Bool { clipboard.isLocked }
     var isPrivateMode: Bool { clipboard.isPrivateMode }
     var isPaused: Bool { clipboard.isPaused }
     var pauseUntil: Date? { clipboard.pauseUntil }
 
     func setLaunchAtLogin(_ enabled: Bool) { clipboard.setLaunchAtLogin(enabled) }
-    func setApplicationLockEnabled(_ enabled: Bool) { clipboard.setApplicationLockEnabled(enabled) }
-    func lock() { clipboard.lock() }
-    func unlock() { clipboard.unlock() }
     func setPrivateModeEnabled(_ enabled: Bool) { clipboard.setPrivateModeEnabled(enabled) }
     func enablePrivateMode(minutes: Int) { clipboard.enablePrivateMode(minutes: minutes) }
     func pauseRecording(minutes: Int) { clipboard.pauseRecording(minutes: minutes) }
@@ -64,7 +55,7 @@ final class SettingsFeatureModel: ObservableObject {
     func resetPasteStack() { clipboard.resetPasteStack() }
     func createCollection(named name: String) { clipboard.createCollection(named: name) }
     func deleteCollection(_ collection: ClipboardCollection) { clipboard.deleteCollection(collection) }
-    func clearHistory() { clipboard.clearHistory() }
+    func confirmClearHistory() { clipboard.confirmClearHistory() }
     func runRetentionCleanup() async { await clipboard.runRetentionCleanup() }
     func refreshStorageInformation() async { await clipboard.refreshStorageInformation() }
 
@@ -88,5 +79,17 @@ final class SettingsFeatureModel: ObservableObject {
 
     func importStorageRecoveryArchive(password: String) {
         clipboard.importStorageRecoveryArchive(password: password)
+    }
+
+    func beginPanelModalInteraction() {
+        clipboard.beginPanelModalInteraction?()
+    }
+
+    func endPanelModalInteraction() {
+        clipboard.endPanelModalInteraction?()
+    }
+
+    func notifyMenuCommandDidRun() {
+        clipboard.menuCommandDidRun?()
     }
 }

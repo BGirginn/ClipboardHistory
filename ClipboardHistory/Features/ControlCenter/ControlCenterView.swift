@@ -11,7 +11,6 @@ struct ControlCenterView: View {
     let showFeature: (UtilityFeatureID) -> Void
     let customizeMenuBar: () -> Void
     let openSettings: () -> Void
-    let unlock: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,14 +35,6 @@ struct ControlCenterView: View {
                                 action: { showFeature(descriptor.id) }
                             )
                         }
-                    }
-
-                    if clipboard.isLocked {
-                        Button("Unlock", systemImage: "lock.open", action: unlock)
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.large)
-                            .frame(maxWidth: .infinity)
-                            .accessibilityIdentifier("home.unlock")
                     }
                 }
                 .padding(AppDesign.horizontalPadding)
@@ -91,7 +82,6 @@ struct ControlCenterView: View {
     }
 
     private var clipboardSummary: String {
-        guard !clipboard.isLocked else { return String(localized: "Locked") }
         if clipboard.isPrivateMode { return String(localized: "Private Mode is active") }
         if clipboard.isPaused { return String(localized: "Recording is paused") }
         return clipboard.items.count == 1
@@ -100,7 +90,6 @@ struct ControlCenterView: View {
     }
 
     private var notesSummary: String {
-        guard !clipboard.isLocked else { return String(localized: "Locked") }
         return notes.notes.count == 1
             ? String(localized: "1 saved note")
             : String(localized: "\(notes.notes.count) saved notes")

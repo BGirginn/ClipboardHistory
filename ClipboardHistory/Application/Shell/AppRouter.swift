@@ -4,12 +4,16 @@ import Foundation
 @MainActor
 final class AppRouter: ObservableObject {
     @Published private(set) var activeFeature: AppFeature
+    @Published private(set) var settingsSection: AppSettingsSection
 
     private(set) var settingsReturnFeature: AppFeature
-    private(set) var featureBeforeLock: AppFeature?
 
-    init(activeFeature: AppFeature = .controlCenter) {
+    init(
+        activeFeature: AppFeature = .controlCenter,
+        settingsSection: AppSettingsSection = .general
+    ) {
         self.activeFeature = activeFeature
+        self.settingsSection = settingsSection
         settingsReturnFeature = activeFeature
     }
 
@@ -45,10 +49,11 @@ final class AppRouter: ObservableObject {
         activeFeature = .menuBarCustomization
     }
 
-    func openSettings() {
+    func openSettings(section: AppSettingsSection = .general) {
         if activeFeature != .settings {
             settingsReturnFeature = activeFeature
         }
+        settingsSection = section
         activeFeature = .settings
     }
 
@@ -56,11 +61,4 @@ final class AppRouter: ObservableObject {
         activeFeature = settingsReturnFeature == .settings ? .controlCenter : settingsReturnFeature
     }
 
-    func applicationLockDidChange(isLocked: Bool) {
-        if isLocked {
-            featureBeforeLock = activeFeature
-        } else {
-            featureBeforeLock = nil
-        }
-    }
 }

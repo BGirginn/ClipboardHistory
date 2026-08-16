@@ -17,7 +17,7 @@ struct ClipboardPanelHeaderView: View {
                 ClipboardHistoryActionsMenu(viewModel: viewModel)
             }
 
-            if viewModel.isLocked || viewModel.isPaused {
+            if viewModel.isPaused {
                 ClipboardPanelStatusView(viewModel: viewModel)
                     .transition(.opacity)
             }

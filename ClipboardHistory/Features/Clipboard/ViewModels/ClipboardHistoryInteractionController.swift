@@ -10,10 +10,6 @@ extension ClipboardHistoryViewModel {
         representation: PasteRepresentation,
         directPaste: Bool
     ) async -> Bool {
-        guard !lockService.isLocked else {
-            errorMessage = String(localized: "Unlock Clipboard History before restoring an item.")
-            return false
-        }
         guard await authorizeSensitiveAccess(to: item) else { return false }
 
         let succeeded: Bool
@@ -191,9 +187,9 @@ extension ClipboardHistoryViewModel {
         refreshDisplayedItems()
     }
 
-    func presentNextSensitiveConfirmationIfUnlocked() {
+    func presentNextSensitiveConfirmation() {
         pendingSensitiveItemIDs.removeAll { temporaryContent[$0] == nil }
-        isShowingSensitiveSaveConfirmation = !isLocked && !pendingSensitiveItemIDs.isEmpty
+        isShowingSensitiveSaveConfirmation = !pendingSensitiveItemIDs.isEmpty
     }
 
     func insertSensitivePermanently(_ content: ClipboardContent) async {

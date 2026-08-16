@@ -62,7 +62,6 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 - Birleşik Kontrol Merkezi, her modül için isteğe bağlı ayrı menü çubuğu ikonu, ayarlanabilir sol tıklama eylemleri ve güvenli sağ tık menüleri
 - CPU/çekirdek, RAM/bellek basıncı, CPU/SoC kalıp sıcaklığı, ağ ve aygıt bazlı disk etkinliği; birleşik veya ayrı menü çubuğu metrikleri
 - macOS 14.2+ üzerinde uygulama bazlı 0–100 ses düzeyi, yetkilendirilmiş Chromium sekme yakalama ve doğrudan denetlenebilen Safari HTML medya sekmeleri
-- Touch ID veya Mac oturum parolası kullanan isteğe bağlı uygulama kilidi
 - Yerel gizli bilgi algılama ve hassas pano öğeleri için geçici tutma
 - Açık yerel pano depolaması ve ayrı Keychain anahtarıyla AES-GCM şifreli Notlar
 - Notları da içeren parola korumalı yerel arşiv dışa/içe aktarma
@@ -73,7 +72,7 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 
 ClipboardHistory yalnızca `NSPasteboard` üzerinden sunulan pano değişikliklerini okur. Masaüstünü veya başka klasörleri izlemez ve pano içeriğini ağ üzerinden göndermez. Ses örnekleri, sistem metriği geçmişi, sekme başlıkları, URL'ler ve sekme kimlikleri kalıcı olarak saklanmaz.
 
-Pano geçmişi yerel SQLite veritabanında şifrelenmeden saklanır. Not başlıkları ve gövdeleri macOS login Keychain'deki ayrı bir AES-GCM anahtarıyla korunur. İsteğe bağlı uygulama kilidi görüntüleme/etkileşim gizlilik katmanıdır; kilitliyken pano kaydı duraklatılır.
+Pano geçmişi yerel SQLite veritabanında şifrelenmeden saklanır. Not başlıkları ve gövdeleri macOS login Keychain'deki ayrı bir AES-GCM anahtarıyla korunur. Hassas pano öğelerine erişim Touch ID veya Mac oturum parolası gerektirebilir.
 
 Tam sınırlar için [Gizlilik ve Tehdit Modeli](PRIVACY_AND_THREAT_MODEL.md) ile [Bilinen Sınırlar](KNOWN_LIMITATIONS.md) belgelerine bakın.
 
@@ -115,7 +114,7 @@ Sertifikanın private key'i kullanıcının login Keychain'inde kalır ve repoya
 
 ## Kullanım
 
-ClipboardHistory menü çubuğu uygulaması olarak çalışır ve Dock'ta görünmez. Finder'dan açıldığında Kontrol Merkezi gösterilir. **Menü Çubuğunu Özelleştir** ekranından her modülü Kontrol Merkezi'ne, ayrı bir menü çubuğu ikonuna, ikisine birden veya gizli duruma alabilirsiniz; erişilebilir son ikon her zaman korunur. İkon yerleşiminden bağımsız olarak `Command-Shift-V` Panoyu doğrudan açar. Bundle içindeki yardımcı uygulama sayesinde girişte başlatma sessiz kalır.
+ClipboardHistory varsayılan olarak yalnız menü çubuğunda çalışır. **Menü Çubuğunu Özelleştir** ekranından her modülü Kontrol Merkezi'ne, ayrı bir menü çubuğu ikonuna, ikisine birden veya gizli duruma alabilirsiniz. Ana Kontrol Merkezi ikonunu gizlemek uygulamayı Dock üzerinden erişilebilir moda geçirir; Finder'dan açmak veya Dock ikonuna tıklamak aynı arayüzü standart, yeniden boyutlandırılabilir bir pencerede gösterir. Ana ikonu yeniden etkinleştirmek uygulamayı yalnız menü çubuğu moduna döndürür. İkon yerleşiminden bağımsız olarak `Command-Shift-V` Panoyu doğrudan açar. Bundle içindeki yardımcı uygulama sayesinde girişte başlatma pencere açmadan sessiz kalır.
 
 Pano geçmişi ve yönetilen dosyalar şu konumda saklanır:
 
@@ -151,7 +150,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-`v1.0.0-beta.2`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
+`v1.0.0-beta.4`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
 
 ## Lisans
 

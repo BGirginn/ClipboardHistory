@@ -10,6 +10,10 @@ struct ClipboardStorageRecoveryView: View {
     }
 
     var body: some View {
+        recoveryContent
+    }
+
+    private var recoveryContent: some View {
         VStack(spacing: 14) {
             Image(systemName: "externaldrive.badge.exclamationmark")
                 .font(.system(size: 42))

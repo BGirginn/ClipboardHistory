@@ -4,7 +4,6 @@ struct ClipboardItemRow: View, @MainActor Equatable {
     let item: ClipboardItem
     let isSelected: Bool
     let isCopied: Bool
-    let isLocked: Bool
     let storage: StorageService
     let thumbnailService: ThumbnailService
     let actions: ClipboardItemActions
@@ -15,7 +14,6 @@ struct ClipboardItemRow: View, @MainActor Equatable {
         item: ClipboardItem,
         isSelected: Bool,
         isCopied: Bool,
-        isLocked: Bool,
         storage: StorageService,
         thumbnailService: ThumbnailService,
         actions: ClipboardItemActions,
@@ -24,7 +22,6 @@ struct ClipboardItemRow: View, @MainActor Equatable {
         self.item = item
         self.isSelected = isSelected
         self.isCopied = isCopied
-        self.isLocked = isLocked
         self.storage = storage
         self.thumbnailService = thumbnailService
         self.actions = actions
@@ -37,8 +34,7 @@ struct ClipboardItemRow: View, @MainActor Equatable {
                 ClipboardItemRowContent(
                     item: item,
                     storage: storage,
-                    thumbnailService: thumbnailService,
-                    isLocked: isLocked
+                    thumbnailService: thumbnailService
                 )
 
                 if isCopied {
@@ -92,7 +88,7 @@ struct ClipboardItemRow: View, @MainActor Equatable {
         case .pdf: kind = "PDF"
         case .files: kind = "Files, \(item.fileURLs.count) items"
         }
-        let preview = item.isSensitive || isLocked ? "content hidden" : item.displayTitle ?? item.text ?? ""
+        let preview = item.isSensitive ? "content hidden" : item.displayTitle ?? item.text ?? ""
         return "\(kind), \(preview), copied \(DateFormatting.timestamp(for: item.creationDate))"
     }
 
@@ -122,6 +118,5 @@ struct ClipboardItemRow: View, @MainActor Equatable {
         lhs.item == rhs.item
             && lhs.isSelected == rhs.isSelected
             && lhs.isCopied == rhs.isCopied
-            && lhs.isLocked == rhs.isLocked
     }
 }

@@ -15,8 +15,7 @@ private actor SystemMetricsProviderStub: SystemMetricsProviding {
                 totalPercent: Double(index),
                 userPercent: Double(index),
                 systemPercent: 0,
-                idlePercent: 100 - Double(index),
-                perCorePercent: [Double(index)]
+                idlePercent: 100 - Double(index)
             ),
             memory: MemoryUsageSnapshot(
                 totalBytes: 1_000,
@@ -176,6 +175,10 @@ final class SystemMetricsControllerTests: XCTestCase {
         await controller.refreshNow()
 
         XCTAssertEqual(controller.value(for: .temperature), "—")
+        XCTAssertEqual(controller.value(for: .networkDownload), "0 B/s")
+        XCTAssertEqual(controller.value(for: .networkUpload), "0 B/s")
+        XCTAssertEqual(controller.value(for: .diskRead), "0 B/s")
+        XCTAssertEqual(controller.value(for: .diskWrite), "0 B/s")
         XCTAssertNotNil(controller.errorMessage)
         XCTAssertNil(controller.temperatureStatistics(for: "missing"))
     }

@@ -2,7 +2,7 @@
 
 No single layer is sufficient. A beta tag requires retained evidence from the exact release commit and exact arm64 artifact for every row below.
 
-| Gate | Required evidence | Current stabilization status (2026-08-12) |
+| Gate | Required evidence | Last recorded stabilization status (2026-08-12; historical until rerun) |
 |---|---|---|
 | Swift build | arm64 Debug, Release, CommunityRelease; macOS 14.2 minimum; zero compiler/analyzer/linker diagnostics | All three configurations passed the arm64 and macOS 14.2 gate, including the login helper, XPC service, and Safari extension |
 | Unit/integration | Model, pasteboard, storage, legacy decryption migration, Notes encryption, lock lifecycle, search, stack, OCR/QR | 291 tests passed; 0 failed |

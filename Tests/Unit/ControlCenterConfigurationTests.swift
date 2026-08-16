@@ -59,15 +59,16 @@ final class ControlCenterConfigurationTests: XCTestCase {
         XCTAssertFalse(reloaded.configuration.showsControlCenterItem)
     }
 
-    func testLastVisibleItemKeepsControlCenterAvailable() {
+    func testControlCenterItemCanBeHiddenWithoutAnotherMenuBarItem() {
         let context = makeContext()
 
         context.model.setControlCenterItemVisible(false)
 
-        XCTAssertTrue(context.model.configuration.showsControlCenterItem)
-        XCTAssertEqual(
-            context.model.feedbackMessage,
-            "Control Center stays visible so the app remains accessible."
+        XCTAssertFalse(context.model.configuration.showsControlCenterItem)
+        XCTAssertFalse(
+            ControlCenterModel(
+                store: MenuBarConfigurationStore(defaults: context.defaults)
+            ).configuration.showsControlCenterItem
         )
     }
 
@@ -118,7 +119,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         }
     }
 
-    func testVersionThreeFormatsPersistAndEmptyMetricGroupCannotHideEveryItem() throws {
+    func testVersionThreeFormatsPersistAndEmptyMetricGroupKeepsWindowOnlyConfiguration() throws {
         let context = makeContext()
         var formats = MetricFormatPreferences.defaults
         formats.memory = .usedAndTotal
@@ -147,7 +148,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             )
         )
         context.defaults.set(try JSONEncoder().encode(invalid), forKey: "menuBarConfiguration.v1")
-        XCTAssertTrue(
+        XCTAssertFalse(
             ControlCenterModel(
                 store: MenuBarConfigurationStore(defaults: context.defaults)
             ).configuration.showsControlCenterItem
@@ -163,9 +164,14 @@ final class ControlCenterConfigurationTests: XCTestCase {
         XCTAssertTrue(context.model.configuration.metricGroup.metrics.isEmpty)
         XCTAssertFalse(context.model.configuration.metricGroup.isVisible)
 
-        context.model.setMetricVisible(true, metric: .memory)
-        context.model.setMetricVisible(true, metric: .cpu)
         context.model.setMetricGroupVisible(true)
+        XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
+        XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.cpu])
+        context.model.setMetricVisible(false, metric: .cpu)
+
+        context.model.setMetricVisible(true, metric: .memory)
+        XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
+        context.model.setMetricVisible(true, metric: .cpu)
         XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.memory, .cpu])
 
         context.model.moveMetric(.cpu, direction: -1)

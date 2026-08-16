@@ -1,5 +1,7 @@
 # Stabilization beta readiness
 
+> Historical evidence only. This report applies to `v1.0.0-beta.3`; beta.4 release evidence is produced from its exact release commit and summarized in the beta.4 release notes and published artifacts.
+
 Date: 2026-08-12
 
 Candidate: `v1.0.0-beta.3` / build `10003`
