@@ -31,7 +31,7 @@ struct ClipboardBulkActionsView: View {
     }
 
     func addSelectedToPasteStack() {
-        viewModel.selectedItems.forEach(viewModel.addToPasteStack)
+        viewModel.selectedItems.forEach { viewModel.addToPasteStack($0) }
     }
 
     func deleteSelectedItems() {
