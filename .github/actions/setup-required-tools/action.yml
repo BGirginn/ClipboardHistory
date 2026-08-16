@@ -3,6 +3,24 @@ description: Install command-line tools used by ClipboardHistory build and quali
 runs:
   using: composite
   steps:
+    - name: Select compatible Xcode
+      shell: bash
+      run: |
+        case "$(sw_vers -productVersion | cut -d. -f1)" in
+          14) developer_dir=/Applications/Xcode_16.2.app/Contents/Developer ;;
+          15) developer_dir=/Applications/Xcode_26.3.app/Contents/Developer ;;
+          26) developer_dir=/Applications/Xcode_26.5.app/Contents/Developer ;;
+          *)
+            echo "Unsupported macOS runner: $(sw_vers -productVersion)" >&2
+            exit 1
+            ;;
+        esac
+        if [[ ! -d "$developer_dir" ]]; then
+          echo "Required Xcode is missing: $developer_dir" >&2
+          exit 1
+        fi
+        echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
+        "$developer_dir/usr/bin/xcodebuild" -version
     - name: Install ripgrep when absent
       shell: bash
       run: |

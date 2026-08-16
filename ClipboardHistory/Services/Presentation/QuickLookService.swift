@@ -3,7 +3,9 @@ import Foundation
 import QuickLookUI
 
 @MainActor
-final class QuickLookService: NSObject, QuickLookPresenting, @MainActor QLPreviewPanelDataSource, @MainActor QLPreviewPanelDelegate {
+final class QuickLookService: NSObject, QuickLookPresenting,
+    @preconcurrency QLPreviewPanelDataSource,
+    QLPreviewPanelDelegate {
     private var previewURLs: [URL] = []
     private var temporaryDirectory: URL?
     private let panelProvider: () -> (any QuickLookPanelControlling)?

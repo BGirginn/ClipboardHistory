@@ -76,4 +76,4 @@ The self-signed UI attempt is a separate diagnostic. It requires the stable Comm
 scripts/verify-community-signing.sh
 ```
 
-CI uses Apple-silicon `macos-14`, `macos-15`, and `macos-26` runners. The signed UI job remains opt-in on a protected interactive arm64 runner. The current macOS 26.5 Community-signed UI run passed all ten automated tests, but it does not replace physical input/audio/browser checks or the external OS matrix.
+CI uses Apple-silicon `macos-14`, `macos-15`, and `macos-26` runners with Xcode 16.2, 26.3, and 26.5 respectively. Pinning installed toolchains prevents runner-default changes and known Xcode 26.6 batch-compiler crashes from invalidating the OS matrix. The signed UI job remains opt-in on a protected interactive arm64 runner. The current macOS 26.5 Community-signed UI run passed all ten automated tests, but it does not replace physical input/audio/browser checks or the external OS matrix.
