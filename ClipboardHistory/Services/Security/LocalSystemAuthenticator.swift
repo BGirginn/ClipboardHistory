@@ -10,7 +10,7 @@ final class LocalSystemAuthenticator: SystemAuthenticating {
     }
 
     convenience init() {
-        self.init(contextProvider: Self.liveContext)
+        self.init(contextProvider: { Self.liveContext() })
     }
 
     init(contextProvider: @escaping @MainActor () -> any DeviceOwnerAuthenticationContext) {
