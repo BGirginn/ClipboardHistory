@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ClipboardItemRow: View, @MainActor Equatable {
+struct ClipboardItemRow: View, Equatable {
     let item: ClipboardItem
     let isSelected: Bool
     let isCopied: Bool
@@ -114,7 +114,7 @@ struct ClipboardItemRow: View, @MainActor Equatable {
         actions.dragProvider(item)
     }
 
-    static func == (lhs: ClipboardItemRow, rhs: ClipboardItemRow) -> Bool {
+    nonisolated static func == (lhs: ClipboardItemRow, rhs: ClipboardItemRow) -> Bool {
         lhs.item == rhs.item
             && lhs.isSelected == rhs.isSelected
             && lhs.isCopied == rhs.isCopied
