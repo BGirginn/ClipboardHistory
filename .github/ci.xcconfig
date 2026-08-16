@@ -1,0 +1,4 @@
+// Avoid a Swift frontend crash that occurs when the hosted runners batch this
+// target's SwiftUI files. Release builds keep their configured optimization
+// mode; only multi-primary-file batch compilation is disabled in CI.
+SWIFT_ENABLE_BATCH_MODE = NO
