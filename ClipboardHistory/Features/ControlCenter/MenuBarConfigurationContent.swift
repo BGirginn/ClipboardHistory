@@ -49,7 +49,7 @@ struct MenuBarConfigurationContent: View {
     private var controlCenterItemBinding: Binding<Bool> {
         Binding(
             get: { model.configuration.showsControlCenterItem },
-            set: model.setControlCenterItemVisible
+            set: { model.setControlCenterItemVisible($0) }
         )
     }
 }

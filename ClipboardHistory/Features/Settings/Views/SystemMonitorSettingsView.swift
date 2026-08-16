@@ -31,7 +31,7 @@ struct SystemMonitorSettingsView: View {
                         "Interfaces",
                         selection: Binding(
                             get: { controller.networkInterfaceScope },
-                            set: controller.setNetworkInterfaceScope
+                            set: { controller.setNetworkInterfaceScope($0) }
                         )
                     ) {
                         ForEach(NetworkInterfaceScope.allCases) { scope in

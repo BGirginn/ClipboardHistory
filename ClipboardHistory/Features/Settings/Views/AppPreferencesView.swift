@@ -60,7 +60,7 @@ struct AppPreferencesView: View {
     var launchAtLoginBinding: Binding<Bool> {
         Binding(
             get: { launchAtLoginService.isEnabled },
-            set: viewModel.setLaunchAtLogin
+            set: { viewModel.setLaunchAtLogin($0) }
         )
     }
 }

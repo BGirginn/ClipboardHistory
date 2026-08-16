@@ -25,7 +25,7 @@ extension ClipboardHistoryViewModel {
     }
 
     func refreshDisplayedItems() {
-        var filtered = items.filter(matchesSearch)
+        var filtered = items.filter { matchesSearch($0) }
         switch settings.selectedFilter {
         case .all:
             break
