@@ -29,7 +29,7 @@ final class AudioMixerController: ObservableObject {
         discovery: any AudioProcessDiscovering = CoreAudioProcessDiscovery(),
         engine: any ProcessAudioControlling = ProcessAudioEngine(),
         browserBridge: any BrowserAudioBridging = BrowserAudioBridge(),
-        extensionInstaller: BrowserExtensionInstaller = BrowserExtensionInstaller(),
+        extensionInstaller: BrowserExtensionInstaller? = nil,
         safariPreferencesOpener: @escaping SafariPreferencesOpener = { identifier, completion in
             SFSafariApplication.showPreferencesForExtension(
                 withIdentifier: identifier,
@@ -41,7 +41,7 @@ final class AudioMixerController: ObservableObject {
         self.discovery = discovery
         self.engine = engine
         self.browserBridge = browserBridge
-        self.extensionInstaller = extensionInstaller
+        self.extensionInstaller = extensionInstaller ?? BrowserExtensionInstaller()
         self.safariPreferencesOpener = safariPreferencesOpener
         self.defaults = defaults
         gains = defaults.dictionary(forKey: gainsKey) as? [String: Double] ?? [:]
