@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## Unreleased
 
+- Fixed the Clipboard panel's Clear All History confirmation so the popover remains active until the user confirms or cancels.
+- Reset pre-v4 top-bar placements once and require fresh opt-in before showing standalone modules or live system metrics; enabling metrics now starts with CPU only.
+
 ## 1.0.0-beta.4 - 2026-08-16
 
 - Reorganized Settings into two compact icon shelves separating application areas from feature-specific options.

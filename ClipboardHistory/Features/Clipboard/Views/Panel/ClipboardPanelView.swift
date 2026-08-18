@@ -46,15 +46,6 @@ struct ClipboardPanelView: View {
         .background { quickSelectionShortcuts }
         .preferredColorScheme(settings.appearance.colorScheme)
         .confirmationDialog(
-            "Clear all clipboard history?",
-            isPresented: $viewModel.isShowingClearConfirmation
-        ) {
-            Button("Clear All History", role: .destructive, action: viewModel.confirmClearHistory)
-            Button("Cancel", role: .cancel, action: cancelDialog)
-        } message: {
-            Text("Pinned items and all associated files and thumbnails will also be removed.")
-        }
-        .confirmationDialog(
             "Delete unpinned items in this time range?",
             isPresented: $viewModel.isShowingAgeCleanupConfirmation
         ) {

@@ -505,7 +505,7 @@ final class MenuBarControllerTests: XCTestCase {
         context.appModel.controlCenter.setMetricStyle(.value)
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertNil(metricButton.image)
-        XCTAssertTrue(metricButton.title.contains("CPU"))
+        XCTAssertTrue(metricButton.title.contains(MenuBarMetricID.networkDownload.title))
 
         context.appModel.controlCenter.setMetricStyle(.iconAndValue)
         try await Task.sleep(for: .milliseconds(50))

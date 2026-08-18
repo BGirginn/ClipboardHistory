@@ -1,7 +1,7 @@
 import Foundation
 
 struct MenuBarConfiguration: Codable, Equatable {
-    static let currentVersion = 3
+    static let currentVersion = 4
 
     var version: Int
     var showsControlCenterItem: Bool

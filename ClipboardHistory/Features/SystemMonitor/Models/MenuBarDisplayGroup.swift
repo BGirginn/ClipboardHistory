@@ -9,7 +9,7 @@ struct MenuBarDisplayGroup: Codable, Equatable {
     static let defaults = MenuBarDisplayGroup(
         isVisible: false,
         showsSeparateItems: false,
-        metrics: [.cpu, .memory, .temperature, .networkDownload, .networkUpload],
+        metrics: [],
         style: .iconAndValue
     )
 }

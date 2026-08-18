@@ -395,14 +395,34 @@ extension ClipboardHistoryViewModel {
     }
 
     func clearHistory() {
+        guard !isShowingClearConfirmation else { return }
+        isClearHistoryModalInteractionActive = true
+        beginPanelModalInteraction?()
         isShowingClearConfirmation = true
     }
 
     func confirmClearHistory() {
         isShowingClearConfirmation = false
+        finishClearHistoryModalInteraction()
         Task { [weak self] in
             await self?.clearHistoryNow()
         }
+    }
+
+    func cancelClearHistory() {
+        isShowingClearConfirmation = false
+        finishClearHistoryModalInteraction()
+    }
+
+    func clearHistoryConfirmationDidDismiss() {
+        guard !isShowingClearConfirmation else { return }
+        finishClearHistoryModalInteraction()
+    }
+
+    private func finishClearHistoryModalInteraction() {
+        guard isClearHistoryModalInteractionActive else { return }
+        isClearHistoryModalInteractionActive = false
+        endPanelModalInteraction?()
     }
 
     func clearHistoryNow() async {

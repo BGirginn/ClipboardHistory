@@ -81,6 +81,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var backgroundCancellable: AnyCancellable?
     var insertionsSinceCleanup = 0
     var pendingSensitiveItemIDs: [UUID] = []
+    var isClearHistoryModalInteractionActive = false
     var appliedMaintenancePreferences: StorageMaintenancePreferences
     var isShuttingDown = false
 

@@ -18,7 +18,11 @@ struct MenuBarConfigurationStore {
               let stored = try? decoder.decode(MenuBarConfiguration.self, from: data) else {
             return .defaults(registry: registry)
         }
-        return Self.normalized(stored, registry: registry)
+        let normalized = Self.normalized(stored, registry: registry)
+        if normalized != stored {
+            save(normalized)
+        }
+        return normalized
     }
 
     func save(_ configuration: MenuBarConfiguration) {
@@ -30,10 +34,13 @@ struct MenuBarConfigurationStore {
         _ configuration: MenuBarConfiguration,
         registry: FeatureRegistry
     ) -> MenuBarConfiguration {
+        let requiresExplicitTopBarOptIn = configuration.version < 4
         let storedByID = Dictionary(uniqueKeysWithValues: configuration.features.map { ($0.id, $0) })
         return MenuBarConfiguration(
             version: MenuBarConfiguration.currentVersion,
-            showsControlCenterItem: configuration.showsControlCenterItem,
+            showsControlCenterItem: requiresExplicitTopBarOptIn
+                ? true
+                : configuration.showsControlCenterItem,
             features: registry.descriptors.map { descriptor in
                 var feature = storedByID[descriptor.id] ?? UtilityFeatureConfiguration(
                     id: descriptor.id,
@@ -43,10 +50,13 @@ struct MenuBarConfigurationStore {
                     ),
                     clickAction: descriptor.defaultClickAction
                 )
+                if requiresExplicitTopBarOptIn {
+                    feature.placement.showsStandaloneItem = false
+                }
                 feature.clickAction = registry.validatedAction(feature.clickAction, for: feature.id)
                 return feature
             },
-            metricGroup: configuration.metricGroup,
+            metricGroup: requiresExplicitTopBarOptIn ? .defaults : configuration.metricGroup,
             metricFormats: configuration.metricFormats
         )
     }

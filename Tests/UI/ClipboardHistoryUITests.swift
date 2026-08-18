@@ -24,6 +24,31 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertTrue(application.descendants(matching: .popover).firstMatch.exists)
     }
 
+    func testPanelClearAllHistoryConfirmationStaysOpenAndDeletesHistory() {
+        let application = launchApplication()
+        defer { terminate(application) }
+        openClipboard(in: application)
+        XCTAssertGreaterThanOrEqual(rows(in: application).count, 3)
+
+        let cleanup = application.descendants(matching: .any)["header.cleanup"]
+        XCTAssertTrue(cleanup.waitForExistence(timeout: 2))
+        cleanup.click()
+        let clearAll = application.menuItems["Clear All History"]
+        XCTAssertTrue(clearAll.waitForExistence(timeout: 2))
+        clearAll.click()
+
+        let confirmation = application.sheets.firstMatch
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 2))
+        XCTAssertTrue(application.descendants(matching: .popover).firstMatch.exists)
+        confirmation.buttons["Clear All History"].click()
+
+        XCTAssertTrue(
+            application.descendants(matching: .any)["empty.history"]
+                .waitForExistence(timeout: 3)
+        )
+        XCTAssertTrue(application.descendants(matching: .popover).firstMatch.exists)
+    }
+
     func testPasteStackCanBeBuiltAndResetFromContextMenu() {
         let application = launchApplication()
         defer { terminate(application) }

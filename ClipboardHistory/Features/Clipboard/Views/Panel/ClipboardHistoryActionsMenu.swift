@@ -48,6 +48,22 @@ struct ClipboardHistoryActionsMenu: View {
             )
             .help("Clean Clipboard History")
             .accessibilityIdentifier("header.cleanup")
+            .confirmationDialog(
+                "Clear all clipboard history?",
+                isPresented: $viewModel.isShowingClearConfirmation
+            ) {
+                Button(
+                    "Clear All History",
+                    role: .destructive,
+                    action: viewModel.confirmClearHistory
+                )
+                Button("Cancel", role: .cancel, action: viewModel.cancelClearHistory)
+            } message: {
+                Text("Pinned items and all associated files and thumbnails will also be removed.")
+            }
+            .onChange(of: viewModel.isShowingClearConfirmation) { _, isPresented in
+                if !isPresented { viewModel.clearHistoryConfirmationDidDismiss() }
+            }
         }
     }
 

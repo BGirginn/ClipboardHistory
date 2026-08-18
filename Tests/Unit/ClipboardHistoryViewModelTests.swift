@@ -82,6 +82,26 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
         XCTAssertTrue(persistedHistory.isEmpty)
     }
 
+    func testClearHistoryConfirmationKeepsPanelModalUntilResolved() {
+        var events: [String] = []
+        viewModel.beginPanelModalInteraction = {
+            XCTAssertFalse(self.viewModel.isShowingClearConfirmation)
+            events.append("begin")
+        }
+        viewModel.endPanelModalInteraction = { events.append("end") }
+
+        viewModel.clearHistory()
+
+        XCTAssertTrue(viewModel.isShowingClearConfirmation)
+        XCTAssertEqual(events, ["begin"])
+
+        viewModel.cancelClearHistory()
+        viewModel.clearHistoryConfirmationDidDismiss()
+
+        XCTAssertFalse(viewModel.isShowingClearConfirmation)
+        XCTAssertEqual(events, ["begin", "end"])
+    }
+
     func testHistoryPersistsAcrossViewModels() async {
         await viewModel.insert(.text(value: "persistent", hash: "persistent-hash"))
 

@@ -13,6 +13,8 @@ final class ControlCenterConfigurationTests: XCTestCase {
             UtilityFeatureID.allCases.filter { $0 != .audioMixer }
         )
         XCTAssertTrue(context.model.standaloneFeatures.isEmpty)
+        XCTAssertEqual(context.model.configuration.metricGroup, .defaults)
+        XCTAssertTrue(context.model.configuration.metricGroup.metrics.isEmpty)
         XCTAssertEqual(
             context.model.configuration(for: .notes).clickAction,
             .open
@@ -56,7 +58,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         )
         XCTAssertEqual(reloaded.configuration.features.count, UtilityFeatureID.allCases.count)
         XCTAssertEqual(reloaded.configuration(for: .clipboard).clickAction, .open)
-        XCTAssertFalse(reloaded.configuration.showsControlCenterItem)
+        XCTAssertTrue(reloaded.configuration.showsControlCenterItem)
     }
 
     func testControlCenterItemCanBeHiddenWithoutAnotherMenuBarItem() {
@@ -72,7 +74,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         )
     }
 
-    func testVersionOneConfigurationMigratesWithoutLosingExistingPlacements() throws {
+    func testLegacyConfigurationRequiresFreshTopBarOptIn() throws {
         let context = makeContext()
         let legacyJSON = """
         {
@@ -93,16 +95,54 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 3)
-        XCTAssertFalse(migrated.showsControlCenterItem)
+        XCTAssertEqual(migrated.version, 4)
+        XCTAssertTrue(migrated.showsControlCenterItem)
         let notes = try XCTUnwrap(migrated.features.first { $0.id == .notes })
         XCTAssertFalse(notes.placement.showsInControlCenter)
-        XCTAssertTrue(notes.placement.showsStandaloneItem)
+        XCTAssertFalse(notes.placement.showsStandaloneItem)
         XCTAssertEqual(notes.clickAction, .newNote)
         XCTAssertEqual(migrated.metricGroup, .defaults)
         XCTAssertEqual(migrated.metricFormats, .defaults)
         XCTAssertNotNil(migrated.features.first { $0.id == .systemMonitor })
         XCTAssertNotNil(migrated.features.first { $0.id == .audioMixer })
+
+        let persisted = try XCTUnwrap(
+            context.defaults.data(forKey: "menuBarConfiguration.v1")
+        )
+        XCTAssertEqual(
+            try JSONDecoder().decode(MenuBarConfiguration.self, from: persisted),
+            migrated
+        )
+    }
+
+    func testVersionThreeVisibleMetricsAndStandaloneItemsResetOnce() throws {
+        let context = makeContext()
+        var legacy = MenuBarConfiguration.defaults()
+        legacy.version = 3
+        legacy.features[0].placement.showsStandaloneItem = true
+        legacy.metricGroup = MenuBarDisplayGroup(
+            isVisible: true,
+            showsSeparateItems: true,
+            metrics: [.cpu, .memory, .temperature],
+            style: .compact
+        )
+        context.defaults.set(try JSONEncoder().encode(legacy), forKey: "menuBarConfiguration.v1")
+
+        let migrated = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        ).configuration
+
+        XCTAssertEqual(migrated.version, 4)
+        XCTAssertTrue(
+            migrated.features.allSatisfy { !$0.placement.showsStandaloneItem }
+        )
+        XCTAssertEqual(migrated.metricGroup, .defaults)
+
+        context.defaults.set(try JSONEncoder().encode(migrated), forKey: "menuBarConfiguration.v1")
+        let reloaded = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        ).configuration
+        XCTAssertEqual(reloaded, migrated)
     }
 
     func testEveryModuleAcceptsOnlyItsDeclaredClickActions() {
@@ -133,7 +173,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         XCTAssertEqual(reloaded.configuration.metricFormats, formats)
 
         let invalid = MenuBarConfiguration(
-            version: 2,
+            version: MenuBarConfiguration.currentVersion,
             showsControlCenterItem: false,
             features: reloaded.configuration.features.map {
                 var feature = $0
