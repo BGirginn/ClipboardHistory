@@ -95,7 +95,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 4)
+        XCTAssertEqual(migrated.version, 6)
         XCTAssertTrue(migrated.showsControlCenterItem)
         let notes = try XCTUnwrap(migrated.features.first { $0.id == .notes })
         XCTAssertFalse(notes.placement.showsInControlCenter)
@@ -132,7 +132,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 4)
+        XCTAssertEqual(migrated.version, 6)
         XCTAssertTrue(
             migrated.features.allSatisfy { !$0.placement.showsStandaloneItem }
         )
@@ -206,8 +206,16 @@ final class ControlCenterConfigurationTests: XCTestCase {
 
         context.model.setMetricGroupVisible(true)
         XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
-        XCTAssertEqual(context.model.configuration.metricGroup.metrics, [.cpu])
-        context.model.setMetricVisible(false, metric: .cpu)
+        XCTAssertEqual(
+            context.model.configuration.metricGroup.metrics,
+            MenuBarConfiguration.defaultMenuBarMetrics
+        )
+        XCTAssertTrue(
+            context.model.configuration(for: .systemMonitor).placement.showsStandaloneItem
+        )
+        for metric in MenuBarConfiguration.defaultMenuBarMetrics {
+            context.model.setMetricVisible(false, metric: metric)
+        }
 
         context.model.setMetricVisible(true, metric: .memory)
         XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
@@ -225,6 +233,170 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         )
         XCTAssertEqual(reloaded.configuration.metricGroup.metrics, [.cpu, .memory])
+        XCTAssertTrue(reloaded.showsSystemMetricsInMenuBar)
+    }
+
+    func testStandaloneSystemMonitorUsesTheCanonicalLiveMetricsPreference() {
+        let context = makeContext()
+
+        context.model.setStandaloneItemVisible(true, for: .systemMonitor)
+
+        XCTAssertTrue(context.model.showsSystemMetricsInMenuBar)
+        XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
+        XCTAssertEqual(
+            context.model.configuration.metricGroup.metrics,
+            MenuBarConfiguration.defaultMenuBarMetrics
+        )
+
+        context.model.setMetricGroupVisible(false)
+
+        XCTAssertFalse(context.model.showsSystemMetricsInMenuBar)
+        XCTAssertFalse(
+            context.model.configuration(for: .systemMonitor).placement.showsStandaloneItem
+        )
+    }
+
+    func testCurrentStandaloneSystemMonitorConfigurationMigratesToLiveMetrics() throws {
+        let context = makeContext()
+        var stored = MenuBarConfiguration.defaults()
+        let systemMonitorIndex = try XCTUnwrap(
+            stored.features.firstIndex { $0.id == .systemMonitor }
+        )
+        stored.features[systemMonitorIndex].placement.showsStandaloneItem = true
+        context.defaults.set(
+            try JSONEncoder().encode(stored),
+            forKey: "menuBarConfiguration.v1"
+        )
+
+        let reloaded = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        )
+
+        XCTAssertTrue(reloaded.showsSystemMetricsInMenuBar)
+        XCTAssertTrue(reloaded.configuration.metricGroup.isVisible)
+        XCTAssertEqual(
+            reloaded.configuration.metricGroup.metrics,
+            MenuBarConfiguration.defaultMenuBarMetrics
+        )
+    }
+
+    func testVersionFourVisibilityMigratesWithoutChangingUserPlacement() throws {
+        let context = makeContext()
+        let legacyJSON = """
+        {
+          "version": 4,
+          "showsControlCenterItem": true,
+          "features": [
+            {
+              "id": "clipboard",
+              "placement": { "showsInControlCenter": true, "showsStandaloneItem": true },
+              "clickAction": "open"
+            },
+            {
+              "id": "notes",
+              "placement": { "showsInControlCenter": true, "showsStandaloneItem": false },
+              "clickAction": "open"
+            }
+          ],
+          "metricGroup": {
+            "isVisible": true,
+            "showsSeparateItems": false,
+            "metrics": ["memory", "cpu", "temperature"],
+            "style": "iconAndValue"
+          },
+          "metricFormats": {
+            "memory": "percentage",
+            "temperature": "celsius",
+            "rate": "automatic"
+          }
+        }
+        """
+        context.defaults.set(Data(legacyJSON.utf8), forKey: "menuBarConfiguration.v1")
+
+        let migrated = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        ).configuration
+
+        XCTAssertEqual(migrated.version, 6)
+        XCTAssertEqual(
+            migrated.features.first { $0.id == .clipboard }?.placement.menuBarVisibility,
+            .always
+        )
+        XCTAssertEqual(
+            migrated.features.first { $0.id == .notes }?.placement.menuBarVisibility,
+            .hidden
+        )
+        XCTAssertEqual(migrated.metricGroup.metrics, [.memory, .cpu, .temperature])
+        XCTAssertTrue(migrated.metricGroup.showsSeparateItems)
+        XCTAssertEqual(migrated.metricGroup.density, .standard)
+    }
+
+    func testVersionFiveVisibleMetricsMigrateToSeparateItemsWithoutChangingOrderOrFormat() throws {
+        let context = makeContext()
+        var stored = MenuBarConfiguration.defaults()
+        stored.version = 5
+        stored.metricGroup = MenuBarDisplayGroup(
+            isVisible: true,
+            showsSeparateItems: false,
+            metrics: [.memory, .temperature, .cpu],
+            style: .compact,
+            density: .compact
+        )
+        stored.metricFormats.temperature = .fahrenheit
+        context.defaults.set(try JSONEncoder().encode(stored), forKey: "menuBarConfiguration.v1")
+
+        let migrated = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        ).configuration
+
+        XCTAssertEqual(migrated.version, 6)
+        XCTAssertTrue(migrated.metricGroup.showsSeparateItems)
+        XCTAssertEqual(migrated.metricGroup.metrics, [.memory, .temperature, .cpu])
+        XCTAssertEqual(migrated.metricGroup.style, .compact)
+        XCTAssertEqual(migrated.metricGroup.density, .compact)
+        XCTAssertEqual(migrated.metricFormats.temperature, .fahrenheit)
+    }
+
+    func testBalancedAndMinimalPresetsProduceSmartHybridPolicies() {
+        let context = makeContext()
+
+        context.model.applyPreset(.balanced)
+
+        XCTAssertEqual(context.model.selectedPreset, .balanced)
+        XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
+        XCTAssertTrue(context.model.configuration.metricGroup.showsSeparateItems)
+        XCTAssertEqual(context.model.configuration.metricGroup.density, .standard)
+        XCTAssertEqual(
+            context.model.configuration(for: .clipboard).placement.menuBarVisibility,
+            .whenActive
+        )
+        XCTAssertEqual(
+            context.model.configuration(for: .keyboardCleaning).placement.menuBarVisibility,
+            .whenActive
+        )
+        XCTAssertEqual(
+            context.model.configuration(for: .notes).placement.menuBarVisibility,
+            .hidden
+        )
+
+        context.model.applyPreset(.minimal)
+
+        XCTAssertEqual(context.model.selectedPreset, .minimal)
+        XCTAssertFalse(context.model.configuration.metricGroup.isVisible)
+        XCTAssertTrue(context.model.configuration.features.allSatisfy {
+            $0.placement.menuBarVisibility == .hidden
+        })
+    }
+
+    func testUnsupportedWhenActivePolicyIsNotPersisted() {
+        let context = makeContext()
+
+        context.model.setMenuBarVisibility(.whenActive, for: .notes)
+
+        XCTAssertEqual(
+            context.model.configuration(for: .notes).placement.menuBarVisibility,
+            .hidden
+        )
     }
 
     private func makeContext() -> (model: ControlCenterModel, defaults: UserDefaults) {

@@ -17,15 +17,13 @@ actor SystemMetricsProvider: SystemMetricsProviding {
     }
 
     private struct DiskCounters: Sendable {
-        var total: ByteCounters
         var devices: [String: (read: UInt64, written: UInt64, name: String, isExternal: Bool)]
     }
 
     private let temperatureProvider: any TemperatureSensorProviding
     private var previousCPU: CPUTicks?
-    private var previousNetwork: ByteCounters?
-    private var previousDisk: ByteCounters?
-    private var previousDiskDevices: [String: (read: UInt64, written: UInt64)] = [:]
+    private var previousNetwork: [String: ByteCounters]?
+    private var previousDiskDevices: [String: (read: UInt64, written: UInt64)]?
     private var previousDate: Date?
     private var networkInterfaceScope: NetworkInterfaceScope = .primaryWiFi
 
@@ -42,8 +40,7 @@ actor SystemMetricsProvider: SystemMetricsProviding {
     func resetBaselines() {
         previousCPU = nil
         previousNetwork = nil
-        previousDisk = nil
-        previousDiskDevices = [:]
+        previousDiskDevices = nil
         previousDate = nil
     }
 
@@ -80,10 +77,14 @@ actor SystemMetricsProvider: SystemMetricsProviding {
 
     private func percentageSnapshot(previous: CPUTicks?, current: CPUTicks) -> CPUUsageSnapshot {
         guard let previous else { return .empty }
-        let user = current.user >= previous.user ? current.user - previous.user : 0
-        let system = current.system >= previous.system ? current.system - previous.system : 0
-        let idle = current.idle >= previous.idle ? current.idle - previous.idle : 0
-        let nice = current.nice >= previous.nice ? current.nice - previous.nice : 0
+        guard current.user >= previous.user,
+              current.system >= previous.system,
+              current.idle >= previous.idle,
+              current.nice >= previous.nice else { return .empty }
+        let user = current.user - previous.user
+        let system = current.system - previous.system
+        let idle = current.idle - previous.idle
+        let nice = current.nice - previous.nice
         let total = user + system + idle + nice
         guard total > 0 else { return .empty }
         let divisor = Double(total)
@@ -130,7 +131,8 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         }
         guard result == KERN_SUCCESS else { return .empty }
         var hostPageSize: vm_size_t = 0
-        host_page_size(mach_host_self(), &hostPageSize)
+        guard host_page_size(mach_host_self(), &hostPageSize) == KERN_SUCCESS,
+              hostPageSize > 0 else { return .empty }
         let pageSize = UInt64(hostPageSize)
         let total = ProcessInfo.processInfo.physicalMemory
         let active = UInt64(statistics.active_count) * pageSize
@@ -139,7 +141,16 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         let compressed = UInt64(statistics.compressor_page_count) * pageSize
         let cached = UInt64(statistics.external_page_count) * pageSize
         let free = UInt64(statistics.free_count + statistics.speculative_count) * pageSize
-        let used = min(total, active + wired + compressed)
+        let internalBytes = UInt64(statistics.internal_page_count) * pageSize
+        let purgeable = UInt64(statistics.purgeable_count) * pageSize
+        let application = internalBytes >= purgeable ? internalBytes - purgeable : 0
+        let used = Self.usedMemoryBytes(
+            total: total,
+            internalBytes: internalBytes,
+            purgeableBytes: purgeable,
+            wiredBytes: wired,
+            compressedBytes: compressed
+        )
         return MemoryUsageSnapshot(
             totalBytes: total,
             usedBytes: used,
@@ -149,6 +160,8 @@ actor SystemMetricsProvider: SystemMetricsProviding {
             compressedBytes: compressed,
             cachedBytes: cached,
             freeBytes: free,
+            applicationBytes: application,
+            purgeableBytes: purgeable,
             pressure: memoryPressureLevel()
         )
     }
@@ -178,8 +191,18 @@ actor SystemMetricsProvider: SystemMetricsProviding {
             )
         }
         return NetworkRateSnapshot(
-            receivedBytesPerSecond: rate(current: counters.first, previous: previousNetwork.first, interval: interval),
-            sentBytesPerSecond: rate(current: counters.second, previous: previousNetwork.second, interval: interval),
+            receivedBytesPerSecond: aggregateNetworkRate(
+                current: counters,
+                previous: previousNetwork,
+                interval: interval,
+                keyPath: \.first
+            ),
+            sentBytesPerSecond: aggregateNetworkRate(
+                current: counters,
+                previous: previousNetwork,
+                interval: interval,
+                keyPath: \.second
+            ),
             interfaceName: networkInterfaceScope == .allPhysical
                 ? String(localized: "All physical interfaces")
                 : interface
@@ -192,28 +215,30 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         return dictionary["PrimaryInterface"] as? String
     }
 
-    private func networkCounters(interfaceName: String?) -> ByteCounters {
-        var head: UnsafeMutablePointer<ifaddrs>?
-        guard getifaddrs(&head) == 0, let head else { return ByteCounters(first: 0, second: 0) }
-        defer { freeifaddrs(head) }
-        var received: UInt64 = 0
-        var sent: UInt64 = 0
-        var cursor: UnsafeMutablePointer<ifaddrs>? = head
-        while let current = cursor {
-            let entry = current.pointee
-            let name = String(cString: entry.ifa_name)
-            let flags = Int32(entry.ifa_flags)
-            let isEligible = (flags & IFF_UP) != 0
-                && (flags & IFF_LOOPBACK) == 0
-                && (interfaceName == nil || name == interfaceName)
-                && (interfaceName != nil || isPhysicalNetworkInterface(name))
-            if isEligible, let data = entry.ifa_data?.assumingMemoryBound(to: if_data.self) {
-                received &+= UInt64(data.pointee.ifi_ibytes)
-                sent &+= UInt64(data.pointee.ifi_obytes)
-            }
-            cursor = entry.ifa_next
+    private func networkCounters(interfaceName: String?) -> [String: ByteCounters] {
+        Dictionary(uniqueKeysWithValues: CHNetworkInterfaceCounters().compactMap { name, values in
+            guard (interfaceName == nil || name == interfaceName),
+                  (interfaceName != nil || isPhysicalNetworkInterface(name)),
+                  let received = values["received"]?.uint64Value,
+                  let sent = values["sent"]?.uint64Value else { return nil }
+            return (name, ByteCounters(first: received, second: sent))
+        })
+    }
+
+    private func aggregateNetworkRate(
+        current: [String: ByteCounters],
+        previous: [String: ByteCounters],
+        interval: TimeInterval,
+        keyPath: KeyPath<ByteCounters, UInt64>
+    ) -> Double {
+        current.reduce(into: 0) { total, entry in
+            guard let old = previous[entry.key] else { return }
+            total += Self.rate(
+                current: entry.value[keyPath: keyPath],
+                previous: old[keyPath: keyPath],
+                interval: interval
+            )
         }
-        return ByteCounters(first: received, second: sent)
     }
 
     private func isPhysicalNetworkInterface(_ name: String) -> Bool {
@@ -226,28 +251,34 @@ actor SystemMetricsProvider: SystemMetricsProviding {
 
     private func readDiskRate(interval: TimeInterval) -> DiskRateSnapshot {
         let counters = diskCounters()
+        let previousDevices = previousDiskDevices
         defer {
-            previousDisk = counters.total
             previousDiskDevices = counters.devices.mapValues { ($0.read, $0.written) }
         }
-        guard interval > 0, let previousDisk else { return .empty }
         let devices: [DiskDeviceRate] = counters.devices.map { id, current in
-            let previous = previousDiskDevices[id]
+            let previous = previousDevices?[id]
+            let readRate = previous.map {
+                Self.rate(current: current.read, previous: $0.read, interval: interval)
+            } ?? 0
+            let writeRate = previous.map {
+                Self.rate(current: current.written, previous: $0.written, interval: interval)
+            } ?? 0
             return DiskDeviceRate(
                 id: id,
                 name: current.name,
                 isExternal: current.isExternal,
-                readBytesPerSecond: previous.map {
-                    rate(current: current.read, previous: $0.read, interval: interval)
-                } ?? 0,
-                writtenBytesPerSecond: previous.map {
-                    rate(current: current.written, previous: $0.written, interval: interval)
-                } ?? 0
+                readBytesPerSecond: readRate,
+                writtenBytesPerSecond: writeRate
             )
-        }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }.sorted {
+            let nameOrder = $0.name.localizedStandardCompare($1.name)
+            return nameOrder == .orderedSame
+                ? $0.id < $1.id
+                : nameOrder == .orderedAscending
+        }
         return DiskRateSnapshot(
-            readBytesPerSecond: rate(current: counters.total.first, previous: previousDisk.first, interval: interval),
-            writtenBytesPerSecond: rate(current: counters.total.second, previous: previousDisk.second, interval: interval),
+            readBytesPerSecond: devices.reduce(0) { $0 + $1.readBytesPerSecond },
+            writtenBytesPerSecond: devices.reduce(0) { $0 + $1.writtenBytesPerSecond },
             devices: devices
         )
     }
@@ -259,11 +290,9 @@ actor SystemMetricsProvider: SystemMetricsProviding {
             IOServiceMatching("IOBlockStorageDriver"),
             &iterator
         ) == KERN_SUCCESS else {
-            return DiskCounters(total: ByteCounters(first: 0, second: 0), devices: [:])
+            return DiskCounters(devices: [:])
         }
         defer { IOObjectRelease(iterator) }
-        var read: UInt64 = 0
-        var written: UInt64 = 0
         var devices: [String: (read: UInt64, written: UInt64, name: String, isExternal: Bool)] = [:]
         while case let service = IOIteratorNext(iterator), service != 0 {
             defer { IOObjectRelease(service) }
@@ -275,18 +304,20 @@ actor SystemMetricsProvider: SystemMetricsProviding {
             )?.takeRetainedValue() as? [String: Any] else { continue }
             let deviceRead = (property["Bytes (Read)"] as? NSNumber)?.uint64Value ?? 0
             let deviceWritten = (property["Bytes (Write)"] as? NSNumber)?.uint64Value ?? 0
-            read &+= deviceRead
-            written &+= deviceWritten
-            let name = registryString("BSD Name", service: service) ?? "Storage \(service)"
+            guard let name = registryString("BSD Name", service: service),
+                  !name.isEmpty,
+                  let identifier = registryIdentifier(service: service) else { continue }
+            let interconnect = registryString("Physical Interconnect", service: service) ?? ""
+            guard !interconnect.localizedCaseInsensitiveContains("virtual") else { continue }
             let location = registryString("Physical Interconnect Location", service: service) ?? "Internal"
-            devices[name] = (
+            devices[identifier] = (
                 read: deviceRead,
                 written: deviceWritten,
                 name: name,
                 isExternal: location.localizedCaseInsensitiveContains("external")
             )
         }
-        return DiskCounters(total: ByteCounters(first: read, second: written), devices: devices)
+        return DiskCounters(devices: devices)
     }
 
     private func registryString(_ key: String, service: io_registry_entry_t) -> String? {
@@ -299,8 +330,36 @@ actor SystemMetricsProvider: SystemMetricsProviding {
         ) as? String
     }
 
-    private func rate(current: UInt64, previous: UInt64, interval: TimeInterval) -> Double {
+    private func registryIdentifier(service: io_registry_entry_t) -> String? {
+        var identifier: UInt64 = 0
+        guard IORegistryEntryGetRegistryEntryID(service, &identifier) == KERN_SUCCESS else {
+            return nil
+        }
+        return String(identifier)
+    }
+
+    nonisolated static func rate(
+        current: UInt64,
+        previous: UInt64,
+        interval: TimeInterval
+    ) -> Double {
         guard current >= previous, interval > 0 else { return 0 }
         return Double(current - previous) / interval
+    }
+
+    nonisolated static func usedMemoryBytes(
+        total: UInt64,
+        internalBytes: UInt64,
+        purgeableBytes: UInt64,
+        wiredBytes: UInt64,
+        compressedBytes: UInt64
+    ) -> UInt64 {
+        let application = internalBytes >= purgeableBytes
+            ? internalBytes - purgeableBytes
+            : 0
+        let (applicationAndWired, firstOverflow) = application.addingReportingOverflow(wiredBytes)
+        let (calculated, secondOverflow) = applicationAndWired.addingReportingOverflow(compressedBytes)
+        guard !firstOverflow, !secondOverflow else { return total }
+        return min(total, calculated)
     }
 }

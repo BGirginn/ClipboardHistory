@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct ClipboardSortMenu: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    @ObservedObject var settings: AppSettings
 
     var body: some View {
         Menu("Sort", systemImage: "arrow.up.arrow.down") {
-            Picker("Sort Order", selection: $viewModel.settings.selectedSortMode) {
+            Picker("Sort Order", selection: $settings.selectedSortMode) {
                 ForEach(ClipboardSortMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
@@ -19,7 +19,7 @@ struct ClipboardSortMenu: View {
         )
         .help("Sort")
         .accessibilityLabel("Sort")
-        .accessibilityValue(viewModel.settings.selectedSortMode.title)
+        .accessibilityValue(settings.selectedSortMode.title)
         .accessibilityIdentifier("sort.menu")
     }
 }

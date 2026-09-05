@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct ClipboardFilterBar: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    let settings: AppSettings
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            ClipboardSegmentedFilterControls(viewModel: viewModel)
-            ClipboardCompactFilterControls(viewModel: viewModel)
+            ClipboardSegmentedFilterControls(settings: settings)
+            ClipboardCompactFilterControls(settings: settings)
         }
         .padding(.horizontal, ClipboardPanelLayout.horizontalPadding)
         .padding(.vertical, 7)

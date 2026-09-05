@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipboardSettingsStorageView: View {
     @ObservedObject var viewModel: SettingsFeatureModel
+    @ObservedObject private var settings: AppSettings
     @State private var archivePassword = ""
     @State private var includeArchiveAssets = true
     @State private var includeArchiveFileReferences = true
@@ -17,6 +18,7 @@ struct ClipboardSettingsStorageView: View {
         confirmClearHistory: Bool = false
     ) {
         self.viewModel = viewModel
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
         _archivePassword = State(initialValue: archivePassword)
         _includeArchiveAssets = State(initialValue: includeArchiveAssets)
         _includeArchiveFileReferences = State(initialValue: includeArchiveFileReferences)
@@ -33,30 +35,30 @@ struct ClipboardSettingsStorageView: View {
             Section("Retention") {
                 LabeledContent("History age") {
                     Stepper(
-                        value: $viewModel.settings.retentionDays,
+                        value: $settings.retentionDays,
                         in: 1...3_650
                     ) {
-                        daysLabel(viewModel.settings.retentionDays)
+                        daysLabel(settings.retentionDays)
                     }
                 }
 
                 LabeledContent("Image age") {
                     Stepper(
-                        value: $viewModel.settings.imageRetentionDays,
+                        value: $settings.imageRetentionDays,
                         in: 1...3_650
                     ) {
-                        daysLabel(viewModel.settings.imageRetentionDays)
+                        daysLabel(settings.imageRetentionDays)
                     }
                 }
 
                 LabeledContent("Maximum storage") {
                     Stepper(
-                        value: $viewModel.settings.maximumStorageMegabytes,
+                        value: $settings.maximumStorageMegabytes,
                         in: 50...20_480,
                         step: 50
                     ) {
                         Text(
-                            Int64(viewModel.settings.maximumStorageMegabytes) * 1_000_000,
+                            Int64(settings.maximumStorageMegabytes) * 1_000_000,
                             format: .byteCount(style: .file)
                         )
                         .monospacedDigit()
@@ -65,12 +67,12 @@ struct ClipboardSettingsStorageView: View {
 
                 LabeledContent("Thumbnail cache") {
                     Stepper(
-                        value: $viewModel.settings.thumbnailCacheMegabytes,
+                        value: $settings.thumbnailCacheMegabytes,
                         in: 8...512,
                         step: 8
                     ) {
                         Text(
-                            Int64(viewModel.settings.thumbnailCacheMegabytes) * 1_000_000,
+                            Int64(settings.thumbnailCacheMegabytes) * 1_000_000,
                             format: .byteCount(style: .file)
                         )
                         .monospacedDigit()

@@ -25,7 +25,26 @@ extension ClipboardHistoryViewModel {
     }
 
     func refreshDisplayedItems() {
-        var filtered = items.filter { matchesSearch($0) }
+        let query = ClipboardSearchQuery(searchText)
+        var filtered: [ClipboardItem]
+        if query.isEmpty {
+            filtered = items
+        } else {
+            let collectionNamesByID = Dictionary(
+                collections.map { ($0.id, $0.name) },
+                uniquingKeysWith: { _, latest in latest }
+            )
+            filtered = items.filter { item in
+                let collectionName = item.collectionID.flatMap {
+                    collectionNamesByID[$0]
+                }
+                return matchesSearch(
+                    item,
+                    query: query,
+                    collectionName: collectionName
+                )
+            }
+        }
         switch settings.selectedFilter {
         case .all:
             break
@@ -39,36 +58,56 @@ extension ClipboardHistoryViewModel {
             filtered = filtered.filter(\.isSnippet)
         }
 
-        pinnedItems = filtered.filter(\.isPinned).sorted {
+        let updatedPinnedItems = filtered.filter(\.isPinned).sorted {
             ($0.pinnedAt ?? .distantPast) > ($1.pinnedAt ?? .distantPast)
         }
         let unpinned = filtered.filter { !$0.isPinned }
+        let updatedRecentItems: [ClipboardItem]
         switch settings.selectedSortMode {
         case .newestFirst:
-            recentItems = unpinned.sorted { $0.creationDate > $1.creationDate }
+            updatedRecentItems = unpinned.sorted { $0.creationDate > $1.creationDate }
         case .oldestFirst:
-            recentItems = unpinned.sorted { $0.creationDate < $1.creationDate }
+            updatedRecentItems = unpinned.sorted { $0.creationDate < $1.creationDate }
         case .recentlyUsed:
-            recentItems = unpinned.sorted {
+            updatedRecentItems = unpinned.sorted {
                 ($0.lastUsedAt ?? .distantPast) > ($1.lastUsedAt ?? .distantPast)
             }
         }
 
-        let visibleIDs = Set((pinnedItems + recentItems).map(\.id))
-        if selectedItemID.map({ !visibleIDs.contains($0) }) ?? true {
-            selectedItemID = (pinnedItems + recentItems).first?.id
+        let visibleItems = updatedPinnedItems + updatedRecentItems
+        let visibleIDs = Set(visibleItems.map(\.id))
+        let updatedSelectedItemID = selectedItemID.flatMap {
+            visibleIDs.contains($0) ? $0 : nil
+        } ?? visibleItems.first?.id
+        var updatedSelectedItemIDs = selectedItemIDs.intersection(visibleIDs)
+        if updatedSelectedItemIDs.isEmpty, let updatedSelectedItemID {
+            updatedSelectedItemIDs = [updatedSelectedItemID]
         }
-        selectedItemIDs = selectedItemIDs.intersection(visibleIDs)
-        if selectedItemIDs.isEmpty, let selectedItemID {
-            selectedItemIDs = [selectedItemID]
-        }
+
+        if pinnedItems != updatedPinnedItems { pinnedItems = updatedPinnedItems }
+        if recentItems != updatedRecentItems { recentItems = updatedRecentItems }
+        if selectedItemID != updatedSelectedItemID { selectedItemID = updatedSelectedItemID }
+        if selectedItemIDs != updatedSelectedItemIDs { selectedItemIDs = updatedSelectedItemIDs }
     }
 
     func matchesSearch(_ item: ClipboardItem) -> Bool {
         let query = ClipboardSearchQuery(searchText)
         guard !query.isEmpty else { return true }
+        return matchesSearch(
+            item,
+            query: query,
+            collectionName: collectionName(for: item)
+        )
+    }
+
+    private func matchesSearch(
+        _ item: ClipboardItem,
+        query: ClipboardSearchQuery,
+        collectionName: String?
+    ) -> Bool {
+        guard !query.isEmpty else { return true }
         guard !item.isSensitive else { return false }
-        return query.matches(item, collectionName: collectionName(for: item))
+        return query.matches(item, collectionName: collectionName)
     }
 
     func collectionName(for item: ClipboardItem) -> String? {

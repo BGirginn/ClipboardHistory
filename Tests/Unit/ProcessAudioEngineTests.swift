@@ -6,6 +6,87 @@ import XCTest
 
 @MainActor
 final class ProcessAudioEngineTests: XCTestCase {
+    func testPipelineLifecycleAndCoreAudioFailuresUseDeterministicBackend() throws {
+        let state = ProcessAudioPipelineDependencyState()
+        var pipeline: ProcessAudioPipeline? = try ProcessAudioPipeline(
+            processObjectIDs: [12, 11],
+            gain: 0.4,
+            dependencies: state.dependencies
+        )
+        XCTAssertTrue(pipeline?.usesCurrentOutputDevice() == true)
+        state.outputDevice = 99
+        XCTAssertFalse(pipeline?.usesCurrentOutputDevice() == true)
+        pipeline?.setGain(0.7)
+        pipeline?.stop()
+        pipeline?.stop()
+        XCTAssertEqual(state.stopCount, 1)
+        XCTAssertEqual(state.destroyIOProcCount, 1)
+        XCTAssertEqual(state.destroyedAggregateIDs, [22])
+        XCTAssertEqual(state.destroyedTapIDs, [21])
+        pipeline = nil
+
+        try assertPipelineFailure(.outputDeviceUnavailable) {
+            $0.outputStatus = -1
+        }
+        try assertPipelineFailure(.outputDeviceUnavailable) {
+            $0.outputSize = 0
+        }
+        try assertPipelineFailure(.outputDeviceIdentifierUnavailable) {
+            $0.uidStatus = -2
+        }
+        try assertPipelineFailure(.outputDeviceIdentifierUnavailable) {
+            $0.uid = "" as CFString
+        }
+        try assertPipelineFailure(.tapCreationFailed(-3)) {
+            $0.tapStatus = -3
+        }
+        try assertPipelineFailure(.aggregateDeviceCreationFailed(-4)) {
+            $0.aggregateStatus = -4
+        }
+        try assertPipelineFailure(.unsupportedStreamFormat) {
+            $0.formatStatus = -5
+        }
+        try assertPipelineFailure(.unsupportedStreamFormat) {
+            $0.format.mBitsPerChannel = 16
+        }
+        try assertPipelineFailure(.ioProcedureCreationFailed(-6)) {
+            $0.ioStatus = -6
+        }
+        try assertPipelineFailure(.ioProcedureCreationFailed(noErr)) {
+            $0.ioProc = nil
+        }
+        try assertPipelineFailure(.deviceStartFailed(-7)) {
+            $0.startStatus = -7
+        }
+    }
+
+    func testLivePipelineDependencyReadsCurrentOutputMetadataWithoutMutation() {
+        let dependencies = ProcessAudioPipelineDependencies.live
+        let noOpIOProc: AudioDeviceIOProcID = { _, _, _, _, _, _, _ in noErr }
+        _ = dependencies.startDevice(kAudioObjectUnknown, noOpIOProc)
+        dependencies.stopDevice(kAudioObjectUnknown, noOpIOProc)
+        dependencies.destroyIOProc(kAudioObjectUnknown, noOpIOProc)
+        dependencies.destroyAggregateDevice(kAudioObjectUnknown)
+        dependencies.destroyProcessTap(kAudioObjectUnknown)
+        let (_, createdIOProc) = dependencies.createIOProc(
+            kAudioObjectUnknown,
+            { _, _ in }
+        )
+        if let createdIOProc {
+            dependencies.destroyIOProc(kAudioObjectUnknown, createdIOProc)
+        }
+        let (_, aggregateID) = dependencies.createAggregateDevice([:] as CFDictionary)
+        if aggregateID != kAudioObjectUnknown {
+            dependencies.destroyAggregateDevice(aggregateID)
+        }
+        let (status, size, device) = dependencies.defaultOutputDevice()
+        guard status == noErr,
+              size == UInt32(MemoryLayout<AudioDeviceID>.size),
+              device != kAudioObjectUnknown else { return }
+        _ = dependencies.deviceUID(device)
+        _ = dependencies.streamFormat(device)
+    }
+
     func testPipelineDSPFormatAndGainHelpersAreDeterministic() {
         XCTAssertEqual(ProcessAudioPipeline.normalizedGain(-1), 0)
         XCTAssertEqual(ProcessAudioPipeline.normalizedGain(0.5), 0.5)
@@ -151,6 +232,72 @@ final class ProcessAudioEngineTests: XCTestCase {
         engine.rebuildForOutputDeviceChange()
         engine.stopAll()
         engine.stopAll()
+    }
+
+    private func assertPipelineFailure(
+        _ expected: ProcessAudioEngineError,
+        configure: (ProcessAudioPipelineDependencyState) -> Void
+    ) throws {
+        let state = ProcessAudioPipelineDependencyState()
+        configure(state)
+        XCTAssertThrowsError(
+            try ProcessAudioPipeline(
+                processObjectIDs: [11],
+                gain: 1,
+                dependencies: state.dependencies
+            )
+        ) { error in
+            XCTAssertEqual(error as? ProcessAudioEngineError, expected)
+        }
+    }
+}
+
+private final class ProcessAudioPipelineDependencyState {
+    var outputStatus = OSStatus(noErr)
+    var outputSize = UInt32(MemoryLayout<AudioDeviceID>.size)
+    var outputDevice = AudioDeviceID(20)
+    var uidStatus = OSStatus(noErr)
+    var uidSize = UInt32(MemoryLayout<CFString?>.size)
+    var uid: CFString? = "test-output" as CFString
+    var tapStatus = OSStatus(noErr)
+    var aggregateStatus = OSStatus(noErr)
+    var formatStatus = OSStatus(noErr)
+    var formatSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
+    var format = AudioStreamBasicDescription(
+        mSampleRate: 48_000,
+        mFormatID: kAudioFormatLinearPCM,
+        mFormatFlags: kAudioFormatFlagIsFloat,
+        mBytesPerPacket: 4,
+        mFramesPerPacket: 1,
+        mBytesPerFrame: 4,
+        mChannelsPerFrame: 1,
+        mBitsPerChannel: 32,
+        mReserved: 0
+    )
+    var ioStatus = OSStatus(noErr)
+    var ioProc: AudioDeviceIOProcID? = { _, _, _, _, _, _, _ in noErr }
+    var startStatus = OSStatus(noErr)
+    private(set) var stopCount = 0
+    private(set) var destroyIOProcCount = 0
+    private(set) var destroyedAggregateIDs: [AudioObjectID] = []
+    private(set) var destroyedTapIDs: [AudioObjectID] = []
+
+    var dependencies: ProcessAudioPipelineDependencies {
+        ProcessAudioPipelineDependencies(
+            defaultOutputDevice: { [self] in
+                (outputStatus, outputSize, outputDevice)
+            },
+            deviceUID: { [self] _ in (uidStatus, uidSize, uid) },
+            createProcessTap: { [self] _ in (tapStatus, 21) },
+            createAggregateDevice: { [self] _ in (aggregateStatus, 22) },
+            streamFormat: { [self] _ in (formatStatus, formatSize, format) },
+            createIOProc: { [self] _, _ in (ioStatus, ioProc) },
+            startDevice: { [self] _, _ in startStatus },
+            stopDevice: { [self] _, _ in stopCount += 1 },
+            destroyIOProc: { [self] _, _ in destroyIOProcCount += 1 },
+            destroyAggregateDevice: { [self] in destroyedAggregateIDs.append($0) },
+            destroyProcessTap: { [self] in destroyedTapIDs.append($0) }
+        )
     }
 }
 

@@ -2,10 +2,12 @@ import SwiftUI
 
 struct ClipboardSettingsAdvancedView: View {
     @ObservedObject var viewModel: SettingsFeatureModel
+    @ObservedObject private var settings: AppSettings
     @State private var newCollectionName = ""
 
     init(viewModel: SettingsFeatureModel, newCollectionName: String = "") {
         self.viewModel = viewModel
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
         _newCollectionName = State(initialValue: newCollectionName)
     }
 
@@ -14,7 +16,7 @@ struct ClipboardSettingsAdvancedView: View {
             Section("Duplicate Detection") {
                 Picker(
                     "Scope",
-                    selection: $viewModel.settings.duplicateDetectionScope
+                    selection: $settings.duplicateDetectionScope
                 ) {
                     ForEach(DuplicateDetectionScope.allCases) { scope in
                         Text(scope.title).tag(scope)
@@ -25,30 +27,30 @@ struct ClipboardSettingsAdvancedView: View {
             Section("Clipboard Formats") {
                 Toggle(
                     "Capture rich text and HTML",
-                    isOn: $viewModel.settings.captureRichText
+                    isOn: $settings.captureRichText
                 )
                 Toggle(
                     "Capture PDFs",
-                    isOn: $viewModel.settings.capturePDFs
+                    isOn: $settings.capturePDFs
                 )
                 Toggle(
                     "Capture files and folders",
-                    isOn: $viewModel.settings.captureFiles
+                    isOn: $settings.captureFiles
                 )
                 Toggle(
                     "Recognize text in images on device",
-                    isOn: $viewModel.settings.imageTextRecognitionEnabled
+                    isOn: $settings.imageTextRecognitionEnabled
                 )
             }
 
             Section("Ignored Pasteboard Types") {
                 Toggle(
                     "Ignore Universal Clipboard",
-                    isOn: $viewModel.settings.ignoreUniversalClipboard
+                    isOn: $settings.ignoreUniversalClipboard
                 )
                 TextField(
                     "Custom UTI identifiers",
-                    text: $viewModel.settings.ignoredPasteboardTypesText,
+                    text: $settings.ignoredPasteboardTypesText,
                     axis: .vertical
                 )
                 .font(.body.monospaced())
@@ -77,18 +79,18 @@ struct ClipboardSettingsAdvancedView: View {
             }
 
             Section("Paste Stack") {
-                Picker("Order", selection: $viewModel.settings.pasteStackOrder) {
+                Picker("Order", selection: $settings.pasteStackOrder) {
                     ForEach(PasteStackOrder.allCases) { order in
                         Text(order.title).tag(order)
                     }
                 }
                 Toggle(
                     "Remove an item after it is pasted",
-                    isOn: $viewModel.settings.pasteStackRemovesUsedItems
+                    isOn: $settings.pasteStackRemovesUsedItems
                 )
                 Stepper(
-                    "Reset after \(viewModel.settings.pasteStackTimeoutMinutes) minutes (0 means never)",
-                    value: $viewModel.settings.pasteStackTimeoutMinutes,
+                    "Reset after \(settings.pasteStackTimeoutMinutes) minutes (0 means never)",
+                    value: $settings.pasteStackTimeoutMinutes,
                     in: 0...120
                 )
                 Button("Reset Paste Stack", systemImage: "xmark.circle", action: resetPasteStack)

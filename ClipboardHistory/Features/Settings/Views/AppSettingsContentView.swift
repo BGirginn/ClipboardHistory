@@ -3,7 +3,7 @@ import SwiftUI
 struct AppSettingsContentView: View {
     let selectedSection: AppSettingsSection
     let selectedSubsection: AppSettingsSubsection
-    @ObservedObject var viewModel: SettingsFeatureModel
+    let viewModel: SettingsFeatureModel
 
     @ViewBuilder
     var body: some View {

@@ -70,7 +70,11 @@ final class SystemMetricsControllerTests: XCTestCase {
         XCTAssertEqual(controller.snapshot.primaryTemperature, 54)
         XCTAssertEqual(controller.value(for: .cpu), "2%")
         XCTAssertEqual(controller.value(for: .memory), "50%")
-        XCTAssertEqual(controller.value(for: .temperature), "54°C")
+        XCTAssertEqual(
+            controller.value(for: .temperature),
+            54.0.formatted(.number.precision(.fractionLength(1))) + "°C"
+        )
+        XCTAssertEqual(controller.snapshot.primaryTemperatureReading?.category, .cpu)
         XCTAssertNil(controller.errorMessage)
     }
 
@@ -88,6 +92,45 @@ final class SystemMetricsControllerTests: XCTestCase {
         XCTAssertFalse(controller.hasActiveSampling)
     }
 
+    func testIndependentDemandSourcesCannotDisableEachOther() {
+        let controller = SystemMetricsController(provider: SystemMetricsProviderStub())
+        let popover = SamplingDemandSource()
+        let window = SamplingDemandSource()
+
+        controller.setDemand(.detail, for: popover)
+        controller.setDemand(.controlCenter, for: window)
+        XCTAssertEqual(controller.demandCount, 2)
+
+        controller.setDemand(nil, for: popover)
+        XCTAssertTrue(controller.hasActiveSampling)
+        XCTAssertEqual(controller.demandCount, 1)
+
+        controller.setDemand(nil, for: window)
+        XCTAssertFalse(controller.hasActiveSampling)
+    }
+
+    func testMemoryFormulaAndUInt64CounterRatesHandleLargeValuesAndResets() {
+        XCTAssertEqual(
+            SystemMetricsProvider.usedMemoryBytes(
+                total: 16_000,
+                internalBytes: 9_000,
+                purgeableBytes: 2_000,
+                wiredBytes: 2_500,
+                compressedBytes: 1_500
+            ),
+            11_000
+        )
+        XCTAssertEqual(
+            SystemMetricsProvider.rate(
+                current: 6_000_000_000,
+                previous: 4_000_000_000,
+                interval: 2
+            ),
+            1_000_000_000
+        )
+        XCTAssertEqual(SystemMetricsProvider.rate(current: 3, previous: 4, interval: 1), 0)
+    }
+
     func testLiveProviderReturnsSafeRangesOnCurrentMac() async {
         let provider = SystemMetricsProvider()
         _ = await provider.sample(at: .now)
@@ -95,6 +138,16 @@ final class SystemMetricsControllerTests: XCTestCase {
         let snapshot = await provider.sample(at: .now)
 
         XCTAssertTrue((0...100).contains(snapshot.cpu.totalPercent))
+        XCTAssertEqual(
+            snapshot.cpu.totalPercent,
+            snapshot.cpu.userPercent + snapshot.cpu.systemPercent,
+            accuracy: 0.01
+        )
+        XCTAssertEqual(
+            snapshot.cpu.totalPercent + snapshot.cpu.idlePercent,
+            100,
+            accuracy: 0.01
+        )
         XCTAssertLessThanOrEqual(snapshot.memory.usedBytes, snapshot.memory.totalBytes)
         XCTAssertGreaterThanOrEqual(snapshot.network.receivedBytesPerSecond, 0)
         XCTAssertGreaterThanOrEqual(snapshot.disk.readBytesPerSecond, 0)
@@ -130,7 +183,7 @@ final class SystemMetricsControllerTests: XCTestCase {
                     rate: .automatic
                 )
             ),
-            "129°F"
+            129.2.formatted(.number.precision(.fractionLength(1))) + "°F"
         )
         XCTAssertTrue(controller.value(for: .networkDownload).hasSuffix("/s"))
         XCTAssertTrue(controller.value(for: .networkUpload).hasSuffix("/s"))
@@ -181,5 +234,33 @@ final class SystemMetricsControllerTests: XCTestCase {
         XCTAssertEqual(controller.value(for: .diskWrite), "0 B/s")
         XCTAssertNotNil(controller.errorMessage)
         XCTAssertNil(controller.temperatureStatistics(for: "missing"))
+    }
+
+    func testPrimaryTemperatureAveragesCPUCoresInsteadOfFreezingOnHottestSensor() {
+        var snapshot = SystemMetricSnapshot.empty
+        snapshot.temperatures = [
+            TemperatureReading(id: "cpu-1", name: "CPU 1", celsius: 48),
+            TemperatureReading(id: "cpu-2", name: "CPU 2", celsius: 52),
+            TemperatureReading(
+                id: "soc",
+                name: "SoC",
+                celsius: 70,
+                category: .soc
+            )
+        ]
+
+        XCTAssertEqual(snapshot.primaryTemperature, 50)
+        XCTAssertEqual(snapshot.primaryTemperatureReading?.category, .cpu)
+    }
+
+    func testPrimaryTemperatureUsesSoCAverageWhenCPUSensorsAreUnavailable() {
+        var snapshot = SystemMetricSnapshot.empty
+        snapshot.temperatures = [
+            TemperatureReading(id: "soc-1", name: "SoC 1", celsius: 49, category: .soc),
+            TemperatureReading(id: "soc-2", name: "SoC 2", celsius: 51, category: .soc)
+        ]
+
+        XCTAssertEqual(snapshot.primaryTemperature, 50)
+        XCTAssertEqual(snapshot.primaryTemperatureReading?.category, .soc)
     }
 }

@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 final class SettingsFeatureModel: ObservableObject {
     let clipboard: ClipboardHistoryViewModel
-    var settings: AppSettings
+    let settings: AppSettings
     let launchAtLoginService: LaunchAtLoginService
     let controlCenter: ControlCenterModel
     let notes: NoteController
@@ -13,6 +13,9 @@ final class SettingsFeatureModel: ObservableObject {
     let audioMixer: AudioMixerController
 
     private var clipboardCancellable: AnyCancellable?
+    private var settingsCancellable: AnyCancellable?
+    private var clipboardState: ClipboardSettingsState
+    private var clipboardRefreshScheduled = false
 
     init(
         clipboard: ClipboardHistoryViewModel,
@@ -30,7 +33,21 @@ final class SettingsFeatureModel: ObservableObject {
         self.inputTools = inputTools
         self.systemMetrics = systemMetrics
         self.audioMixer = audioMixer
+        clipboardState = ClipboardSettingsState(clipboard: clipboard)
         clipboardCancellable = clipboard.objectWillChange.sink { [weak self] in
+            guard let self, !clipboardRefreshScheduled else { return }
+            clipboardRefreshScheduled = true
+            Task { @MainActor [weak self] in
+                await Task.yield()
+                guard let self else { return }
+                clipboardRefreshScheduled = false
+                let updatedState = ClipboardSettingsState(clipboard: clipboard)
+                guard updatedState != clipboardState else { return }
+                clipboardState = updatedState
+                objectWillChange.send()
+            }
+        }
+        settingsCancellable = settings.objectWillChange.sink { [weak self] in
             self?.objectWillChange.send()
         }
     }

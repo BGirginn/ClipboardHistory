@@ -4,8 +4,25 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## Unreleased
 
+## 1.0.0-beta.5 - 2026-09-03
+
+- Made popover, detachable-panel, and application-window sampling visibility-aware with source-owned demand records, so one surface cannot disable another and hidden UI surfaces do not keep polling.
+- Moved CoreAudio application discovery off the main actor, limited the mixer to active processes resolved to real application bundles, added application icons, and coalesced slider persistence until editing ends.
+- Rebuilt menu-bar customization around Minimal, Balanced, and Custom presets, a native grouped Form, a live topbar preview, conditional `When Active` policies, drag-ordered metrics, and compact/standard density controls.
+- Replaced the fixed-width SwiftUI metric title with a native AppKit segment strip using per-metric symbols, monospaced values, stable widths, complete tooltips, and incremental updates that preserve status-item identity without `+N` text.
+- Removed Keyboard Cleaning's 60-second deadline; its Control Center card and standalone menu-bar item now toggle the mode until the user stops it, while lifecycle and event-tap failures still release the keyboard.
+- Corrected memory accounting, moved network byte counters to 64-bit interface data, keyed physical disks by registry identity, and made the System Monitor grid switch from one column at 340 pt to two columns when space allows.
+- Reworked System Monitor into a compact shared-snapshot dashboard and clarified CPU as a system-wide 0–100% metric with User/System breakdowns in the menu-bar tooltip.
+- Replaced the two unlabeled Settings icon shelves with one grouped, labeled settings index; opening generic Settings no longer preselects a pane the user did not choose, and menu-bar configuration cards now use one consistent width with compact metric rows.
+- Fixed temperature reporting to average verified CPU sensors, distinguish CPU and SoC readings, recognize additional Apple Silicon HID and M3/M4 SMC sensors, and show tenths in the menu bar.
+- Limited Audio Mixer application rows to processes currently producing audio and kept its menu-bar icon stable so an open popover does not shift when mute state changes.
 - Fixed the Clipboard panel's Clear All History confirmation so the popover remains active until the user confirms or cancels.
-- Reset pre-v4 top-bar placements once and require fresh opt-in before showing standalone modules or live system metrics; enabling metrics now starts with CPU only.
+- Kept Clipboard capture alive through AppKit event-tracking modes, pasteboard counter resets, and cancelled quit attempts instead of leaving recording silently stopped.
+- Reset pre-v4 top-bar placements once and require fresh opt-in before showing standalone modules or live system metrics; pinning System Monitor now uses one canonical CPU, RAM, and temperature metric item instead of a duplicate icon.
+- Migrated visible CPU, RAM, and temperature metrics to independently movable native status items; CPU/RAM use compact stacked labels and temperature is value-only.
+- Replaced the unreachable mixed XPC browser bridge with an on-demand LaunchAgent Mach service shared by the app, Chromium native host, and Safari extension.
+- Added a separately downloadable, validated Chromium extension ZIP to Community release artifacts.
+- Kept asynchronous application termination replies explicit and single-shot across successful and cancelled shutdowns.
 
 ## 1.0.0-beta.4 - 2026-08-16
 

@@ -1,13 +1,25 @@
 import Foundation
 
 struct MenuBarConfiguration: Codable, Equatable {
-    static let currentVersion = 4
+    static let currentVersion = 6
+    static let defaultMenuBarMetrics: [MenuBarMetricID] = [.cpu, .memory, .temperature]
 
     var version: Int
     var showsControlCenterItem: Bool
     var features: [UtilityFeatureConfiguration]
     var metricGroup: MenuBarDisplayGroup
     var metricFormats: MetricFormatPreferences
+
+    var showsSystemMetricsInMenuBar: Bool {
+        metricGroup.isVisible
+            || features.contains {
+                $0.id == .systemMonitor && $0.placement.showsStandaloneItem
+            }
+    }
+
+    var visibleMenuBarMetrics: [MenuBarMetricID] {
+        metricGroup.metrics.isEmpty ? Self.defaultMenuBarMetrics : metricGroup.metrics
+    }
 
     static func defaults(registry: FeatureRegistry = .live) -> MenuBarConfiguration {
         MenuBarConfiguration(

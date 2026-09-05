@@ -37,17 +37,17 @@ struct ModuleToolbar<Actions: View>: View {
                 Text(title)
                     .font(.headline)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 if let subtitle {
                     Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .monospacedDigit()
                         .lineLimit(1)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .layoutPriority(1)
 
-            Spacer(minLength: 8)
             if let openSettings {
                 Button("Open Settings", systemImage: "gearshape", action: openSettings)
                     .labelStyle(.iconOnly)
@@ -57,6 +57,7 @@ struct ModuleToolbar<Actions: View>: View {
                     .accessibilityIdentifier("module.settings")
             }
             actions
+                .fixedSize()
         }
         .padding(.horizontal, AppDesign.horizontalPadding)
         .padding(.vertical, AppDesign.toolbarVerticalPadding)

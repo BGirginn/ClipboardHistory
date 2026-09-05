@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AudioMixerBrowserSection: View {
-    @ObservedObject var controller: AudioMixerController
+    let controller: AudioMixerController
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -26,7 +26,8 @@ struct AudioMixerBrowserSection: View {
                     BrowserAudioTabRow(
                         tab: tab,
                         effectiveVolume: controller.effectiveVolume(for: tab),
-                        setVolume: { controller.setBrowserVolume($0, tab: tab) },
+                        previewVolume: { controller.previewBrowserVolume($0, tab: tab) },
+                        commitVolume: { controller.setBrowserVolume($0, tab: tab) },
                         toggleMute: { controller.toggleMute(tab) },
                         activate: { controller.activate(tab) }
                     )

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct KeyboardCleaningAvailabilityView: View {
-    @ObservedObject var controller: KeyboardCleaningController
+    let controller: KeyboardCleaningController
 
     var body: some View {
         Group {

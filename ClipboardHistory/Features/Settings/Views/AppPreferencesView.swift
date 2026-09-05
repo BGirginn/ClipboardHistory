@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct AppPreferencesView: View {
-    @ObservedObject var viewModel: SettingsFeatureModel
+    let viewModel: SettingsFeatureModel
+    @ObservedObject private var settings: AppSettings
     @ObservedObject private var launchAtLoginService: LaunchAtLoginService
     let selectedSubsection: AppSettingsSubsection
 
@@ -11,6 +12,7 @@ struct AppPreferencesView: View {
     ) {
         self.viewModel = viewModel
         self.selectedSubsection = selectedSubsection
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
         _launchAtLoginService = ObservedObject(
             wrappedValue: viewModel.launchAtLoginService
         )
@@ -20,24 +22,24 @@ struct AppPreferencesView: View {
         Form {
             if selectedSubsection == .appPresentation {
                 Section("Presentation") {
-                    Picker("Appearance", selection: $viewModel.settings.appearance) {
+                    Picker("Appearance", selection: $settings.appearance) {
                         ForEach(AppAppearance.allCases) { appearance in
                             Text(appearance.title).tag(appearance)
                         }
                     }
                     .accessibilityIdentifier("settings.appearance")
 
-                    Picker("Panel style", selection: $viewModel.settings.panelPresentationMode) {
+                    Picker("Panel style", selection: $settings.panelPresentationMode) {
                         ForEach(PanelPresentationMode.allCases) { mode in
                             Text(mode.title).tag(mode)
                         }
                     }
-                    Picker("Screen edge", selection: $viewModel.settings.panelScreenEdge) {
+                    Picker("Screen edge", selection: $settings.panelScreenEdge) {
                         ForEach(PanelScreenEdge.allCases) { edge in
                             Text(edge.title).tag(edge)
                         }
                     }
-                    .disabled(viewModel.settings.panelPresentationMode == .popover)
+                    .disabled(settings.panelPresentationMode == .popover)
                 }
             }
 

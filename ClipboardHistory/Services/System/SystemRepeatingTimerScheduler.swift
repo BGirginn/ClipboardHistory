@@ -7,10 +7,13 @@ final class SystemRepeatingTimerScheduler: RepeatingTimerScheduling {
         tolerance: TimeInterval,
         action: @escaping @MainActor () -> Void
     ) -> any RepeatingTimerToken {
-        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+        let timer = Timer(timeInterval: interval, repeats: true) { _ in
             MainActor.assumeIsolated { action() }
         }
         timer.tolerance = tolerance
+        // Clipboard capture and event-tap health checks must keep advancing while AppKit
+        // temporarily switches the main run loop into menu or event-tracking modes.
+        RunLoop.main.add(timer, forMode: .common)
         return Token(timer: timer)
     }
 

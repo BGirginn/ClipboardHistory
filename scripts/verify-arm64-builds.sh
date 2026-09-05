@@ -28,12 +28,17 @@ for configuration in Debug Release CommunityRelease; do
   helper="$app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
   xpc_service="$app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
   safari_extension="$app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
+  launch_agent="$app/Contents/Library/LaunchAgents/com.brgirgin.ClipboardHistory.BrowserAudioBridge.plist"
   [[ -d "$helper" ]] || {
     print -u2 "arm64 gate: embedded login helper is missing in $configuration"
     exit 1
   }
   [[ -d "$xpc_service" && -d "$safari_extension" ]] || {
     print -u2 "arm64 gate: embedded XPC service or Safari extension is missing in $configuration"
+    exit 1
+  }
+  [[ -f "$launch_agent" ]] || {
+    print -u2 "arm64 gate: browser bridge LaunchAgent is missing in $configuration"
     exit 1
   }
   for executable in \
@@ -74,4 +79,4 @@ for configuration in Debug Release CommunityRelease; do
   done
 done
 
-print "arm64 gate: app, login helper, XPC service, and Safari extension are arm64-only with macOS 14.2 minimum in every configuration"
+print "arm64 gate: app, helpers, LaunchAgent, and Safari extension are arm64-only with macOS 14.2 minimum in every configuration"

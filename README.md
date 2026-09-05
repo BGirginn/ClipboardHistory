@@ -16,7 +16,7 @@ ClipboardHistory is a modular menu-bar utility hub whose Clipboard, Notes, Input
 
 ## Current status
 
-- Current Community beta: [`v1.0.0-beta.4`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4) (`1.0.0`, build `10004`)
+- Current Community beta: [`v1.0.0-beta.5`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) (`1.0.0`, build `10005`)
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
 - The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
@@ -47,7 +47,7 @@ Normal uninstall preserves clipboard history and preferences. `brew uninstall --
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4).
+The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5).
 
 ## Features
 
@@ -56,7 +56,7 @@ The ZIP and DMG can also be downloaded from the [GitHub Release](https://github.
 - Copy, restore, paste to the active app, Paste As, Quick Look, drag and drop, and bulk actions
 - FIFO/LIFO Paste Stack and keyboard-oriented navigation
 - Menu-bar notes with instant editing, local search, and automatic saving
-- Independent Keyboard Cleaning and Scroll Reverse modules, with a 60-second cleaning safety limit and separate vertical/horizontal reversal for line-based and precise scrolling
+- Independent Keyboard Cleaning and Scroll Reverse modules, with mouse-controlled start/stop cleaning and separate vertical/horizontal reversal for line-based and precise scrolling
 - System, Light, and Dark appearance options
 - Private Mode, temporary recording pause, and app exclusions
 - A unified Control Center plus optional independent menu-bar icons for each module, with configurable left-click actions and right-click safety menus
@@ -150,7 +150,7 @@ Project documentation:
 
 ## Distribution
 
-`v1.0.0-beta.4` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, designated requirement, and signing-certificate fingerprint are attached to the release.
+`v1.0.0-beta.5` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, Chromium extension ZIP, designated requirement, and signing-certificate fingerprint are attached to the release.
 
 ## License
 

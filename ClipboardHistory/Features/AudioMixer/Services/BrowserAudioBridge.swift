@@ -21,18 +21,28 @@ final class BrowserAudioBridge: BrowserAudioBridging {
     }
 
     var tabsDidChange: (([BrowserAudioTab]) -> Void)?
+    var connectionMessageDidChange: ((String?) -> Void)?
 
     private var desiredVolumes: [String: Double] = [:]
     private var tabsBySource: [String: [BrowserAudioTab]] = [:]
+    private var currentPresentedTabs: [BrowserAudioTab] = []
     private var pendingActivations: Set<String> = []
     private var connection: NSXPCConnection?
     private var endpoint: BrowserAudioControllerEndpoint?
     private var reconnectTask: Task<Void, Never>?
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
+    private let serviceRegistrar: BrowserAudioBridgeServiceRegistrar
+
+    init(serviceRegistrar: BrowserAudioBridgeServiceRegistrar = BrowserAudioBridgeServiceRegistrar()) {
+        self.serviceRegistrar = serviceRegistrar
+    }
 
     func start() {
         guard connection == nil else { return }
+        let registration = serviceRegistrar.registerIfNeeded()
+        connectionMessageDidChange?(registration.message)
+        guard registration == .ready else { return }
         connect()
     }
 
@@ -47,7 +57,10 @@ final class BrowserAudioBridge: BrowserAudioBridging {
         tabsBySource.removeAll()
         desiredVolumes.removeAll()
         pendingActivations.removeAll()
-        tabsDidChange?([])
+        if !currentPresentedTabs.isEmpty {
+            currentPresentedTabs = []
+            tabsDidChange?([])
+        }
     }
 
     func setVolume(_ volume: Double, tabID: String) {
@@ -75,22 +88,36 @@ final class BrowserAudioBridge: BrowserAudioBridging {
                     && isValid(tabID: $0.id, source: source)
             }
             .prefix(128)
-        tabsBySource[source] = Array(controllableTabs)
+        tabsBySource[source] = Array(
+            Dictionary(
+                controllableTabs.map { ($0.id, $0) },
+                uniquingKeysWith: { _, latest in latest }
+            ).values
+        )
         let tabs = tabsBySource.values
             .flatMap { $0 }
             .sorted {
-                if $0.browser == $1.browser { return $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+                if $0.browser == $1.browser {
+                    let titleOrder = $0.title.localizedStandardCompare($1.title)
+                    return titleOrder == .orderedSame
+                        ? $0.id < $1.id
+                        : titleOrder == .orderedAscending
+                }
                 return $0.browser.localizedStandardCompare($1.browser) == .orderedAscending
             }
         let activeIDs = Set(tabs.map(\.id))
         desiredVolumes = desiredVolumes.filter { activeIDs.contains($0.key) }
-        tabsDidChange?(tabs.map { tab in
+        let presentedTabs = tabs.map { tab in
             guard let desired = desiredVolumes[tab.id] else { return tab }
             var adjusted = tab
             adjusted.volume = desired
             adjusted.isMuted = desired == 0
             return adjusted
-        })
+        }
+        if presentedTabs != currentPresentedTabs {
+            currentPresentedTabs = presentedTabs
+            tabsDidChange?(presentedTabs)
+        }
         let response = HostResponse(
             commands: desiredVolumes.map {
                 BrowserCommand(id: $0.key, volume: $0.value, action: nil)
@@ -103,10 +130,13 @@ final class BrowserAudioBridge: BrowserAudioBridging {
     }
 
     private func connect() {
-        let connection = NSXPCConnection(serviceName: BrowserAudioBridgeXPC.serviceName)
-        let reconnectRelay = BrowserAudioReconnectRelay { [weak self] in
-            self?.scheduleReconnect()
-        }
+        let connection = NSXPCConnection(machServiceName: BrowserAudioBridgeXPC.serviceName)
+        let reconnectRelay = BrowserAudioReconnectRelay(
+            handler: { [weak self] in self?.scheduleReconnect() },
+            registrationHandler: { [weak self] accepted in
+                self?.handleRegistration(accepted)
+            }
+        )
         connection.remoteObjectInterface = BrowserAudioBridgeXPC.serviceInterface()
         connection.exportedInterface = BrowserAudioBridgeXPC.controllerInterface()
         let endpoint = BrowserAudioControllerEndpoint { [weak self] payload in
@@ -130,12 +160,26 @@ final class BrowserAudioBridge: BrowserAudioBridging {
         connection?.invalidate()
         connection = nil
         endpoint = nil
+        connectionMessageDidChange?(
+            String(localized: "Browser audio service connection was interrupted. Retrying…")
+        )
         guard reconnectTask == nil else { return }
         reconnectTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled, let self else { return }
             reconnectTask = nil
             connect()
+        }
+    }
+
+    private func handleRegistration(_ accepted: Bool) {
+        if accepted {
+            connectionMessageDidChange?(nil)
+        } else {
+            connectionMessageDidChange?(
+                String(localized: "Browser audio service rejected the application connection.")
+            )
+            scheduleReconnect()
         }
     }
 
@@ -155,8 +199,7 @@ final class BrowserAudioBridge: BrowserAudioBridging {
         _ relay: BrowserAudioReconnectRelay
     ) -> @Sendable (Bool) -> Void {
         { accepted in
-            guard !accepted else { return }
-            relay.requestReconnect()
+            relay.reportRegistration(accepted)
         }
     }
 

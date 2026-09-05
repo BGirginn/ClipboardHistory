@@ -1,5 +1,6 @@
 import AppKit
 import Carbon
+import CoreAudio
 import XCTest
 
 @testable import ClipboardHistory
@@ -195,19 +196,21 @@ final class MenuBarControllerTests: XCTestCase {
             pressure: 0
         )
         statusItem.button?.performClick(nil)
+        XCTAssertFalse(popover.isShown, "Right-click menu should replace the open popover")
         XCTAssertEqual(
             presentedStatusMenu?.items.map(\.title),
             [
                 "Customize Menu Bar",
-                "",
-                "Open Control Center",
                 "Open Settings",
                 "",
                 "Quit ClipboardHistory"
             ]
         )
+        XCTAssertTrue(presentedStatusMenu?.items.compactMap(\.image).isEmpty == false)
         XCTAssertEqual(terminationCount, 0)
-        presentedStatusMenu?.performActionForItem(at: 5)
+        if let quitIndex = presentedStatusMenu?.items.indices.last {
+            presentedStatusMenu?.performActionForItem(at: quitIndex)
+        }
         XCTAssertEqual(terminationCount, 1)
         statusItemEvent = nil
         let event = try XCTUnwrap(
@@ -230,12 +233,18 @@ final class MenuBarControllerTests: XCTestCase {
         context.settings.panelPresentationMode = .detachable
         controller.showPopover()
         XCTAssertTrue(panel.isVisible, "Detachable presentation should show its panel")
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 1)
         for edge in PanelScreenEdge.allCases {
             context.settings.panelScreenEdge = edge
             controller.positionDetachablePanel()
         }
         controller.togglePopover()
         XCTAssertFalse(panel.isVisible)
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 0)
+
+        controller.showPopover()
+        controller.windowWillClose(Notification(name: NSWindow.willCloseNotification, object: panel))
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 0)
 
         controller.stop()
         await cleanup(context)
@@ -292,7 +301,9 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertTrue(popover.isShown)
         popover.presentationFailuresRemaining = 2
         context.appModel.controlCenter.setControlCenterItemVisible(false)
-        try? await Task.sleep(for: .milliseconds(200))
+        for _ in 0..<20 where !popover.isShown {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
         XCTAssertTrue(popover.isShown)
         XCTAssertEqual(controller.activeAnchorID, .feature(.notes))
         XCTAssertTrue(popover.positioningView === controller.statusItems[.feature(.notes)]?.button)
@@ -314,12 +325,10 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertEqual(
             presentedMenu?.items.map(\.title),
             [
-                "Open Module",
+                "Open Notes",
                 "New Note",
                 "",
-                "Notes",
-                "",
-                "Open Control Center",
+                "Customize Menu Bar",
                 "Open Settings",
                 "",
                 "Quit ClipboardHistory"
@@ -332,8 +341,8 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertEqual(createdItems.count, 2)
         XCTAssertEqual(controller.activeAnchorID, .controlCenter)
         XCTAssertFalse(popover.isShown)
-        XCTAssertEqual(windowPresenter.showActiveFeatureCount, 1)
-        XCTAssertTrue(windowPresenter.isWindowVisible)
+        XCTAssertEqual(windowPresenter.showActiveFeatureCount, 0)
+        XCTAssertFalse(windowPresenter.isWindowVisible)
 
         controller.stop()
         XCTAssertEqual(removedItems.count, 2)
@@ -370,29 +379,31 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .systemMonitor)
         let systemItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.systemMonitor" }
+            createdItems.first { $0.autosaveName == "ClipboardHistory.Metric.cpu" }
         )
+        XCTAssertNil(controller.statusItems[.feature(.systemMonitor)])
+        XCTAssertTrue(
+            controller.renderedStatusStates[.metric(.cpu)]?.title.contains("CPU") == true
+        )
+        XCTAssertEqual(controller.metricStripViews[.metric(.cpu)]?.segments.count, 1)
+        XCTAssertGreaterThan(systemItem.length, NSStatusItem.squareLength)
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 1)
         currentEvent = rightMouseEvent()
         systemItem.button?.performClick(nil)
-        XCTAssertEqual(controller.activeAnchorID, .feature(.systemMonitor))
-        let featureMenu = try XCTUnwrap(presentedMenu)
-        XCTAssertEqual(controller.quickActionTitle(for: .systemMonitor), "Open System Monitor")
-        XCTAssertEqual(controller.quickActionState(for: .systemMonitor), .off)
+        XCTAssertEqual(controller.activeAnchorID, .metric(.cpu))
+        let metricMenu = try XCTUnwrap(presentedMenu)
 
-        performMenuAction(featureMenu.items[0])
+        performMenuAction(metricMenu.items[0])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
-        performMenuAction(featureMenu.items[1])
+        performMenuAction(metricMenu.items[1])
         await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
-        performMenuAction(featureMenu.items[5])
-        await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
-        performMenuAction(featureMenu.items[6])
+        XCTAssertEqual(context.appModel.router.activeFeature, .menuBarCustomization)
+        performMenuAction(metricMenu.items[2])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.activeFeature, .settings)
         XCTAssertEqual(context.appModel.router.settingsSection, .systemMonitor)
-        performMenuAction(featureMenu.items[8])
+        performMenuAction(metricMenu.items[4])
         XCTAssertEqual(terminationCount, 1)
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
@@ -400,9 +411,39 @@ final class MenuBarControllerTests: XCTestCase {
             createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.notes" }
         )
         notesItem.button?.performClick(nil)
-        performMenuAction(try XCTUnwrap(presentedMenu).items[6])
+        performMenuAction(try XCTUnwrap(presentedMenu).items[4])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.settingsSection, .notes)
+
+        for (id, expectedSection) in [
+            (UtilityFeatureID.clipboard, AppSettingsSection.clipboard),
+            (.scrollReverse, .inputTools),
+            (.audioMixer, .audioMixer)
+        ] {
+            context.appModel.controlCenter.setStandaloneItemVisible(true, for: id)
+            let featureItem = try XCTUnwrap(
+                createdItems.first {
+                    $0.autosaveName == "ClipboardHistory.Feature.\(id.rawValue)"
+                }
+            )
+            featureItem.button?.performClick(nil)
+            let featureMenu = try XCTUnwrap(presentedMenu)
+            XCTAssertEqual(featureMenu.items.count, 7)
+
+            performMenuAction(featureMenu.items[0])
+            await settleMenuAction()
+            XCTAssertEqual(context.appModel.router.activeFeature, context.appModel.route(for: id))
+
+            performMenuAction(featureMenu.items[1])
+            await settleMenuAction()
+            performMenuAction(featureMenu.items[3])
+            await settleMenuAction()
+            XCTAssertEqual(context.appModel.router.activeFeature, .menuBarCustomization)
+
+            performMenuAction(featureMenu.items[4])
+            await settleMenuAction()
+            XCTAssertEqual(context.appModel.router.settingsSection, expectedSection)
+        }
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .keyboardCleaning)
         let inputToolsItem = try XCTUnwrap(
@@ -411,39 +452,15 @@ final class MenuBarControllerTests: XCTestCase {
             }
         )
         inputToolsItem.button?.performClick(nil)
-        performMenuAction(try XCTUnwrap(presentedMenu).items[6])
+        performMenuAction(try XCTUnwrap(presentedMenu).items[4])
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.settingsSection, .inputTools)
 
-        context.appModel.controlCenter.setMetricVisible(true, metric: .cpu)
-        context.appModel.controlCenter.setMetricGroupVisible(true)
-        let metricItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Metrics.Combined" }
-        )
-        metricItem.button?.performClick(nil)
-        XCTAssertEqual(controller.activeAnchorID, .metricGroup)
-        let metricMenu = try XCTUnwrap(presentedMenu)
-        performMenuAction(metricMenu.items[0])
-        await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
-        performMenuAction(metricMenu.items[1])
-        await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .menuBarCustomization)
-        performMenuAction(metricMenu.items[3])
-        await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
-        performMenuAction(metricMenu.items[4])
-        await settleMenuAction()
-        XCTAssertEqual(context.appModel.router.activeFeature, .settings)
-        XCTAssertEqual(context.appModel.router.settingsSection, .menuBar)
-        performMenuAction(metricMenu.items[6])
-        XCTAssertEqual(terminationCount, 2)
-
         currentEvent = nil
-        metricItem.button?.performClick(nil)
+        systemItem.button?.performClick(nil)
         await settleMenuAction()
         XCTAssertEqual(context.appModel.router.activeFeature, .systemMonitor)
-        metricItem.button?.performClick(nil)
+        systemItem.button?.performClick(nil)
         await settleMenuAction()
         XCTAssertFalse(popover.isShown)
 
@@ -471,45 +488,413 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
         context.appModel.controlCenter.setMetricVisible(true, metric: .networkDownload)
+        context.appModel.controlCenter.setMetricsAsSeparateItems(false)
         context.appModel.controlCenter.setMetricGroupVisible(true)
         try await Task.sleep(for: .milliseconds(200))
 
         let notesItem = try XCTUnwrap(controller.statusItems[.feature(.notes)])
         let metricItem = try XCTUnwrap(controller.statusItems[.metricGroup])
         let metricButton = try XCTUnwrap(metricItem.button)
-        let metricCell = try XCTUnwrap(metricButton.cell as? NSButtonCell)
+        let metricStrip = try XCTUnwrap(controller.metricStripViews[.metricGroup])
 
         XCTAssertEqual(notesItem.length, NSStatusItem.squareLength)
-        XCTAssertEqual(notesItem.button?.imagePosition, .imageOnly)
+        XCTAssertEqual(notesItem.button?.title, "")
+        XCTAssertNotNil(notesItem.button?.image)
         XCTAssertNotEqual(metricItem.length, NSStatusItem.variableLength)
         XCTAssertGreaterThan(metricItem.length, NSStatusItem.squareLength)
-        XCTAssertEqual(metricButton.imagePosition, .imageLeading)
-        XCTAssertEqual(
-            metricButton.font?.fontName,
-            NSFont.monospacedDigitSystemFont(
-                ofSize: NSFont.systemFontSize,
-                weight: .regular
-            ).fontName
-        )
-        XCTAssertFalse(metricCell.wraps)
-        XCTAssertEqual(metricCell.lineBreakMode, .byClipping)
-        XCTAssertEqual(metricButton.alignment, .left)
-        XCTAssertFalse(metricButton.title.contains("\n"))
-        XCTAssertNotNil(metricButton.image)
+        XCTAssertEqual(metricButton.imagePosition, .noImage)
+        XCTAssertEqual(metricButton.title, "")
+        XCTAssertNil(metricButton.image)
+        XCTAssertEqual(metricStrip.segments.map(\.metric), [.networkDownload])
+        XCTAssertEqual(metricStrip.segments.first?.symbol, "arrow.down")
+        XCTAssertFalse(metricButton.toolTip?.contains("User") == true)
+        XCTAssertFalse(metricButton.toolTip?.contains("System") == true)
 
         context.appModel.controlCenter.setMetricStyle(.compact)
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertNil(metricButton.image)
-        XCTAssertFalse(metricButton.title.contains("CPU"))
+        XCTAssertEqual(context.appModel.controlCenter.configuration.metricGroup.style, .compact)
+        XCTAssertNil(controller.renderedStatusStates[.metricGroup]?.symbol)
+        XCTAssertTrue(controller.statusItems[.metricGroup] === metricItem)
+        XCTAssertNil(controller.metricStripViews[.metricGroup])
+        let compactButton = try XCTUnwrap(metricItem.button)
+        XCTAssertNil(compactButton.image)
+        XCTAssertFalse(compactButton.title.contains("CPU"))
 
         context.appModel.controlCenter.setMetricStyle(.value)
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertNil(metricButton.image)
-        XCTAssertTrue(metricButton.title.contains(MenuBarMetricID.networkDownload.title))
+        XCTAssertEqual(context.appModel.controlCenter.configuration.metricGroup.style, .value)
+        XCTAssertTrue(
+            controller.renderedStatusStates[.metricGroup]?.title.contains(
+                MenuBarMetricID.networkDownload.title
+            ) == true
+        )
+        let valueButton = try XCTUnwrap(metricItem.button)
+        XCTAssertNil(valueButton.image)
+        XCTAssertTrue(valueButton.title.contains(MenuBarMetricID.networkDownload.title))
 
         context.appModel.controlCenter.setMetricStyle(.iconAndValue)
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertNotNil(metricButton.image)
+        XCTAssertNil(metricItem.button?.image)
+        XCTAssertNotNil(controller.metricStripViews[.metricGroup])
+
+        controller.stop()
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 0)
+        context.appModel.controlCenter.setMetricStyle(.compact)
+        XCTAssertTrue(controller.statusItems.isEmpty)
+        await cleanup(context)
+    }
+
+    func testCombinedMetricDensityUsesSemanticSegmentsWithoutOverflowText() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: MenuPopoverStub.init,
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        context.appModel.controlCenter.setMetricGroupVisible(true)
+        context.appModel.controlCenter.setMetricVisible(true, metric: .networkDownload)
+        context.appModel.controlCenter.setMetricsAsSeparateItems(false)
+        let metricItem = try XCTUnwrap(controller.statusItems[.metricGroup])
+        let standardStrip = try XCTUnwrap(controller.metricStripViews[.metricGroup])
+
+        XCTAssertEqual(standardStrip.segments.map(\.metric), [.cpu, .memory, .temperature])
+        XCTAssertEqual(standardStrip.segments.map(\.leadingText), ["CPU", "RAM", nil])
+        XCTAssertEqual(standardStrip.segments.map(\.symbol), [nil, nil, nil])
+        XCTAssertFalse(controller.renderedStatusStates[.metricGroup]?.title.contains("+") == true)
+        XCTAssertTrue(metricItem.button?.toolTip?.contains(MenuBarMetricID.networkDownload.title) == true)
+
+        context.appModel.controlCenter.setMetricDensity(.compact)
+
+        XCTAssertTrue(controller.statusItems[.metricGroup] === metricItem)
+        XCTAssertTrue(controller.metricStripViews[.metricGroup] === standardStrip)
+        XCTAssertEqual(standardStrip.segments.map(\.metric), [.cpu, .memory])
+
+        context.appModel.controlCenter.setMetricsAsSeparateItems(true)
+        let cpuButton = try XCTUnwrap(controller.statusItems[.metric(.cpu)]?.button)
+        let memoryButton = try XCTUnwrap(controller.statusItems[.metric(.memory)]?.button)
+        XCTAssertNil(cpuButton.image)
+        XCTAssertNil(memoryButton.image)
+        XCTAssertEqual(cpuButton.title, "")
+        XCTAssertEqual(memoryButton.title, "")
+        XCTAssertEqual(
+            controller.metricStripViews[.metric(.cpu)]?.segments.first?.leadingText,
+            "CPU"
+        )
+        XCTAssertEqual(
+            controller.metricStripViews[.metric(.memory)]?.segments.first?.leadingText,
+            "RAM"
+        )
+        XCTAssertEqual(controller.statusItems[.metric(.cpu)]?.length, 28)
+        XCTAssertEqual(controller.statusItems[.metric(.memory)]?.length, 28)
+        XCTAssertEqual(controller.statusItems[.metric(.temperature)]?.length, 40)
+        XCTAssertNil(
+            controller.metricStripViews[.metric(.temperature)]?.segments.first?.symbol
+        )
+
+        controller.stop()
+        await cleanup(context)
+    }
+
+    func testWhenActiveClipboardItemAppearsOnlyForExceptionalRecordingState() async {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setMenuBarVisibility(.whenActive, for: .clipboard)
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: MenuPopoverStub.init,
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        XCTAssertNil(controller.statusItems[.feature(.clipboard)])
+
+        context.appModel.clipboard.pauseRecording(minutes: 60)
+        XCTAssertNotNil(controller.statusItems[.feature(.clipboard)])
+
+        context.appModel.clipboard.resumeRecording()
+        XCTAssertNil(controller.statusItems[.feature(.clipboard)])
+
+        controller.stop()
+        await cleanup(context)
+    }
+
+    func testWhenActiveInputToolItemsTrackTheirRuntimeState() async {
+        let coordinator = InputEventTapCoordinatorStub(isTrusted: true)
+        let context = makeContext(inputEventTapCoordinator: coordinator)
+        context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setMenuBarVisibility(.whenActive, for: .keyboardCleaning)
+        context.appModel.controlCenter.setMenuBarVisibility(.whenActive, for: .scrollReverse)
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: MenuPopoverStub.init,
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        XCTAssertNil(controller.statusItems[.feature(.keyboardCleaning)])
+        context.appModel.inputTools.keyboardCleaning.start()
+        XCTAssertNotNil(controller.statusItems[.feature(.keyboardCleaning)])
+        context.appModel.inputTools.keyboardCleaning.stop()
+        XCTAssertNil(controller.statusItems[.feature(.keyboardCleaning)])
+
+        XCTAssertNil(controller.statusItems[.feature(.scrollReverse)])
+        context.appModel.inputTools.scrollReversal.isEnabled = true
+        XCTAssertNotNil(controller.statusItems[.feature(.scrollReverse)])
+        context.appModel.inputTools.scrollReversal.isEnabled = false
+        XCTAssertNil(controller.statusItems[.feature(.scrollReverse)])
+
+        controller.stop()
+        await cleanup(context)
+    }
+
+    func testMetricStripMutatesOnlyChangedSegments() {
+        let strip = MenuBarMetricStripView(frame: .zero)
+        let cpu = MenuBarMetricSegmentState(
+            metric: .cpu,
+            symbol: "cpu",
+            value: "12%",
+            accessibilityLabel: "CPU 12%",
+            width: 42
+        )
+        let memory = MenuBarMetricSegmentState(
+            metric: .memory,
+            symbol: "memorychip",
+            value: "48%",
+            accessibilityLabel: "Memory 48%",
+            width: 42
+        )
+        strip.apply([cpu, memory])
+        let cpuView = strip.segmentView(for: .cpu)
+        let memoryView = strip.segmentView(for: .memory)
+
+        strip.apply([
+            MenuBarMetricSegmentState(
+                metric: .cpu,
+                symbol: "cpu",
+                value: "13%",
+                accessibilityLabel: "CPU 13%",
+                width: 42
+            ),
+            memory
+        ])
+
+        XCTAssertEqual(cpuView?.mutationCount, 1)
+        XCTAssertEqual(memoryView?.mutationCount, 0)
+        XCTAssertTrue(strip.segmentView(for: .cpu) === cpuView)
+        XCTAssertTrue(strip.segmentView(for: .memory) === memoryView)
+    }
+
+    func testAudioMixerStatusItemKeepsStableIconWhenMuteStateChanges() async throws {
+        let mixerSuite = "MenuAudioMixerTests-\(UUID().uuidString)"
+        let mixerDefaults = try XCTUnwrap(UserDefaults(suiteName: mixerSuite))
+        addTeardownBlock {
+            mixerDefaults.removePersistentDomain(forName: mixerSuite)
+        }
+        let mixer = AudioMixerController(
+            discovery: MenuAudioDiscoveryStub(
+                applications: [
+                    AudioApplication(
+                        id: 72,
+                        processID: 720,
+                        bundleID: "com.example.Audio",
+                        name: "Audio App",
+                        isProducingOutput: true,
+                        volume: 100,
+                        isMuted: false,
+                        controlState: .native
+                    )
+                ]
+            ),
+            engine: MenuProcessAudioControllerStub(),
+            browserBridge: MenuBrowserAudioBridgeStub(),
+            defaults: mixerDefaults
+        )
+        await mixer.refreshApplications()
+        let context = makeContext(audioMixerController: mixer)
+        context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setMenuBarVisibility(.whenActive, for: .audioMixer)
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: MenuPopoverStub.init,
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+        let itemID = MenuBarItemID.feature(.audioMixer)
+        XCTAssertNil(controller.statusItems[itemID])
+
+        mixer.toggleMute(try XCTUnwrap(mixer.outputApplications.first))
+        await settleMenuAction()
+
+        XCTAssertTrue(mixer.isEverythingMuted)
+        XCTAssertEqual(controller.renderedStatusStates[itemID]?.symbol, "slider.horizontal.3")
+        XCTAssertEqual(controller.statusItems[itemID]?.length, NSStatusItem.squareLength)
+
+        mixer.toggleMute(try XCTUnwrap(mixer.outputApplications.first))
+        await settleMenuAction()
+        XCTAssertNil(controller.statusItems[itemID])
+
+        controller.stop()
+        await cleanup(context)
+    }
+
+    func testApplicationWindowControllerOwnsVisibilityDemandAndPendingNoteClose() async {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        let controller = ApplicationWindowController(
+            appModel: context.appModel,
+            makeWindow: MenuPanelStub.init,
+            makeContentViewController: { _ in NSViewController() }
+        )
+
+        XCTAssertFalse(controller.isWindowVisible)
+        context.appModel.showClipboard()
+        controller.showControlCenter()
+        XCTAssertTrue(controller.isWindowVisible)
+        XCTAssertEqual(context.appModel.router.activeFeature, .controlCenter)
+
+        controller.windowDidMiniaturize(
+            Notification(name: NSWindow.didMiniaturizeNotification)
+        )
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 0)
+        controller.windowDidDeminiaturize(
+            Notification(name: NSWindow.didDeminiaturizeNotification)
+        )
+
+        context.appModel.showQuickNote()
+        context.appModel.notes.draftBody = "Save before closing the application window"
+        let noteWindow = MenuPanelStub()
+        XCTAssertFalse(controller.windowShouldClose(noteWindow))
+        XCTAssertFalse(controller.windowShouldClose(noteWindow))
+        for _ in 0..<100 where context.appModel.notes.hasPendingChanges {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertFalse(context.appModel.notes.hasPendingChanges)
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertTrue(controller.windowShouldClose(noteWindow))
+
+        controller.showActiveFeature()
+        XCTAssertTrue(controller.isWindowVisible)
+        controller.windowWillClose(Notification(name: NSWindow.willCloseNotification))
+        XCTAssertEqual(context.appModel.systemMetrics.demandCount, 0)
+        controller.stop()
+        controller.stop()
+        XCTAssertFalse(controller.isWindowVisible)
+        noteWindow.delegate = nil
+        noteWindow.close()
+        let defaultFactoryController = ApplicationWindowController(appModel: context.appModel)
+        defaultFactoryController.stop()
+        await cleanup(context)
+    }
+
+    func testFeatureStatusItemsRunEveryLeftClickBranchAndTogglePresentation() async throws {
+        let context = makeContext(
+            inputEventTapCoordinator: InputEventTapCoordinatorStub(isTrusted: true)
+        )
+        context.settings.globalShortcutEnabled = false
+        for id in UtilityFeatureID.allCases {
+            context.appModel.controlCenter.setStandaloneItemVisible(true, for: id)
+        }
+        let popover = MenuPopoverStub()
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: { popover },
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy(),
+                currentEvent: { nil }
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        func click(_ id: UtilityFeatureID) throws {
+            try XCTUnwrap(controller.statusItems[.feature(id)]?.button).performClick(nil)
+        }
+
+        context.appModel.controlCenter.setClickAction(.open, for: .clipboard)
+        try click(.clipboard)
+        await settleMenuAction()
+        XCTAssertTrue(popover.isShown)
+        XCTAssertEqual(context.appModel.router.activeFeature, .clipboard)
+        try click(.clipboard)
+        await settleMenuAction()
+        XCTAssertFalse(popover.isShown)
+
+        context.appModel.controlCenter.setClickAction(.newNote, for: .notes)
+        try click(.notes)
+        await settleMenuAction()
+        XCTAssertTrue(popover.isShown)
+        XCTAssertEqual(context.appModel.notes.screen, .editor)
+        try click(.notes)
+        await settleMenuAction()
+        XCTAssertTrue(popover.isShown)
+        context.appModel.notes.discardChanges()
+        context.appModel.controlCenter.setClickAction(.open, for: .notes)
+        try click(.notes)
+        await settleMenuAction()
+        XCTAssertFalse(popover.isShown)
+
+        context.appModel.controlCenter.setClickAction(
+            .toggleClipboardRecording,
+            for: .clipboard
+        )
+        try click(.clipboard)
+        await settleMenuAction()
+        XCTAssertTrue(context.viewModel.isPaused)
+        try click(.clipboard)
+        await settleMenuAction()
+        XCTAssertFalse(context.viewModel.isPaused)
+
+        try click(.keyboardCleaning)
+        await settleMenuAction()
+        XCTAssertTrue(context.appModel.inputTools.keyboardCleaning.isActive)
+        try click(.keyboardCleaning)
+        await settleMenuAction()
+        XCTAssertFalse(context.appModel.inputTools.keyboardCleaning.isActive)
+
+        context.appModel.controlCenter.setClickAction(.toggleScrollReverse, for: .scrollReverse)
+        try click(.scrollReverse)
+        await settleMenuAction()
+        XCTAssertTrue(context.appModel.inputTools.scrollReversal.isActive)
+
+        context.appModel.controlCenter.setClickAction(.muteAllAudio, for: .audioMixer)
+        try click(.audioMixer)
+        await settleMenuAction()
+        XCTAssertFalse(popover.isShown)
 
         controller.stop()
         await cleanup(context)
@@ -549,7 +934,10 @@ final class MenuBarControllerTests: XCTestCase {
         let viewModel: ClipboardHistoryViewModel
     }
 
-    private func makeContext() -> Context {
+    private func makeContext(
+        audioMixerController: AudioMixerController? = nil,
+        inputEventTapCoordinator: (any InputEventTapCoordinating)? = nil
+    ) -> Context {
         let directory = FileManager.default.temporaryDirectory.appending(
             path: "MenuBarControllerTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -564,6 +952,8 @@ final class MenuBarControllerTests: XCTestCase {
             restorePasteboard: pasteboard,
             pasteService: MenuPasteServiceStub(),
             settings: settings,
+            inputEventTapCoordinator: inputEventTapCoordinator,
+            audioMixerController: audioMixerController,
             controlCenter: ControlCenterModel(
                 store: MenuBarConfigurationStore(defaults: UserDefaults(suiteName: suite)!)
             ),
@@ -607,6 +997,45 @@ private final class MenuApplicationWindowPresenterSpy: ApplicationWindowPresenti
     func stop() {
         isWindowVisible = false
     }
+}
+
+private final class MenuAudioDiscoveryStub: AudioProcessDiscovering, @unchecked Sendable {
+    let discoveredApplications: [AudioApplication]
+
+    init(applications: [AudioApplication]) {
+        discoveredApplications = applications
+    }
+
+    func applications() async -> [AudioApplication] {
+        discoveredApplications
+    }
+}
+
+@MainActor
+private final class MenuProcessAudioControllerStub: ProcessAudioControlling {
+    func setFailureHandler(
+        _ handler: (@MainActor @Sendable (String, Error) -> Void)?
+    ) {}
+
+    func setGain(
+        _ gain: Double,
+        for processObjectIDs: Set<AudioObjectID>,
+        bundleID: String
+    ) throws {}
+
+    func stopControlling(bundleID: String) {}
+    func stopAll() {}
+}
+
+@MainActor
+private final class MenuBrowserAudioBridgeStub: BrowserAudioBridging {
+    var tabsDidChange: (([BrowserAudioTab]) -> Void)?
+    var connectionMessageDidChange: ((String?) -> Void)?
+
+    func start() {}
+    func stop() {}
+    func setVolume(_ volume: Double, tabID: String) {}
+    func activate(tabID: String) {}
 }
 
 @MainActor

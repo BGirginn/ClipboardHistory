@@ -7,6 +7,67 @@ import XCTest
 
 @MainActor
 final class ClipboardPanelRenderingTests: XCTestCase {
+    func testSystemMonitorRendersVerifiedSensorsAndPhysicalDevices() async throws {
+        let suite = "SystemMonitorRendering-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let controller = SystemMetricsController(
+            provider: RichSystemMetricsProvider(),
+            defaults: defaults
+        )
+        await controller.refreshNow()
+
+        try render(
+            SystemMonitorView(
+                controller: controller,
+                close: {},
+                openSettings: {}
+            ),
+            named: "system-monitor-rich-details",
+            colorScheme: .dark,
+            width: 420
+        )
+        try render(
+            SystemMonitorDetailsView(controller: controller),
+            named: "system-monitor-device-details",
+            colorScheme: .light,
+            width: 380
+        )
+        let menuBarModel = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: defaults)
+        )
+        menuBarModel.setMetricGroupVisible(true)
+        try render(
+            Form {
+                MenuBarMetricsConfigurationCard(
+                    model: menuBarModel,
+                    showsAdvanced: true
+                )
+            }
+            .formStyle(.grouped),
+            named: "menu-bar-metrics-advanced",
+            colorScheme: .light,
+            width: 380
+        )
+        menuBarModel.setRequestedMenuBarItemsVisible(false)
+        try render(
+            MenuBarConfigurationContent(model: menuBarModel, scope: .all),
+            named: "menu-bar-items-unavailable",
+            colorScheme: .dark,
+            width: 340
+        )
+        try render(
+            AudioApplicationIcon(
+                applicationURL: URL(fileURLWithPath: "/Applications/Safari.app")
+            ),
+            named: "audio-application-real-icon",
+            colorScheme: .light,
+            width: 40,
+            height: 40
+        )
+        controller.stop()
+    }
+
     func testModularShellRendersSupportedWidthsThemesAndLocales() async throws {
         let context = makeContext()
         do {
@@ -26,8 +87,16 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 locale: Locale(identifier: "tr"),
                 width: 380
             )
+            context.appModel.controlCenter.applyPreset(.balanced)
             context.appModel.showMenuBarCustomization()
             for width in [340.0, 380.0, 420.0] {
+                try render(
+                    AppShellView(model: context.appModel),
+                    named: "menu-bar-customization-\(Int(width))-light-en",
+                    colorScheme: .light,
+                    locale: Locale(identifier: "en"),
+                    width: width
+                )
                 try render(
                     AppShellView(model: context.appModel),
                     named: "menu-bar-customization-\(Int(width))-dark-tr",
@@ -518,6 +587,16 @@ final class ClipboardPanelRenderingTests: XCTestCase {
     func testSystemMonitorAudioMixerAndStatusBranchMatrixRenders() async throws {
         let context = makeContext()
         do {
+            context.appModel.showSystemMonitor()
+            for width in [340.0, 380.0, 420.0] {
+                try render(
+                    AppShellView(model: context.appModel),
+                    named: "system-monitor-shell-\(Int(width))-dark-tr",
+                    colorScheme: .dark,
+                    locale: Locale(identifier: "tr"),
+                    width: width
+                )
+            }
             let thermalStates: [ProcessInfo.ThermalState] = [.nominal, .fair, .serious, .critical]
             for (index, thermalState) in thermalStates.enumerated() {
                 await context.appModel.systemMetrics.refreshNow()
@@ -573,7 +652,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(
                 TemperatureSensorList(
                     readings: context.appModel.systemMetrics.snapshot.temperatures,
-                    statistics: context.appModel.systemMetrics.temperatureStatistics
+                    statistics: context.appModel.systemMetrics.temperatureStatisticsBySensorID()
                 ),
                 named: "temperature-sensor-statistics",
                 colorScheme: .dark
@@ -595,7 +674,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 colorScheme: .dark
             )
 
-            context.appModel.audioMixer.refreshApplications()
+            await context.appModel.audioMixer.refreshApplications()
             context.audioBridge.publish([])
             try render(
                 AudioMixerApplicationSection(
@@ -657,7 +736,8 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             try render(
                 AudioApplicationRow(
                     application: failedApplication,
-                    setVolume: { _ in },
+                    previewVolume: { _ in },
+                    commitVolume: { _ in },
                     toggleMute: {}
                 ),
                 named: "audio-application-failed",
@@ -667,7 +747,8 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 BrowserAudioTabRow(
                     tab: tabs[0],
                     effectiveVolume: 20,
-                    setVolume: { _ in },
+                    previewVolume: { _ in },
+                    commitVolume: { _ in },
                     toggleMute: {},
                     activate: {}
                 ),
@@ -933,6 +1014,66 @@ final class ClipboardPanelRenderingTests: XCTestCase {
     }
 }
 
+private actor RichSystemMetricsProvider: SystemMetricsProviding {
+    func sample(at date: Date) -> SystemMetricSnapshot {
+        SystemMetricSnapshot(
+            timestamp: date,
+            cpu: CPUUsageSnapshot(
+                totalPercent: 42,
+                userPercent: 30,
+                systemPercent: 12,
+                idlePercent: 58
+            ),
+            memory: MemoryUsageSnapshot(
+                totalBytes: 16_000,
+                usedBytes: 10_000,
+                activeBytes: 6_000,
+                inactiveBytes: 2_000,
+                wiredBytes: 2_000,
+                compressedBytes: 1_000,
+                cachedBytes: 1_500,
+                freeBytes: 4_500,
+                pressure: .normal
+            ),
+            network: NetworkRateSnapshot(
+                receivedBytesPerSecond: 2_000_000,
+                sentBytesPerSecond: 500_000,
+                interfaceName: "en0"
+            ),
+            disk: DiskRateSnapshot(
+                readBytesPerSecond: 4_000_000,
+                writtenBytesPerSecond: 3_000_000,
+                devices: [
+                    DiskDeviceRate(
+                        id: "disk0",
+                        name: "Internal SSD",
+                        isExternal: false,
+                        readBytesPerSecond: 3_000_000,
+                        writtenBytesPerSecond: 2_000_000
+                    ),
+                    DiskDeviceRate(
+                        id: "disk4",
+                        name: "External SSD",
+                        isExternal: true,
+                        readBytesPerSecond: 1_000_000,
+                        writtenBytesPerSecond: 1_000_000
+                    )
+                ]
+            ),
+            temperatures: [
+                TemperatureReading(id: "cpu-0", name: "CPU Core", celsius: 51),
+                TemperatureReading(
+                    id: "soc-0",
+                    name: "SoC Die",
+                    celsius: 49,
+                    category: .soc
+                )
+            ],
+            thermalState: .nominal
+        )
+    }
+}
+
 private actor RenderingSystemMetricsProvider: SystemMetricsProviding {
     private var sampleIndex = 0
 
@@ -987,7 +1128,12 @@ private actor RenderingSystemMetricsProvider: SystemMetricsProviding {
             ),
             temperatures: [
                 TemperatureReading(id: "cpu", name: "CPU Die", celsius: 55 + Double(index)),
-                TemperatureReading(id: "soc", name: "SoC Die", celsius: 51 + Double(index))
+                TemperatureReading(
+                    id: "soc",
+                    name: "SoC Die",
+                    celsius: 51 + Double(index),
+                    category: .soc
+                )
             ],
             thermalState: thermalStates[index]
         )
@@ -995,7 +1141,7 @@ private actor RenderingSystemMetricsProvider: SystemMetricsProviding {
 }
 
 private struct RenderingAudioDiscovery: AudioProcessDiscovering {
-    func applications() -> [AudioApplication] {
+    func applications() async -> [AudioApplication] {
         [
             AudioApplication(
                 id: 41,
@@ -1032,6 +1178,7 @@ private final class RenderingAudioEngine: ProcessAudioControlling {
 @MainActor
 private final class RenderingBrowserAudioBridge: BrowserAudioBridging {
     var tabsDidChange: (([BrowserAudioTab]) -> Void)?
+    var connectionMessageDidChange: ((String?) -> Void)?
 
     func start() {}
     func stop() {}

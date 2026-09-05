@@ -38,6 +38,15 @@ final class AppRouterTests: XCTestCase {
         XCTAssertEqual(router.activeFeature, .notes)
     }
 
+    func testGenericSettingsOpenDoesNotSelectAnUnrequestedPane() {
+        let router = AppRouter()
+
+        router.openSettings()
+
+        XCTAssertEqual(router.activeFeature, .settings)
+        XCTAssertNil(router.settingsSection)
+    }
+
     func testEverySettingsSectionOwnsItsDefaultSubsection() {
         let allSubsections = AppSettingsSection.allCases.flatMap(\.subsections)
 
@@ -46,6 +55,28 @@ final class AppRouterTests: XCTestCase {
             XCTAssertTrue(section.subsections.contains(section.defaultSubsection))
         }
         XCTAssertEqual(Set(allSubsections).count, allSubsections.count)
+        XCTAssertTrue(
+            allSubsections.allSatisfy { $0.section.subsections.contains($0) }
+        )
+    }
+
+    func testSettingsSubsectionSelectionUpdatesDemandRouteAndClearsOnExit() {
+        let router = AppRouter()
+        router.openSettings()
+
+        router.selectSettingsSubsection(.systemNetwork)
+
+        XCTAssertEqual(router.settingsSubsection, .systemNetwork)
+        XCTAssertEqual(router.settingsSection, .systemMonitor)
+
+        router.selectSettingsSubsection(nil)
+
+        XCTAssertNil(router.settingsSubsection)
+        XCTAssertNil(router.settingsSection)
+
+        router.closeSettings()
+        router.selectSettingsSubsection(.audioSystem)
+        XCTAssertNil(router.settingsSubsection)
     }
 
 }

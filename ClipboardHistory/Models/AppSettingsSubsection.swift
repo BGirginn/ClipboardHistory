@@ -23,6 +23,19 @@ enum AppSettingsSubsection: String, Identifiable {
 
     var id: Self { self }
 
+    var section: AppSettingsSection {
+        switch self {
+        case .appPresentation, .appStartup: .general
+        case .menuBarItems, .menuBarMetrics: .menuBar
+        case .clipboardGeneral, .clipboardPrivacy, .clipboardStorage,
+             .clipboardAdvanced: .clipboard
+        case .notesGeneral, .notesSecurity, .notesSaving: .notes
+        case .inputKeyboardCleaning, .inputScrollReverse: .inputTools
+        case .systemTemperature, .systemNetwork: .systemMonitor
+        case .audioSystem, .audioChromium, .audioSafari, .audioReset: .audioMixer
+        }
+    }
+
     var title: String {
         switch self {
         case .appPresentation: String(localized: "Presentation")

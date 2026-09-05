@@ -95,50 +95,45 @@ final class KeyboardCleaningControllerTests: XCTestCase {
     func testStartAndManualStopControlEventTap() {
         let coordinator = InputEventTapCoordinatorStub(isTrusted: true)
         let scheduler = KeyboardCleaningTimerSchedulerStub()
-        var currentDate = Date(timeIntervalSince1970: 100)
         let controller = KeyboardCleaningController(
             coordinator: coordinator,
-            timerScheduler: scheduler,
-            duration: 3,
-            now: { currentDate }
+            timerScheduler: scheduler
         )
 
         controller.start()
 
         XCTAssertTrue(controller.isActive)
-        XCTAssertEqual(controller.remainingSeconds, 3)
         XCTAssertEqual(coordinator.keyboardValues, [true])
         XCTAssertEqual(scheduler.scheduleCount, 1)
 
-        currentDate = currentDate.addingTimeInterval(1.2)
         scheduler.fire()
-        XCTAssertEqual(controller.remainingSeconds, 2)
+        XCTAssertTrue(controller.isActive)
+        XCTAssertEqual(coordinator.maintainCount, 1)
 
         controller.stop()
         XCTAssertFalse(controller.isActive)
-        XCTAssertEqual(controller.remainingSeconds, 3)
         XCTAssertEqual(coordinator.keyboardValues, [true, false])
         XCTAssertEqual(scheduler.cancelCount, 1)
 
         controller.stop()
-        XCTAssertEqual(coordinator.keyboardValues, [true, false])
+        XCTAssertEqual(coordinator.keyboardValues, [true, false, false])
     }
 
-    func testCountdownAutomaticallyStopsAtSafetyDeadline() {
+    func testModeStaysActiveUntilUserTogglesItOff() {
         let coordinator = InputEventTapCoordinatorStub(isTrusted: true)
         let scheduler = KeyboardCleaningTimerSchedulerStub()
-        var currentDate = Date(timeIntervalSince1970: 200)
         let controller = KeyboardCleaningController(
             coordinator: coordinator,
-            timerScheduler: scheduler,
-            duration: 2,
-            now: { currentDate }
+            timerScheduler: scheduler
         )
 
-        controller.start()
-        currentDate = currentDate.addingTimeInterval(2)
-        scheduler.fire()
+        controller.toggle()
+        for _ in 0..<120 { scheduler.fire() }
 
+        XCTAssertTrue(controller.isActive)
+        XCTAssertEqual(coordinator.keyboardValues, [true])
+
+        controller.toggle()
         XCTAssertFalse(controller.isActive)
         XCTAssertEqual(coordinator.keyboardValues, [true, false])
         XCTAssertEqual(scheduler.cancelCount, 1)

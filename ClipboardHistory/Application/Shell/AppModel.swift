@@ -139,7 +139,7 @@ final class AppModel: ObservableObject {
         router.showMenuBarCustomization()
     }
 
-    func openSettings(section: AppSettingsSection = .general) {
+    func openSettings(section: AppSettingsSection? = nil) {
         router.openSettings(section: section)
     }
 
@@ -171,7 +171,7 @@ final class AppModel: ObservableObject {
             case .menuBarCustomization:
                 router.showMenuBarCustomization()
             case .settings:
-                router.openSettings(section: settingsSection ?? .general)
+                router.openSettings(section: settingsSection)
             case .notes:
                 router.showNotes()
             }
@@ -236,6 +236,56 @@ final class AppModel: ObservableObject {
         systemMetrics.stop()
         audioMixer.stop()
         clipboard.prepareForShutdown()
+    }
+
+    func updatePresentationDemand(
+        for source: SamplingDemandSource,
+        isVisible: Bool,
+        configuration: MenuBarConfiguration? = nil,
+        presentedFeature: AppFeature? = nil
+    ) {
+        guard isVisible else {
+            systemMetrics.setDemand(nil, for: source)
+            audioMixer.setDemand(nil, for: source)
+            return
+        }
+
+        switch presentedFeature ?? router.activeFeature {
+        case .controlCenter:
+            let systemConfiguration = configuration?.features.first(where: {
+                $0.id == .systemMonitor
+            })
+            let showsSystemMonitor = systemConfiguration?.placement.showsInControlCenter
+                ?? controlCenter.configuration(for: .systemMonitor).placement.showsInControlCenter
+            systemMetrics.setDemand(
+                showsSystemMonitor ? .controlCenter : nil,
+                for: source
+            )
+            let audioConfiguration = configuration?.features.first(where: { $0.id == .audioMixer })
+            let showsAudioMixer = audioConfiguration?.placement.showsInControlCenter
+                ?? controlCenter.configuration(for: .audioMixer).placement.showsInControlCenter
+            audioMixer.setDemand(showsAudioMixer ? .controlCenter : nil, for: source)
+        case .systemMonitor:
+            systemMetrics.setDemand(.detail, for: source)
+            audioMixer.setDemand(nil, for: source)
+        case .audioMixer:
+            systemMetrics.setDemand(nil, for: source)
+            audioMixer.setDemand(.detail, for: source)
+        case .settings:
+            let settingsSection = router.settingsSubsection?.section
+                ?? router.settingsSection
+            systemMetrics.setDemand(
+                settingsSection == .systemMonitor ? .detail : nil,
+                for: source
+            )
+            audioMixer.setDemand(
+                settingsSection == .audioMixer ? .detail : nil,
+                for: source
+            )
+        default:
+            systemMetrics.setDemand(nil, for: source)
+            audioMixer.setDemand(nil, for: source)
+        }
     }
 
     @discardableResult

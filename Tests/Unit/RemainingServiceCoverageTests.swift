@@ -245,7 +245,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
         XCTAssertFalse(AppLog.subsystem.isEmpty)
     }
 
-    func testNativeReadOnlySensorAndAudioDiscoveryAdaptersSmoke() {
+    func testNativeReadOnlySensorAndAudioDiscoveryAdaptersSmoke() async {
         let temperatureProvider = AppleSMCTemperatureProvider()
         for reading in temperatureProvider.readings() + temperatureProvider.readings() {
             XCTAssertTrue((10...130).contains(reading.celsius), "temperature range")
@@ -255,7 +255,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
 
         let discovery = CoreAudioProcessDiscovery()
         discovery.startObservingChanges {}
-        let applications = discovery.applications()
+        let applications = await discovery.applications()
         discovery.stopObservingChanges()
         discovery.stopObservingChanges()
         for application in applications {

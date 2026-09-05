@@ -35,28 +35,53 @@ struct MenuBarConfigurationStore {
         registry: FeatureRegistry
     ) -> MenuBarConfiguration {
         let requiresExplicitTopBarOptIn = configuration.version < 4
-        let storedByID = Dictionary(uniqueKeysWithValues: configuration.features.map { ($0.id, $0) })
+        let storedByID = Dictionary(
+            configuration.features.map { ($0.id, $0) },
+            uniquingKeysWith: { _, latest in latest }
+        )
+        var features = registry.descriptors.map { descriptor in
+            var feature = storedByID[descriptor.id] ?? UtilityFeatureConfiguration(
+                id: descriptor.id,
+                placement: FeaturePlacement(
+                    showsInControlCenter: descriptor.id != .audioMixer,
+                    showsStandaloneItem: false
+                ),
+                clickAction: descriptor.defaultClickAction
+            )
+            if requiresExplicitTopBarOptIn {
+                feature.placement.showsStandaloneItem = false
+            }
+            feature.clickAction = registry.validatedAction(feature.clickAction, for: feature.id)
+            return feature
+        }
+        var metricGroup = requiresExplicitTopBarOptIn
+            ? MenuBarDisplayGroup.defaults
+            : configuration.metricGroup
+        if (4..<MenuBarConfiguration.currentVersion).contains(configuration.version),
+           metricGroup.isVisible {
+            metricGroup.showsSeparateItems = true
+        }
+        let systemMonitorIndex = features.firstIndex { $0.id == .systemMonitor }
+        let hasLegacySystemMonitorItem = systemMonitorIndex.map {
+            features[$0].placement.showsStandaloneItem
+        } ?? false
+        if metricGroup.isVisible || hasLegacySystemMonitorItem {
+            metricGroup.isVisible = true
+            if metricGroup.metrics.isEmpty {
+                metricGroup.metrics = MenuBarConfiguration.defaultMenuBarMetrics
+            }
+            if let systemMonitorIndex {
+                features[systemMonitorIndex].placement.showsStandaloneItem = true
+            }
+        }
+
         return MenuBarConfiguration(
             version: MenuBarConfiguration.currentVersion,
             showsControlCenterItem: requiresExplicitTopBarOptIn
                 ? true
                 : configuration.showsControlCenterItem,
-            features: registry.descriptors.map { descriptor in
-                var feature = storedByID[descriptor.id] ?? UtilityFeatureConfiguration(
-                    id: descriptor.id,
-                    placement: FeaturePlacement(
-                        showsInControlCenter: descriptor.id != .audioMixer,
-                        showsStandaloneItem: false
-                    ),
-                    clickAction: descriptor.defaultClickAction
-                )
-                if requiresExplicitTopBarOptIn {
-                    feature.placement.showsStandaloneItem = false
-                }
-                feature.clickAction = registry.validatedAction(feature.clickAction, for: feature.id)
-                return feature
-            },
-            metricGroup: requiresExplicitTopBarOptIn ? .defaults : configuration.metricGroup,
+            features: features,
+            metricGroup: metricGroup,
             metricFormats: configuration.metricFormats
         )
     }

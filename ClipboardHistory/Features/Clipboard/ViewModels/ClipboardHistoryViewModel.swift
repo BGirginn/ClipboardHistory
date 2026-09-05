@@ -77,12 +77,15 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var itemWriteGenerationByItemID: [UUID: Int] = [:]
     var pendingItemWriteFailureIDs: Set<UUID> = []
     var maintenanceTask: Task<Void, Never>?
+    var settingsChangeTask: Task<Void, Never>?
     var settingsCancellable: AnyCancellable?
     var backgroundCancellable: AnyCancellable?
     var insertionsSinceCleanup = 0
     var pendingSensitiveItemIDs: [UUID] = []
     var isClearHistoryModalInteractionActive = false
     var appliedMaintenancePreferences: StorageMaintenancePreferences
+    var appliedDisplayFilter: ClipboardFilter
+    var appliedSortMode: ClipboardSortMode
     var isShuttingDown = false
 
     init(
@@ -132,6 +135,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
             maximumStorageMegabytes: settings.maximumStorageMegabytes,
             thumbnailCacheMegabytes: settings.thumbnailCacheMegabytes
         )
+        appliedDisplayFilter = settings.selectedFilter
+        appliedSortMode = settings.selectedSortMode
         isPrivateMode = settings.privateModeDefaultEnabled
         monitor.delegate = self
         monitor.shouldCaptureFromApplication = { [weak self] bundleIdentifier in
@@ -242,6 +247,8 @@ final class ClipboardHistoryViewModel: ObservableObject {
         backgroundCancellable = nil
         maintenanceTask?.cancel()
         maintenanceTask = nil
+        settingsChangeTask?.cancel()
+        settingsChangeTask = nil
         copiedFeedbackTask?.cancel()
         panelCloseTask?.cancel()
         panelCloseTask = nil

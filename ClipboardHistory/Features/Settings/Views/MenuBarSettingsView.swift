@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuBarSettingsView: View {
-    @ObservedObject var model: ControlCenterModel
+    let model: ControlCenterModel
     let selectedSubsection: AppSettingsSubsection
 
     init(
@@ -13,12 +13,9 @@ struct MenuBarSettingsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            MenuBarConfigurationContent(
-                model: model,
-                scope: selectedSubsection == .menuBarMetrics ? .metrics : .items
-            )
-                .padding(AppDesign.horizontalPadding)
-        }
+        MenuBarConfigurationContent(
+            model: model,
+            scope: selectedSubsection == .menuBarMetrics ? .metrics : .items
+        )
     }
 }

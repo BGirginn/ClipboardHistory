@@ -10,8 +10,8 @@ repository_root=${0:A:h:h}
 source_app=${1:A}
 output_directory=${2:A}
 identity='ClipboardHistory Community Beta'
-release_version='1.0.0-beta.4'
-expected_build='10004'
+release_version='1.0.0-beta.5'
+expected_build='10005'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -33,12 +33,23 @@ ditto --noqtn "$source_app" "$artifact_app"
 helper_app="$artifact_app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
 xpc_service="$artifact_app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
 safari_extension="$artifact_app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
+launch_agent="$artifact_app/Contents/Library/LaunchAgents/com.brgirgin.ClipboardHistory.BrowserAudioBridge.plist"
 for nested_bundle in "$helper_app" "$xpc_service" "$safari_extension"; do
   [[ -d "$nested_bundle" ]] || {
     print -u2 "artifact packaging: embedded bundle is missing: $nested_bundle"
     exit 1
   }
 done
+[[ -f "$launch_agent" ]] || {
+  print -u2 "artifact packaging: browser audio LaunchAgent is missing"
+  exit 1
+}
+plutil -convert json -o - "$launch_agent" \
+  | jq -e '.MachServices["com.brgirgin.ClipboardHistory.BrowserAudioBridge"] == true' \
+  >/dev/null || {
+  print -u2 "artifact packaging: browser audio Mach service is not advertised"
+  exit 1
+}
 
 codesign --force --options runtime --timestamp=none --sign "$identity" "$helper_app"
 codesign --force --options runtime --timestamp=none --sign "$identity" "$xpc_service"
@@ -51,6 +62,8 @@ codesign --force --options runtime --timestamp=none \
 
 codesign --verify --deep --strict --verbose=2 "$artifact_app"
 codesign --verify --strict --verbose=2 "$helper_app"
+codesign --verify --strict --verbose=2 "$xpc_service"
+codesign --verify --strict --verbose=2 "$safari_extension"
 helper_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$helper_app/Contents/Info.plist")
 [[ "$helper_identifier" == "com.brgirgin.ClipboardHistory.LoginItem" ]] || {
   print -u2 "artifact packaging: login helper identifier mismatch: $helper_identifier"
@@ -68,9 +81,24 @@ architectures=$(lipo -archs "$artifact_app/Contents/MacOS/ClipboardHistory")
   print -u2 "artifact packaging: arm64-only verification failed: $architectures"
   exit 1
 }
+codesign -d --entitlements :- "$safari_extension" 2>/dev/null \
+  | plutil -convert json -o - - \
+  | jq -e '
+      .["com.apple.security.app-sandbox"] == true
+      and .["com.apple.security.temporary-exception.mach-lookup.global-name"]
+        == ["com.brgirgin.ClipboardHistory.BrowserAudioBridge"]
+    ' >/dev/null || {
+    print -u2 "artifact packaging: Safari browser bridge entitlement mismatch"
+    exit 1
+  }
 helper_architectures=$(lipo -archs "$helper_app/Contents/MacOS/ClipboardHistoryLoginItem")
 [[ "$helper_architectures" == "arm64" ]] || {
   print -u2 "artifact packaging: login helper arm64-only verification failed: $helper_architectures"
+  exit 1
+}
+bridge_architectures=$(lipo -archs "$xpc_service/Contents/MacOS/ClipboardHistoryBrowserAudioBridge")
+[[ "$bridge_architectures" == "arm64" ]] || {
+  print -u2 "artifact packaging: browser bridge arm64-only verification failed: $bridge_architectures"
   exit 1
 }
 minimum_os=$(otool -l "$artifact_app/Contents/MacOS/ClipboardHistory" \
@@ -96,6 +124,7 @@ beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifac
 zip="$output_directory/ClipboardHistory-$release_version-arm64.zip"
 dmg="$output_directory/ClipboardHistory-$release_version-arm64.dmg"
 spdx="$output_directory/ClipboardHistory-$release_version-arm64.spdx.json"
+chromium_zip="$output_directory/ClipboardHistory-Chromium-Audio-$release_version.zip"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
 hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname "ClipboardHistory $release_version" "$dmg"
 hdiutil verify "$dmg" >/dev/null
@@ -106,8 +135,16 @@ syft scan "dir:$artifact_app" \
   -o "spdx-json=$spdx"
 jq -e '.spdxVersion == "SPDX-2.3" and .name == "ClipboardHistory"' "$spdx" >/dev/null
 (
+  cd "$repository_root/ClipboardHistory/Resources/ChromiumAudioExtension"
+  zip -X -q -r "$chromium_zip" . -x '.DS_Store'
+)
+unzip -tq "$chromium_zip" >/dev/null
+unzip -p "$chromium_zip" manifest.json \
+  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.5" and (.key | length > 0)' \
+  >/dev/null
+(
   cd "$output_directory"
-  shasum -a 256 "${zip:t}" "${dmg:t}" "${spdx:t}" > SHA256SUMS
+  shasum -a 256 "${zip:t}" "${dmg:t}" "${spdx:t}" "${chromium_zip:t}" > SHA256SUMS
   shasum -a 256 -c SHA256SUMS >/dev/null
 )
 designated_requirement=$(codesign -d -r- "$artifact_app" 2>/dev/null)
@@ -122,4 +159,4 @@ security find-certificate -c "$identity" -p \
   | openssl x509 -noout -fingerprint -sha256 \
   > "$output_directory/signing-certificate-sha256.txt"
 
-print "artifact packaging: created signed arm64 ZIP, DMG, checksums, SBOM, requirement, and certificate fingerprint"
+print "artifact packaging: created signed app and Chromium extension release artifacts"

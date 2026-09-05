@@ -1,49 +1,53 @@
 import SwiftUI
 
 struct AppSettingsHeaderView: View {
-    @Binding var selectedSection: AppSettingsSection
-    @Binding var selectedSubsection: AppSettingsSubsection
+    @Binding var selectedSubsection: AppSettingsSubsection?
     let close: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Button("Back", systemImage: "chevron.left", action: close)
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .frame(width: 28, height: 28)
-                    .help("Return to previous screen")
-                    .accessibilityIdentifier("settings.back")
-                Spacer()
-                Text("Settings")
-                    .font(.headline)
-                Spacer()
+        HStack {
+            if selectedSubsection == nil {
                 Color.clear
                     .frame(width: 28, height: 28)
                     .accessibilityHidden(true)
+            } else {
+                Button(
+                    "All Settings",
+                    systemImage: "chevron.left",
+                    action: { selectedSubsection = nil }
+                )
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .frame(width: 28, height: 28)
+                .help("All Settings")
+                .accessibilityIdentifier("settings.all")
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-
-            Divider()
-            SettingsNavigationShelf(
-                items: AppSettingsSection.allCases,
-                selection: $selectedSection,
-                title: \.title,
-                systemImage: \.systemImage,
-                buttonIdentifier: { "settings.section.\($0.rawValue)" },
-                shelfIdentifier: "settings.applicationShelf"
-            )
-            Divider()
-            SettingsNavigationShelf(
-                items: selectedSection.subsections,
-                selection: $selectedSubsection,
-                title: \.title,
-                systemImage: \.systemImage,
-                buttonIdentifier: { "settings.subsection.\($0.rawValue)" },
-                shelfIdentifier: "settings.subsectionShelf"
-            )
+            Spacer()
+            Text(title)
+                .font(.headline)
+                .lineLimit(1)
+                .accessibilityIdentifier(sectionIdentifier)
+            Spacer()
+            Button("Close Settings", systemImage: "xmark", action: close)
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .frame(width: 28, height: 28)
+                .help("Close Settings")
+                .accessibilityIdentifier("settings.close")
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(.bar)
     }
+
+    private var title: String {
+        guard let selectedSubsection else { return String(localized: "Settings") }
+        return selectedSubsection.section.title + " · " + selectedSubsection.title
+    }
+
+    private var sectionIdentifier: String {
+        selectedSubsection.map { "settings.section.\($0.section.rawValue)" }
+            ?? "settings.title"
+    }
+
 }

@@ -2,23 +2,19 @@ import AppKit
 import SwiftUI
 
 struct AppShellView: View {
-    @ObservedObject var model: AppModel
+    let model: AppModel
     @ObservedObject private var router: AppRouter
-    @ObservedObject private var clipboard: ClipboardHistoryViewModel
-    @ObservedObject private var notes: NoteController
     @ObservedObject private var settings: AppSettings
-    @ObservedObject private var systemMetrics: SystemMetricsController
-    @ObservedObject private var audioMixer: AudioMixerController
+    private let clipboard: ClipboardHistoryViewModel
+    private let notes: NoteController
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     init(model: AppModel) {
         self.model = model
         _router = ObservedObject(wrappedValue: model.router)
-        _clipboard = ObservedObject(wrappedValue: model.clipboard)
-        _notes = ObservedObject(wrappedValue: model.notes)
         _settings = ObservedObject(wrappedValue: model.settings)
-        _systemMetrics = ObservedObject(wrappedValue: model.systemMetrics)
-        _audioMixer = ObservedObject(wrappedValue: model.audioMixer)
+        clipboard = model.clipboard
+        notes = model.notes
     }
 
     var body: some View {
@@ -50,9 +46,9 @@ struct AppShellView: View {
                 notes: notes,
                 keyboardCleaning: model.inputTools.keyboardCleaning,
                 scrollReversal: model.inputTools.scrollReversal,
-                systemMetrics: systemMetrics,
-                audioMixer: audioMixer,
-                showFeature: showFeature,
+                systemMetrics: model.systemMetrics,
+                audioMixer: model.audioMixer,
+                showFeature: activateControlCenterFeature,
                 customizeMenuBar: model.showMenuBarCustomization,
                 openSettings: { model.openSettings() }
             )
@@ -87,13 +83,13 @@ struct AppShellView: View {
             )
         case .systemMonitor:
             SystemMonitorView(
-                controller: systemMetrics,
+                controller: model.systemMetrics,
                 close: model.showControlCenter,
                 openSettings: { model.openSettings(section: .systemMonitor) }
             )
         case .audioMixer:
             AudioMixerView(
-                controller: audioMixer,
+                controller: model.audioMixer,
                 close: model.showControlCenter,
                 openSettings: { model.openSettings(section: .audioMixer) }
             )
@@ -107,7 +103,11 @@ struct AppShellView: View {
             AppSettingsView(
                 viewModel: model.settingsFeature,
                 initialSection: router.settingsSection,
-                close: model.closeSettings
+                initialSubsection: router.settingsSubsection,
+                close: model.closeSettings,
+                selectionChanged: { subsection in
+                    model.router.selectSettingsSubsection(subsection)
+                }
             )
         }
     }
@@ -120,6 +120,19 @@ struct AppShellView: View {
         case .scrollReverse: model.showScrollReverse()
         case .systemMonitor: model.showSystemMonitor()
         case .audioMixer: model.showAudioMixer()
+        }
+    }
+
+    private func activateControlCenterFeature(_ id: UtilityFeatureID) {
+        guard id == .keyboardCleaning else {
+            showFeature(id)
+            return
+        }
+        if model.performStandaloneAction(
+            for: id,
+            action: .toggleKeyboardCleaning
+        ) != nil {
+            model.showKeyboardCleaning()
         }
     }
 
@@ -142,6 +155,6 @@ struct AppShellView: View {
             }
         }
         guard router.activeFeature == .clipboard else { return false }
-        return ClipboardPanelView(viewModel: clipboard).handleKeyEvent(event)
+        return ClipboardPanelView.handleKeyEvent(event, viewModel: clipboard)
     }
 }

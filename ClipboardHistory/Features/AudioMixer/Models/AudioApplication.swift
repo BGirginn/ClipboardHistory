@@ -7,6 +7,7 @@ struct AudioApplication: Identifiable, Equatable, Sendable {
     let processID: pid_t
     let bundleID: String
     let name: String
+    let applicationURL: URL?
     let isProducingOutput: Bool
     var volume: Double
     var isMuted: Bool
@@ -18,6 +19,7 @@ struct AudioApplication: Identifiable, Equatable, Sendable {
         processID: pid_t,
         bundleID: String,
         name: String,
+        applicationURL: URL? = nil,
         isProducingOutput: Bool,
         volume: Double,
         isMuted: Bool,
@@ -28,6 +30,7 @@ struct AudioApplication: Identifiable, Equatable, Sendable {
         self.processID = processID
         self.bundleID = bundleID
         self.name = name
+        self.applicationURL = applicationURL
         self.isProducingOutput = isProducingOutput
         self.volume = volume
         self.isMuted = isMuted

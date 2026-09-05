@@ -3,6 +3,10 @@ import Foundation
 
 @MainActor
 extension MenuBarController {
+    func isStatusItemEvent(_ event: NSEvent) -> Bool {
+        statusItems.values.contains { event.window === $0.button?.window }
+    }
+
     @objc func handleStatusItemAction(_ sender: NSStatusBarButton) {
         guard let itemID = statusItems.first(where: { $0.value.button === sender })?.key else { return }
         if dependencies.currentEvent()?.type == .rightMouseUp {
@@ -21,11 +25,13 @@ extension MenuBarController {
                 openFeature(.controlCenter, anchorID: itemID)
             }
         case let .feature(id):
-            let action = appModel.controlCenter.configuration(for: id).clickAction
+            let action: FeatureClickAction = id == .keyboardCleaning
+                ? .toggleKeyboardCleaning
+                : appModel.controlCenter.configuration(for: id).clickAction
             Task { [weak self] in
                 guard let self,
                       await flushNoteIfNeeded(before: id, action: action),
-                      let destination = appModel.performStandaloneAction(for: id) else { return }
+                      let destination = appModel.performStandaloneAction(for: id, action: action) else { return }
                 let preservesPreparedRoute = id == .notes
                     && action == .newNote
                 if isPopoverShown,
@@ -62,50 +68,74 @@ extension MenuBarController {
     private func showStatusMenu(for itemID: MenuBarItemID) {
         guard let button = statusItems[itemID]?.button else { return }
         activeAnchorID = itemID
+        if isPopoverShown,
+           appModel.router.activeFeature == .notes,
+           appModel.notes.hasPendingChanges {
+            Task { [weak self, weak button] in
+                guard let self, let button else { return }
+                let outcome = await appModel.notes.flushPendingSave()
+                guard outcome.allowsTransition else { return }
+                closePopover()
+                presentStatusMenu(for: itemID, from: button)
+            }
+            return
+        }
+        closePopover()
+        presentStatusMenu(for: itemID, from: button)
+    }
+
+    private func presentStatusMenu(
+        for itemID: MenuBarItemID,
+        from button: NSStatusBarButton
+    ) {
         let menu = NSMenu()
         switch itemID {
         case .controlCenter:
             menu.addItem(makeMenuItem(
                 title: String(localized: "Customize Menu Bar"),
-                action: #selector(openMenuBarCustomization)
+                action: #selector(openMenuBarCustomization),
+                systemImage: "slider.horizontal.3"
             ))
         case let .feature(id):
             let descriptor = appModel.controlCenter.registry.descriptor(for: id)
             let openItem = makeMenuItem(
-                title: String(localized: "Open Module"),
-                action: #selector(openRepresentedFeature)
+                title: descriptor?.title(for: .open) ?? String(localized: "Open Module"),
+                action: #selector(openRepresentedFeature),
+                systemImage: "arrow.up.forward.app"
             )
             openItem.representedObject = id.rawValue
             menu.addItem(openItem)
-            let quickItem = makeMenuItem(
-                title: quickActionTitle(for: id),
-                action: #selector(runRepresentedQuickAction)
-            )
-            quickItem.representedObject = id.rawValue
-            quickItem.state = quickActionState(for: id)
-            menu.addItem(quickItem)
+            if descriptor?.supportedClickActions.contains(where: { $0 != .open }) == true {
+                let quickItem = makeMenuItem(
+                    title: quickActionTitle(for: id),
+                    action: #selector(runRepresentedQuickAction)
+                )
+                quickItem.representedObject = id.rawValue
+                quickItem.state = quickActionState(for: id)
+                menu.addItem(quickItem)
+            }
             menu.addItem(.separator())
-            let titleItem = NSMenuItem(title: descriptor.title, action: nil, keyEquivalent: "")
-            titleItem.isEnabled = false
-            menu.addItem(titleItem)
+            menu.addItem(makeMenuItem(
+                title: String(localized: "Customize Menu Bar"),
+                action: #selector(openMenuBarCustomization),
+                systemImage: "slider.horizontal.3"
+            ))
         case .metricGroup, .metric:
             menu.addItem(makeMenuItem(
                 title: String(localized: "Open System Monitor"),
-                action: #selector(openSystemMonitor)
+                action: #selector(openSystemMonitor),
+                systemImage: "gauge.with.dots.needle.67percent"
             ))
             menu.addItem(makeMenuItem(
                 title: String(localized: "Customize Menu Bar"),
-                action: #selector(openMenuBarCustomization)
+                action: #selector(openMenuBarCustomization),
+                systemImage: "slider.horizontal.3"
             ))
         }
-        menu.addItem(.separator())
-        menu.addItem(makeMenuItem(
-            title: String(localized: "Open Control Center"),
-            action: #selector(openControlCenter)
-        ))
         let settingsItem = makeMenuItem(
             title: String(localized: "Open Settings"),
-            action: #selector(openRepresentedSettings)
+            action: #selector(openRepresentedSettings),
+            systemImage: "gearshape"
         )
         settingsItem.representedObject = settingsSection(for: itemID).rawValue
         menu.addItem(settingsItem)
@@ -113,7 +143,8 @@ extension MenuBarController {
         menu.addItem(makeMenuItem(
             title: String(localized: "Quit ClipboardHistory"),
             action: #selector(quitApplication),
-            keyEquivalent: "q"
+            keyEquivalent: "q",
+            systemImage: "power"
         ))
         dependencies.presentStatusMenu(menu, button)
     }
@@ -121,19 +152,19 @@ extension MenuBarController {
     private func makeMenuItem(
         title: String,
         action: Selector,
-        keyEquivalent: String = ""
+        keyEquivalent: String = "",
+        systemImage: String? = nil
     ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self
+        if let systemImage {
+            item.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil)
+        }
         return item
     }
 
     @objc private func quitApplication() {
         dependencies.terminateApplication()
-    }
-
-    @objc private func openControlCenter() {
-        openFeature(.controlCenter, anchorID: activeAnchorID)
     }
 
     @objc private func openMenuBarCustomization() {
@@ -163,7 +194,7 @@ extension MenuBarController {
     @objc private func runRepresentedQuickAction(_ sender: NSMenuItem) {
         guard let rawValue = sender.representedObject as? String,
               let id = UtilityFeatureID(rawValue: rawValue) else { return }
-        let quickAction = appModel.controlCenter.registry.descriptor(for: id)
+        let quickAction = appModel.controlCenter.registry.descriptor(for: id)?
             .supportedClickActions.first { $0 != .open } ?? .open
         Task { [weak self] in
             guard let self,
@@ -199,7 +230,7 @@ extension MenuBarController {
                 .inputTools
             }
         case .metricGroup, .metric:
-            .menuBar
+            .systemMonitor
         }
     }
 }

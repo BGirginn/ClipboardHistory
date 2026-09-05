@@ -1,6 +1,6 @@
 # Community beta distribution
 
-`v1.0.0-beta.4` is a public Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
+`v1.0.0-beta.5` is a public Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
 
 ## Stable signing identity
 
@@ -18,19 +18,20 @@ Changing the signing identity changes the designated requirement and can strand 
 Build from the exact clean release commit:
 
 ```sh
-scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.4
+scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.5
 ```
 
 The script requires `syft` and produces:
 
-- `ClipboardHistory-1.0.0-beta.4-arm64.zip`
-- `ClipboardHistory-1.0.0-beta.4-arm64.dmg`
-- `ClipboardHistory-1.0.0-beta.4-arm64.spdx.json`
+- `ClipboardHistory-1.0.0-beta.5-arm64.zip`
+- `ClipboardHistory-1.0.0-beta.5-arm64.dmg`
+- `ClipboardHistory-1.0.0-beta.5-arm64.spdx.json`
+- `ClipboardHistory-Chromium-Audio-1.0.0-beta.5.zip`
 - `SHA256SUMS`
 - `designated-requirement.txt`
 - `signing-certificate-sha256.txt`
 
-It verifies the code signature and designated requirement, an empty final entitlement set, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10004`, DMG and ZIP integrity, checksums, and SPDX metadata.
+It verifies the code signature and designated requirement, an empty main-app entitlement set, the Safari bridge entitlement, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10005`, app/extension ZIP integrity, checksums, and SPDX metadata.
 
 The Community beta retains normal quarantine behavior. If Gatekeeper blocks first launch, document Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway. Never remove quarantine, run `xattr`, or suppress the warning in the Cask.
 

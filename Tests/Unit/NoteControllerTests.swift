@@ -261,8 +261,13 @@ final class NoteControllerTests: XCTestCase {
             baseDirectory: directory,
             operationFailureInjector: failure.inject
         )
+        let pasteboard = NSPasteboard(
+            name: .init("ClipboardFailedTerminationTests-\(UUID().uuidString)")
+        )
         let appModel = AppModel(
             storage: storage,
+            monitor: ClipboardMonitor(pasteboard: pasteboard),
+            restorePasteboard: pasteboard,
             settings: AppSettings(defaults: defaults),
             inputEventTapCoordinator: InputEventTapCoordinatorStub(isTrusted: true),
             startsAutomatically: false
@@ -272,6 +277,7 @@ final class NoteControllerTests: XCTestCase {
             try? FileManager.default.removeItem(at: directory)
         }
         await appModel.clipboard.insert(.text(value: "persist me", hash: "persist-me"))
+        appModel.clipboard.startMonitoring()
         let item = try XCTUnwrap(appModel.clipboard.items.first)
         failure.shouldFail = true
         appModel.clipboard.togglePin(item)
@@ -281,12 +287,14 @@ final class NoteControllerTests: XCTestCase {
         XCTAssertFalse(blocked.allowsTermination)
         XCTAssertEqual(blocked.clipboard, .failed)
         XCTAssertEqual(blocked.blockedFeature, .clipboard)
+        XCTAssertTrue(appModel.clipboard.hasStarted)
         _ = try await storage.loadHistoryThrowing()
 
         failure.shouldFail = false
         appModel.clipboard.togglePin(try XCTUnwrap(appModel.clipboard.items.first))
         let completed = await appModel.shutdown()
         XCTAssertTrue(completed.allowsTermination)
+        XCTAssertFalse(appModel.clipboard.hasStarted)
     }
 
     func testBodyLimitFailureKeepsFullDraftVisible() async {

@@ -2,22 +2,26 @@ import SwiftUI
 
 struct BrowserAudioTabRow: View {
     let tab: BrowserAudioTab
-    let setVolume: (Double) -> Void
+    let previewVolume: (Double) -> Void
+    let commitVolume: (Double) -> Void
     let toggleMute: () -> Void
     let activate: () -> Void
     let effectiveVolume: Double
     @State private var volume: Double
+    @State private var isEditingVolume = false
 
     init(
         tab: BrowserAudioTab,
         effectiveVolume: Double,
-        setVolume: @escaping (Double) -> Void,
+        previewVolume: @escaping (Double) -> Void,
+        commitVolume: @escaping (Double) -> Void,
         toggleMute: @escaping () -> Void,
         activate: @escaping () -> Void
     ) {
         self.tab = tab
         self.effectiveVolume = effectiveVolume
-        self.setVolume = setVolume
+        self.previewVolume = previewVolume
+        self.commitVolume = commitVolume
         self.toggleMute = toggleMute
         self.activate = activate
         _volume = State(initialValue: tab.volume)
@@ -49,9 +53,14 @@ struct BrowserAudioTabRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Slider(value: $volume, in: 0...100, step: 1)
+            Slider(value: $volume, in: 0...100, step: 1) { editing in
+                isEditingVolume = editing
+                if !editing { commitVolume(volume) }
+            }
                 .accessibilityLabel(String(localized: "Volume for browser tab \(tab.title)"))
-                .onChange(of: volume) { _, newValue in setVolume(newValue) }
+                .onChange(of: volume) { _, newValue in
+                    if isEditingVolume { previewVolume(newValue) }
+                }
         }
         .padding(.vertical, 6)
         .onChange(of: tab.volume) { _, newValue in

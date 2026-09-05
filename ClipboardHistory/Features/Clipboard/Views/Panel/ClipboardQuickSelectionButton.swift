@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ClipboardQuickSelectionButton: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    let viewModel: ClipboardHistoryViewModel
     let index: Int
 
     var body: some View {

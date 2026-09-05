@@ -14,6 +14,7 @@ final class InputEventTapCoordinatorStub: InputEventTapCoordinating {
     private(set) var scrollConfigurations: [ScrollReversalConfiguration] = []
     private(set) var stopAllCount = 0
     private(set) var openSettingsCount = 0
+    private(set) var maintainCount = 0
 
     init(isTrusted: Bool) {
         trusted = isTrusted
@@ -37,7 +38,8 @@ final class InputEventTapCoordinatorStub: InputEventTapCoordinating {
     }
 
     func maintain() -> Bool {
-        maintainResult
+        maintainCount += 1
+        return maintainResult
     }
 
     func stopAll() {

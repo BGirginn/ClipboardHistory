@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -6,13 +7,56 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
     private static let frameAutosaveName = "ClipboardHistory.MainWindow"
 
     private let appModel: AppModel
+    private let makeWindow: () -> NSWindow
+    private let makeContentViewController: (AppModel) -> NSViewController
     private var applicationWindow: NSWindow?
     private var pendingCloseTask: Task<Void, Never>?
     private var allowsPendingClose = false
+    private let demandSource = SamplingDemandSource()
+    private var routeCancellable: AnyCancellable?
+    private var settingsSubsectionCancellable: AnyCancellable?
 
-    init(appModel: AppModel) {
+    init(
+        appModel: AppModel,
+        makeWindow: @escaping () -> NSWindow = {
+            NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+        },
+        makeContentViewController: @escaping (AppModel) -> NSViewController = {
+            NSHostingController(rootView: AppShellView(model: $0))
+        }
+    ) {
         self.appModel = appModel
+        self.makeWindow = makeWindow
+        self.makeContentViewController = makeContentViewController
         super.init()
+        routeCancellable = appModel.router.$activeFeature
+            .removeDuplicates()
+            .sink { [weak self] feature in
+                guard let self else { return }
+                appModel.updatePresentationDemand(
+                    for: demandSource,
+                    isVisible: isWindowVisible,
+                    presentedFeature: feature
+                )
+            }
+        settingsSubsectionCancellable = appModel.router.$settingsSubsection
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await Task.yield()
+                    guard let self,
+                          appModel.router.activeFeature == .settings else { return }
+                    appModel.updatePresentationDemand(
+                        for: demandSource,
+                        isVisible: isWindowVisible
+                    )
+                }
+            }
     }
 
     var isWindowVisible: Bool {
@@ -34,6 +78,7 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
         applicationWindow?.delegate = nil
         applicationWindow?.close()
         applicationWindow = nil
+        appModel.updatePresentationDemand(for: demandSource, isVisible: false)
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
@@ -57,22 +102,30 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
         return false
     }
 
+    func windowWillClose(_ notification: Notification) {
+        appModel.updatePresentationDemand(for: demandSource, isVisible: false)
+    }
+
+    func windowDidMiniaturize(_ notification: Notification) {
+        appModel.updatePresentationDemand(for: demandSource, isVisible: false)
+    }
+
+    func windowDidDeminiaturize(_ notification: Notification) {
+        appModel.updatePresentationDemand(for: demandSource, isVisible: true)
+    }
+
     private func showWindow() {
         let window = ensureWindow()
         appModel.clipboard.capturePasteTargetApplication()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        appModel.updatePresentationDemand(for: demandSource, isVisible: true)
     }
 
     private func ensureWindow() -> NSWindow {
         if let applicationWindow { return applicationWindow }
 
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
+        let window = makeWindow()
         window.title = "ClipboardHistory"
         window.isReleasedWhenClosed = false
         window.tabbingMode = .disallowed
@@ -80,9 +133,7 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
             width: AppDesign.panelMinimumWidth,
             height: AppDesign.panelMinimumHeight
         )
-        window.contentViewController = NSHostingController(
-            rootView: AppShellView(model: appModel)
-        )
+        window.contentViewController = makeContentViewController(appModel)
         if !window.setFrameUsingName(Self.frameAutosaveName) {
             window.center()
         }

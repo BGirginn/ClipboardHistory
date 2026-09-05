@@ -2,13 +2,19 @@ import SwiftUI
 
 struct ClipboardSettingsGeneralView: View {
     @ObservedObject var viewModel: SettingsFeatureModel
+    @ObservedObject private var settings: AppSettings
+
+    init(viewModel: SettingsFeatureModel) {
+        self.viewModel = viewModel
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
+    }
 
     var body: some View {
         Form {
             Section("Behavior") {
                 Toggle(
                     "Enable global shortcut",
-                    isOn: $viewModel.settings.globalShortcutEnabled
+                    isOn: $settings.globalShortcutEnabled
                 )
                 .accessibilityIdentifier("settings.globalShortcut")
 
@@ -20,28 +26,28 @@ struct ClipboardSettingsGeneralView: View {
 
                 Toggle(
                     "Close panel after copying",
-                    isOn: $viewModel.settings.closePanelAfterCopying
+                    isOn: $settings.closePanelAfterCopying
                 )
 
                 LabeledContent("History limit") {
                     Stepper(
-                        value: $viewModel.settings.historyLimit,
+                        value: $settings.historyLimit,
                         in: 10...5_000,
                         step: 10
                     ) {
-                        Text(viewModel.settings.historyLimit, format: .number)
+                        Text(settings.historyLimit, format: .number)
                             .monospacedDigit()
                     }
                 }
             }
 
             Section("Global Shortcut") {
-                Picker("Shortcut", selection: $viewModel.settings.globalShortcutPresetID) {
+                Picker("Shortcut", selection: $settings.globalShortcutPresetID) {
                     ForEach(GlobalShortcut.presets) { shortcut in
                         Text(shortcut.title).tag(shortcut.id)
                     }
                 }
-                Picker("Action", selection: $viewModel.settings.shortcutActivationMode) {
+                Picker("Action", selection: $settings.shortcutActivationMode) {
                     ForEach(ShortcutActivationMode.allCases) { mode in
                         Text(mode.title).tag(mode)
                     }
@@ -52,13 +58,13 @@ struct ClipboardSettingsGeneralView: View {
             }
 
             Section("Presentation") {
-                Picker("Default filter", selection: $viewModel.settings.selectedFilter) {
+                Picker("Default filter", selection: $settings.selectedFilter) {
                     ForEach(ClipboardFilter.allCases) { filter in
                         Text(filter.title).tag(filter)
                     }
                 }
 
-                Picker("Default sort", selection: $viewModel.settings.selectedSortMode) {
+                Picker("Default sort", selection: $settings.selectedSortMode) {
                     ForEach(ClipboardSortMode.allCases) { mode in
                         Text(mode.title).tag(mode)
                     }

@@ -9,6 +9,8 @@ struct MemoryUsageSnapshot: Equatable, Sendable {
     var compressedBytes: UInt64
     var cachedBytes: UInt64
     var freeBytes: UInt64
+    var applicationBytes: UInt64 = 0
+    var purgeableBytes: UInt64 = 0
     var pressure: MemoryPressureLevel
 
     static let empty = MemoryUsageSnapshot(
@@ -20,6 +22,8 @@ struct MemoryUsageSnapshot: Equatable, Sendable {
         compressedBytes: 0,
         cachedBytes: 0,
         freeBytes: 0,
+        applicationBytes: 0,
+        purgeableBytes: 0,
         pressure: .normal
     )
 

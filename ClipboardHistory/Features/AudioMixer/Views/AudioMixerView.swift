@@ -24,6 +24,8 @@ struct AudioMixerView: View {
                     Button("Reset All to 100%", systemImage: "arrow.counterclockwise", action: controller.resetAll)
                 }
                 .menuStyle(.borderlessButton)
+                .labelStyle(.iconOnly)
+                .help("Audio Actions")
             }
             Divider()
             ScrollView {
@@ -46,11 +48,6 @@ struct AudioMixerView: View {
             }
             .searchable(text: $searchText, prompt: "Search Applications")
         }
-        .task {
-            controller.setDemand(.detail, active: true)
-            defer { controller.setDemand(.detail, active: false) }
-            try? await Task.sleep(for: .seconds(31_536_000))
-        }
         .alert(
             "Browser Extension",
             isPresented: Binding(
@@ -63,8 +60,8 @@ struct AudioMixerView: View {
     }
 
     private var filteredApplications: [AudioApplication] {
-        guard !searchText.isEmpty else { return controller.applications }
-        return controller.applications.filter {
+        guard !searchText.isEmpty else { return controller.outputApplications }
+        return controller.outputApplications.filter {
             $0.name.localizedStandardContains(searchText)
                 || $0.bundleID.localizedStandardContains(searchText)
         }

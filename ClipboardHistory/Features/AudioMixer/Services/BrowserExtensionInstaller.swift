@@ -32,15 +32,17 @@ struct BrowserExtensionInstaller {
             .appending(path: "ClipboardHistory", directoryHint: .isDirectory)
         let extensionDirectory = supportDirectory
             .appending(path: "BrowserAudioExtension", directoryHint: .isDirectory)
+        let stagingDirectory = supportDirectory.appending(
+            path: ".BrowserAudioExtension-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        defer { try? fileManager.removeItem(at: stagingDirectory) }
         try fileManager.createDirectory(
             at: supportDirectory,
             withIntermediateDirectories: true
         )
-        if fileManager.fileExists(atPath: extensionDirectory.path) {
-            try fileManager.removeItem(at: extensionDirectory)
-        }
         try fileManager.createDirectory(
-            at: extensionDirectory,
+            at: stagingDirectory,
             withIntermediateDirectories: true
         )
         for resource in extensionResources {
@@ -48,12 +50,23 @@ struct BrowserExtensionInstaller {
                 forResource: resource.name,
                 withExtension: resource.extension
             ) else { throw CocoaError(.fileNoSuchFile) }
-            let destination = extensionDirectory.appending(path: resource.destination)
+            let destination = stagingDirectory.appending(path: resource.destination)
             try fileManager.createDirectory(
                 at: destination.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
             try fileManager.copyItem(at: source, to: destination)
+        }
+        try validateExtension(at: stagingDirectory)
+        if fileManager.fileExists(atPath: extensionDirectory.path) {
+            _ = try fileManager.replaceItemAt(
+                extensionDirectory,
+                withItemAt: stagingDirectory,
+                backupItemName: nil,
+                options: .usingNewMetadataOnly
+            )
+        } else {
+            try fileManager.moveItem(at: stagingDirectory, to: extensionDirectory)
         }
         try installNativeHostManifests()
         return extensionDirectory
@@ -89,10 +102,39 @@ struct BrowserExtensionInstaller {
             "allowed_origins": ["chrome-extension://\(Self.extensionID)/"]
         ]
         let data = try JSONSerialization.data(withJSONObject: manifest, options: [.prettyPrinted, .sortedKeys])
+        var successfulInstallations = 0
+        var firstError: Error?
         for directory in nativeMessagingDirectories() {
-            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
-            let destination = directory.appending(path: "\(Self.nativeHostName).json")
-            try data.write(to: destination, options: .atomic)
+            do {
+                try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+                let destination = directory.appending(path: "\(Self.nativeHostName).json")
+                try data.write(to: destination, options: .atomic)
+                guard try Data(contentsOf: destination) == data else {
+                    throw CocoaError(.fileWriteUnknown)
+                }
+                successfulInstallations += 1
+            } catch {
+                firstError = firstError ?? error
+                AppLog.audio.error(
+                    "Native messaging manifest installation failed: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
+        if successfulInstallations == 0, let firstError { throw firstError }
+    }
+
+    private func validateExtension(at directory: URL) throws {
+        let manifestURL = directory.appending(path: "manifest.json")
+        let manifestData = try Data(contentsOf: manifestURL)
+        guard let manifest = try JSONSerialization.jsonObject(with: manifestData) as? [String: Any],
+              manifest["manifest_version"] as? Int == 3,
+              manifest["key"] as? String != nil else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        for resource in extensionResources {
+            guard fileManager.fileExists(
+                atPath: directory.appending(path: resource.destination).path
+            ) else { throw CocoaError(.fileNoSuchFile) }
         }
     }
 

@@ -9,5 +9,6 @@ enum AppLog {
     static let clipboard = Logger(subsystem: subsystem, category: "clipboard")
     static let storage = Logger(subsystem: subsystem, category: "storage")
     static let lifecycle = Logger(subsystem: subsystem, category: "lifecycle")
+    static let audio = Logger(subsystem: subsystem, category: "audio")
     static let performance = Logger(subsystem: subsystem, category: "performance")
 }

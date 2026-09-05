@@ -4,6 +4,7 @@ struct ControlCenterFeatureCard: View {
     let title: String
     let summary: String
     let systemImage: String
+    let accessorySystemImage: String
     let accessibilityIdentifier: String
     let action: () -> Void
 
@@ -11,12 +12,14 @@ struct ControlCenterFeatureCard: View {
         title: String,
         summary: String,
         systemImage: String,
+        accessorySystemImage: String = "chevron.right",
         accessibilityIdentifier: String,
         action: @escaping () -> Void
     ) {
         self.title = title
         self.summary = summary
         self.systemImage = systemImage
+        self.accessorySystemImage = accessorySystemImage
         self.accessibilityIdentifier = accessibilityIdentifier
         self.action = action
     }
@@ -41,7 +44,7 @@ struct ControlCenterFeatureCard: View {
                 }
 
                 Spacer(minLength: 8)
-                Image(systemName: "chevron.right")
+                Image(systemName: accessorySystemImage)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)

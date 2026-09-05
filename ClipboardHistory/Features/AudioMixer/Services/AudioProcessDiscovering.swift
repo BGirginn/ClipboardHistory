@@ -1,7 +1,7 @@
 import Foundation
 
 protocol AudioProcessDiscovering: Sendable {
-    func applications() -> [AudioApplication]
+    func applications() async -> [AudioApplication]
     func startObservingChanges(_ handler: @escaping @Sendable () -> Void)
     func stopObservingChanges()
 }

@@ -3,7 +3,9 @@ import Foundation
 @main
 enum BrowserAudioBridgeServiceMain {
     static func main() {
-        let listener = NSXPCListener.service()
+        let listener = NSXPCListener(
+            machServiceName: "com.brgirgin.ClipboardHistory.BrowserAudioBridge"
+        )
         let delegate = BrowserAudioBridgeListenerDelegate()
         listener.delegate = delegate
         withExtendedLifetime(delegate) {

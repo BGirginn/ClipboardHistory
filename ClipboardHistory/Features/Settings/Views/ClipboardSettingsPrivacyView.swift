@@ -2,18 +2,24 @@ import SwiftUI
 
 struct ClipboardSettingsPrivacyView: View {
     @ObservedObject var viewModel: SettingsFeatureModel
+    @ObservedObject private var settings: AppSettings
+
+    init(viewModel: SettingsFeatureModel) {
+        self.viewModel = viewModel
+        _settings = ObservedObject(wrappedValue: viewModel.settings)
+    }
 
     var body: some View {
         Form {
             Section("Sensitive Content") {
                 Toggle(
                     "Detect secrets locally",
-                    isOn: $viewModel.settings.secretDetectionEnabled
+                    isOn: $settings.secretDetectionEnabled
                 )
 
                 Picker(
                     "Sensitive content",
-                    selection: $viewModel.settings.sensitiveStoragePolicy
+                    selection: $settings.sensitiveStoragePolicy
                 ) {
                     ForEach(SensitiveStoragePolicy.allCases) { policy in
                         Text(policy.title).tag(policy)
@@ -22,11 +28,11 @@ struct ClipboardSettingsPrivacyView: View {
 
                 LabeledContent("Temporary retention") {
                     Stepper(
-                        value: $viewModel.settings.sensitiveRetentionSeconds,
+                        value: $settings.sensitiveRetentionSeconds,
                         in: 10...600,
                         step: 10
                     ) {
-                        Text("\(viewModel.settings.sensitiveRetentionSeconds) seconds")
+                        Text("\(settings.sensitiveRetentionSeconds) seconds")
                         .monospacedDigit()
                     }
                 }
@@ -45,7 +51,7 @@ struct ClipboardSettingsPrivacyView: View {
 
                 Toggle(
                     "Start in Private Mode",
-                    isOn: $viewModel.settings.privateModeDefaultEnabled
+                    isOn: $settings.privateModeDefaultEnabled
                 )
 
                 LabeledContent("Temporary mode") {
@@ -80,7 +86,7 @@ struct ClipboardSettingsPrivacyView: View {
             Section("Application Rules") {
                 TextField(
                     "Excluded bundle identifiers",
-                    text: $viewModel.settings.excludedBundleIdentifiersText,
+                    text: $settings.excludedBundleIdentifiersText,
                     axis: .vertical
                 )
                 .font(.body.monospaced())
@@ -89,7 +95,7 @@ struct ClipboardSettingsPrivacyView: View {
 
                 TextField(
                     "Always allowed bundle identifiers",
-                    text: $viewModel.settings.allowedBundleIdentifiersText,
+                    text: $settings.allowedBundleIdentifiersText,
                     axis: .vertical
                 )
                 .font(.body.monospaced())
@@ -102,7 +108,7 @@ struct ClipboardSettingsPrivacyView: View {
 
                 ExcludedApplicationListView(
                     bundleIdentifiers: Array(
-                        viewModel.settings.excludedBundleIdentifiers
+                        settings.excludedBundleIdentifiers
                     ).sorted()
                 )
             }

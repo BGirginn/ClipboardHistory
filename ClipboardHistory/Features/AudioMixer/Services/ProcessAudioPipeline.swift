@@ -4,6 +4,7 @@ import Foundation
 import libkern
 
 final class ProcessAudioPipeline: @unchecked Sendable {
+    private let dependencies: ProcessAudioPipelineDependencies
     private var gainBits = Int32(bitPattern: Float(1).bitPattern)
     private var tapID = AudioObjectID(kAudioObjectUnknown)
     private var aggregateDeviceID = AudioObjectID(kAudioObjectUnknown)
@@ -11,7 +12,12 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     private var isRunning = false
     private var routedOutputDevice = AudioDeviceID(kAudioObjectUnknown)
 
-    init(processObjectIDs: Set<AudioObjectID>, gain: Double) throws {
+    init(
+        processObjectIDs: Set<AudioObjectID>,
+        gain: Double,
+        dependencies: ProcessAudioPipelineDependencies = .live
+    ) throws {
+        self.dependencies = dependencies
         storeGain(gain)
         do {
             try start(processObjectIDs: processObjectIDs)
@@ -35,19 +41,19 @@ final class ProcessAudioPipeline: @unchecked Sendable {
 
     func stop() {
         if isRunning, let ioProcID, aggregateDeviceID != kAudioObjectUnknown {
-            AudioDeviceStop(aggregateDeviceID, ioProcID)
+            dependencies.stopDevice(aggregateDeviceID, ioProcID)
         }
         isRunning = false
         if let ioProcID, aggregateDeviceID != kAudioObjectUnknown {
-            AudioDeviceDestroyIOProcID(aggregateDeviceID, ioProcID)
+            dependencies.destroyIOProc(aggregateDeviceID, ioProcID)
         }
         self.ioProcID = nil
         if aggregateDeviceID != kAudioObjectUnknown {
-            AudioHardwareDestroyAggregateDevice(aggregateDeviceID)
+            dependencies.destroyAggregateDevice(aggregateDeviceID)
             aggregateDeviceID = kAudioObjectUnknown
         }
         if tapID != kAudioObjectUnknown {
-            AudioHardwareDestroyProcessTap(tapID)
+            dependencies.destroyProcessTap(tapID)
             tapID = kAudioObjectUnknown
         }
         routedOutputDevice = kAudioObjectUnknown
@@ -67,7 +73,8 @@ final class ProcessAudioPipeline: @unchecked Sendable {
         tapDescription.isExclusive = false
         tapDescription.muteBehavior = .mutedWhenTapped
 
-        let tapStatus = AudioHardwareCreateProcessTap(tapDescription, &tapID)
+        let (tapStatus, createdTapID) = dependencies.createProcessTap(tapDescription)
+        tapID = createdTapID
         guard tapStatus == noErr else { throw ProcessAudioEngineError.tapCreationFailed(tapStatus) }
 
         let aggregateUID = "com.brgirgin.ClipboardHistory.AudioMixer.\(UUID().uuidString)"
@@ -83,21 +90,17 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             kAudioAggregateDeviceTapAutoStartKey: false,
             kAudioAggregateDeviceIsPrivateKey: true
         ]
-        let aggregateStatus = AudioHardwareCreateAggregateDevice(
-            aggregateDescription as CFDictionary,
-            &aggregateDeviceID
-        )
+        let (aggregateStatus, createdAggregateDeviceID) = dependencies
+            .createAggregateDevice(aggregateDescription as CFDictionary)
+        aggregateDeviceID = createdAggregateDeviceID
         guard aggregateStatus == noErr else {
             throw ProcessAudioEngineError.aggregateDeviceCreationFailed(aggregateStatus)
         }
         try validateStreamFormat(of: aggregateDeviceID)
 
-        var createdIOProc: AudioDeviceIOProcID?
-        let ioStatus = AudioDeviceCreateIOProcIDWithBlock(
-            &createdIOProc,
-            aggregateDeviceID,
-            nil
-        ) { [weak self] _, inputData, _, outputData, _ in
+        let (ioStatus, createdIOProc) = dependencies.createIOProc(
+            aggregateDeviceID
+        ) { [weak self] inputData, outputData in
             guard let self else { return }
             process(inputData: inputData, outputData: outputData)
         }
@@ -105,7 +108,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             throw ProcessAudioEngineError.ioProcedureCreationFailed(ioStatus)
         }
         ioProcID = createdIOProc
-        let startStatus = AudioDeviceStart(aggregateDeviceID, createdIOProc)
+        let startStatus = dependencies.startDevice(aggregateDeviceID, createdIOProc)
         guard startStatus == noErr else { throw ProcessAudioEngineError.deviceStartFailed(startStatus) }
         isRunning = true
     }
@@ -161,22 +164,8 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     }
 
     private func validateStreamFormat(of device: AudioDeviceID) throws {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyStreamFormat,
-            mScope: kAudioObjectPropertyScopeInput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var format = AudioStreamBasicDescription()
         let expectedSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
-        var returnedSize = expectedSize
-        let status = AudioObjectGetPropertyData(
-            device,
-            &address,
-            0,
-            nil,
-            &returnedSize,
-            &format
-        )
+        let (status, returnedSize, format) = dependencies.streamFormat(device)
         guard status == noErr,
               returnedSize == expectedSize,
               Self.isSupportedStreamFormat(format) else {
@@ -192,21 +181,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     }
 
     private func defaultOutputDevice() throws -> AudioDeviceID {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var device = AudioDeviceID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &address,
-            0,
-            nil,
-            &size,
-            &device
-        )
+        let (status, size, device) = dependencies.defaultOutputDevice()
         guard status == noErr,
               size == UInt32(MemoryLayout<AudioDeviceID>.size),
               device != kAudioObjectUnknown else {
@@ -216,17 +191,8 @@ final class ProcessAudioPipeline: @unchecked Sendable {
     }
 
     private func deviceUID(_ device: AudioDeviceID) throws -> String {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceUID,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var uid: CFString?
         let expectedSize = UInt32(MemoryLayout<CFString?>.size)
-        var size = expectedSize
-        let status = withUnsafeMutablePointer(to: &uid) { pointer in
-            AudioObjectGetPropertyData(device, &address, 0, nil, &size, pointer)
-        }
+        let (status, size, uid) = dependencies.deviceUID(device)
         guard status == noErr,
               size == expectedSize,
               let uid,

@@ -7,6 +7,25 @@ struct FeatureDescriptor: Identifiable, Equatable, Sendable {
     let systemImage: String
     let supportedClickActions: [FeatureClickAction]
     let defaultClickAction: FeatureClickAction
+    let supportedMenuBarVisibilityPolicies: [MenuBarVisibilityPolicy]
+
+    init(
+        id: UtilityFeatureID,
+        title: String,
+        summary: String,
+        systemImage: String,
+        supportedClickActions: [FeatureClickAction],
+        defaultClickAction: FeatureClickAction,
+        supportedMenuBarVisibilityPolicies: [MenuBarVisibilityPolicy] = [.hidden, .always]
+    ) {
+        self.id = id
+        self.title = title
+        self.summary = summary
+        self.systemImage = systemImage
+        self.supportedClickActions = supportedClickActions
+        self.defaultClickAction = defaultClickAction
+        self.supportedMenuBarVisibilityPolicies = supportedMenuBarVisibilityPolicies
+    }
 
     func title(for action: FeatureClickAction) -> String {
         guard action == .open else { return action.title }

@@ -1,33 +1,38 @@
 import SwiftUI
 
 struct MenuBarFeatureConfigurationCard: View {
-    @ObservedObject var model: ControlCenterModel
+    let model: ControlCenterModel
     let descriptor: FeatureDescriptor
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(descriptor.title, systemImage: descriptor.systemImage)
-                .font(.headline)
-            Text(descriptor.summary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        Section {
             Toggle("Show in Control Center", isOn: controlCenterBinding)
                 .accessibilityIdentifier("customize.\(descriptor.id.rawValue).center")
-            Toggle("Show Separate Menu-Bar Icon", isOn: standaloneBinding)
-                .accessibilityIdentifier("customize.\(descriptor.id.rawValue).standalone")
-            Picker("Left Click", selection: clickActionBinding) {
-                ForEach(descriptor.supportedClickActions) { action in
-                    Text(descriptor.title(for: action)).tag(action)
+            if descriptor.id != .systemMonitor {
+                Picker("Menu Bar", selection: visibilityBinding) {
+                    ForEach(descriptor.supportedMenuBarVisibilityPolicies) { policy in
+                        Text(policy.title).tag(policy)
+                    }
                 }
+                .accessibilityIdentifier("customize.\(descriptor.id.rawValue).standalone")
             }
-            .accessibilityIdentifier("customize.\(descriptor.id.rawValue).action")
-        }
-        .padding(AppDesign.cardPadding)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: AppDesign.cardCornerRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: AppDesign.cardCornerRadius)
-                .stroke(.separator, lineWidth: 1)
+            if descriptor.id == .keyboardCleaning {
+                LabeledContent("Left Click", value: String(localized: "Toggle Keyboard Cleaning"))
+            } else if descriptor.supportedClickActions.count == 1,
+                      let action = descriptor.supportedClickActions.first {
+                LabeledContent("Left Click", value: descriptor.title(for: action))
+            } else {
+                Picker("Left Click", selection: clickActionBinding) {
+                    ForEach(descriptor.supportedClickActions) { action in
+                        Text(descriptor.title(for: action)).tag(action)
+                    }
+                }
+                .accessibilityIdentifier("customize.\(descriptor.id.rawValue).action")
+            }
+        } header: {
+            Label(descriptor.title, systemImage: descriptor.systemImage)
+        } footer: {
+            Text(descriptor.summary)
         }
     }
 
@@ -38,10 +43,10 @@ struct MenuBarFeatureConfigurationCard: View {
         )
     }
 
-    private var standaloneBinding: Binding<Bool> {
+    private var visibilityBinding: Binding<MenuBarVisibilityPolicy> {
         Binding(
-            get: { model.configuration(for: descriptor.id).placement.showsStandaloneItem },
-            set: { model.setStandaloneItemVisible($0, for: descriptor.id) }
+            get: { model.configuration(for: descriptor.id).placement.menuBarVisibility },
+            set: { model.setMenuBarVisibility($0, for: descriptor.id) }
         )
     }
 

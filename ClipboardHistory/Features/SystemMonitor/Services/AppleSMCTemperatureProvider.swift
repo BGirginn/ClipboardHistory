@@ -118,7 +118,9 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
         let known = [
             "TC0P", "TC0D", "TC0E", "TC0F",
             "Tp01", "Tp05", "Tp09", "Tp0D", "Tp0H", "Tp0L", "Tp0P", "Tp0T",
-            "Tp1h", "Tp1t", "Tp1p", "Tp1E", "Te05", "Te0L", "Te0P"
+            "Tp0V", "Tp0Y", "Tp0b", "Tp0e", "Tp1h", "Tp1t", "Tp1p", "Tp1E",
+            "Te05", "Te09", "Te0H", "Te0L", "Te0P", "Te0S",
+            "Tf04", "Tf09", "Tf0A", "Tf0B", "Tf0D", "Tf0E"
         ]
         return known.compactMap { code in
             guard let info = keyInfo(for: code, connection: connection),
@@ -223,7 +225,10 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
     }
 
     func isCPUKey(_ code: String) -> Bool {
-        code.hasPrefix("Tp") || code.hasPrefix("Te") || code.hasPrefix("TC")
+        code.hasPrefix("Tp")
+            || code.hasPrefix("Te")
+            || code.hasPrefix("Tf")
+            || code.hasPrefix("TC")
     }
 
     func isTemperatureType(_ value: UInt32) -> Bool {

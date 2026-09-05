@@ -16,22 +16,38 @@ struct MenuBarConfigurationContent: View {
     }
 
     var body: some View {
-        VStack(spacing: AppDesign.sectionSpacing) {
+        Form {
+            if scope == .all {
+                Section {
+                    MenuBarPreview(model: model)
+                }
+                MenuBarPresetSection(model: model)
+            }
+
+            if !model.areRequestedMenuBarItemsVisible {
+                Section {
+                    Label(
+                        "macOS is not currently showing one or more requested menu-bar items.",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                    if let destination = Self.menuBarSettingsURL {
+                        Link("Open Menu Bar Settings", destination: destination)
+                    }
+                }
+            }
+
             if scope != .metrics {
-                VStack(alignment: .leading, spacing: 6) {
+                Section {
                     Toggle(
                         "Show Control Center Icon",
                         isOn: controlCenterItemBinding
                     )
-                    .toggleStyle(.switch)
                     .accessibilityIdentifier("customize.controlCenterItem")
+                } header: {
+                    Text("Control Center")
+                } footer: {
                     Text("Hiding this icon keeps ClipboardHistory available in the Dock.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
-                .padding(AppDesign.cardPadding)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(.rect(cornerRadius: AppDesign.cardCornerRadius))
             }
 
             if scope != .items {
@@ -44,7 +60,13 @@ struct MenuBarConfigurationContent: View {
                 }
             }
         }
+        .formStyle(.grouped)
+        .accessibilityIdentifier("customize.form")
     }
+
+    private static let menuBarSettingsURL = URL(
+        string: "x-apple.systempreferences:com.apple.MenuBar-Settings.extension"
+    )
 
     private var controlCenterItemBinding: Binding<Bool> {
         Binding(

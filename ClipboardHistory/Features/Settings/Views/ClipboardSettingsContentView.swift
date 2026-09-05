@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ClipboardSettingsContentView: View {
     let selectedSection: ClipboardSettingsSection
-    @ObservedObject var viewModel: SettingsFeatureModel
+    let viewModel: SettingsFeatureModel
 
     @ViewBuilder
     var body: some View {

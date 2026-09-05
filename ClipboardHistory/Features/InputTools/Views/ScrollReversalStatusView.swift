@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ScrollReversalStatusView: View {
-    @ObservedObject var controller: ScrollReversalController
+    let controller: ScrollReversalController
 
     var body: some View {
         Group {

@@ -1,4 +1,3 @@
-import AppKit
 import CoreAudio
 import Foundation
 
@@ -8,6 +7,7 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
         let processID: pid_t
         let bundleID: String
         let name: String
+        let applicationURL: URL
         let isProducingOutput: Bool
     }
 
@@ -47,7 +47,13 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
         )
     }
 
-    func applications() -> [AudioApplication] {
+    func applications() async -> [AudioApplication] {
+        await Task.detached(priority: .utility) { [self] in
+            discoverApplications()
+        }.value
+    }
+
+    private func discoverApplications() -> [AudioApplication] {
         let records = audioProcessObjectIDs().compactMap(processRecord(for:))
         return Dictionary(grouping: records, by: \.bundleID).compactMap { bundleID, group in
             guard let representative = group.first else { return nil }
@@ -59,6 +65,7 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
                 processID: representative.processID,
                 bundleID: bundleID,
                 name: representative.name,
+                applicationURL: representative.applicationURL,
                 isProducingOutput: group.contains(where: \.isProducingOutput),
                 volume: 100,
                 isMuted: false,
@@ -68,7 +75,10 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
             if $0.isProducingOutput != $1.isProducingOutput {
                 return $0.isProducingOutput && !$1.isProducingOutput
             }
-            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            let nameOrder = $0.name.localizedStandardCompare($1.name)
+            return nameOrder == .orderedSame
+                ? $0.bundleID < $1.bundleID
+                : nameOrder == .orderedAscending
         }
     }
 
@@ -117,19 +127,18 @@ final class CoreAudioProcessDiscovery: AudioProcessDiscovering, @unchecked Senda
         ) ?? 0
         let reportedBundleID = stringProperty(objectID, selector: kAudioProcessPropertyBundleID)
             .flatMap { $0.isEmpty ? nil : $0 }
-        let runningApplication = NSRunningApplication(processIdentifier: pid)
-        let identity = AudioApplicationIdentityResolver.resolve(
-            reportedBundleID: reportedBundleID ?? runningApplication?.bundleIdentifier ?? "pid.\(pid)",
-            runningName: runningApplication?.localizedName,
-            bundleURL: runningApplication?.bundleURL,
-            executableURL: runningApplication?.executableURL
-                ?? AudioApplicationIdentityResolver.executableURL(for: pid)
-        )
+        guard let identity = AudioApplicationIdentityResolver.resolve(
+            reportedBundleID: reportedBundleID,
+            runningName: nil,
+            bundleURL: nil,
+            executableURL: AudioApplicationIdentityResolver.executableURL(for: pid)
+        ) else { return nil }
         return ProcessRecord(
             objectID: objectID,
             processID: pid,
             bundleID: identity.bundleID,
             name: identity.name,
+            applicationURL: identity.applicationURL,
             isProducingOutput: running != 0
         )
     }

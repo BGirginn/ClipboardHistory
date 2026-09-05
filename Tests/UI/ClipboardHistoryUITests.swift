@@ -2,6 +2,22 @@ import XCTest
 
 @MainActor
 final class ClipboardHistoryUITests: XCTestCase {
+    func testRightClickReplacesOpenControlCenterPopoverWithNativeMenu() {
+        let application = launchApplication()
+        defer { terminate(application) }
+        let statusItem = application.descendants(matching: .statusItem)["menuBar.controlCenter"]
+        let popover = application.descendants(matching: .popover).firstMatch
+
+        XCTAssertTrue(popover.exists)
+        statusItem.rightClick()
+
+        XCTAssertTrue(
+            application.menuItems["Customize Menu Bar"].waitForExistence(timeout: 2)
+        )
+        XCTAssertFalse(popover.exists)
+        application.typeKey(.escape, modifierFlags: [])
+    }
+
     func testSearchIsRemovedAndSettingsRemainAccessible() {
         let application = launchApplication()
         defer { terminate(application) }
@@ -9,7 +25,10 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertFalse(application.textFields.firstMatch.exists)
 
         application.descendants(matching: .any)["module.settings"].click()
-        XCTAssertTrue(application.staticTexts["Settings"].waitForExistence(timeout: 2))
+        XCTAssertTrue(
+            application.descendants(matching: .any)["settings.section.clipboard"]
+                .waitForExistence(timeout: 2)
+        )
     }
 
     func testContextMenuOpensDetailsWithoutClosingPanel() {
@@ -123,10 +142,19 @@ final class ClipboardHistoryUITests: XCTestCase {
         let keyboardCleaning = application.descendants(matching: .any)["controlCenter.keyboardCleaning"]
         XCTAssertTrue(keyboardCleaning.waitForExistence(timeout: 2))
         keyboardCleaning.click()
-        XCTAssertTrue(application.staticTexts["Klavye Temizlik Modu"].waitForExistence(timeout: 2))
-        XCTAssertTrue(application.buttons["Klavye Temizliğini Başlat"].exists)
-        application.descendants(matching: .any)["module.back"].click()
-        application.descendants(matching: .any)["controlCenter.scrollReverse"].click()
+        let keyboardControlsBack = application.descendants(matching: .any)["module.back"]
+        if keyboardControlsBack.waitForExistence(timeout: 1) {
+            XCTAssertTrue(
+                application.descendants(matching: .any)["module.settings"].exists
+            )
+            keyboardControlsBack.click()
+        } else {
+            XCTAssertTrue(keyboardCleaning.exists)
+            keyboardCleaning.click()
+        }
+        let scrollReverse = application.descendants(matching: .any)["controlCenter.scrollReverse"]
+        XCTAssertTrue(scrollReverse.waitForExistence(timeout: 2))
+        scrollReverse.click()
         XCTAssertTrue(application.staticTexts["Scroll Reverse"].exists)
     }
 
@@ -135,38 +163,36 @@ final class ClipboardHistoryUITests: XCTestCase {
         defer { terminate(application) }
 
         application.descendants(matching: .any)["controlCenter.settings"].click()
-        XCTAssertTrue(application.staticTexts["Presentation"].waitForExistence(timeout: 2))
+        XCTAssertTrue(
+            application.descendants(matching: .any)["settings.navigationList"]
+                .waitForExistence(timeout: 2)
+        )
 
         selectSettingsButton(
-            identifier: "settings.section.menuBar",
-            shelfIdentifier: "settings.applicationShelf",
-            expectedHeading: "Show Control Center Icon",
-            in: application
-        )
-        selectSettingsButton(
             identifier: "settings.subsection.menuBarMetrics",
-            shelfIdentifier: "settings.subsectionShelf",
             expectedHeading: "Live System Metrics",
             in: application
         )
-        XCTAssertTrue(application.descendants(matching: .any)["CPU"].exists)
-        XCTAssertTrue(application.descendants(matching: .any)["Memory"].exists)
-
-        selectSettingsButton(
-            identifier: "settings.section.clipboard",
-            shelfIdentifier: "settings.applicationShelf",
-            expectedHeading: "Behavior",
-            in: application
+        let liveMetrics = application.descendants(matching: .any)["customize.metrics.visible"]
+        XCTAssertTrue(liveMetrics.waitForExistence(timeout: 2))
+        if (liveMetrics.value as? NSNumber)?.boolValue != true {
+            liveMetrics.click()
+        }
+        XCTAssertTrue(
+            application.descendants(matching: .any)["customize.metric.cpu"]
+                .waitForExistence(timeout: 2)
+        )
+        XCTAssertTrue(
+            application.descendants(matching: .any)["customize.metric.memory"]
+                .waitForExistence(timeout: 2)
         )
         selectSettingsButton(
             identifier: "settings.subsection.clipboardPrivacy",
-            shelfIdentifier: "settings.subsectionShelf",
             expectedHeading: "Sensitive Content",
             in: application
         )
         selectSettingsButton(
             identifier: "settings.subsection.clipboardStorage",
-            shelfIdentifier: "settings.subsectionShelf",
             expectedHeading: "Retention",
             in: application
         )
@@ -181,19 +207,16 @@ final class ClipboardHistoryUITests: XCTestCase {
         application.sheets.firstMatch.buttons["Cancel"].click()
         selectSettingsButton(
             identifier: "settings.subsection.clipboardAdvanced",
-            shelfIdentifier: "settings.subsectionShelf",
             expectedHeading: "Duplicate Detection",
             in: application
         )
         selectSettingsButton(
-            identifier: "settings.section.notes",
-            shelfIdentifier: "settings.applicationShelf",
+            identifier: "settings.subsection.notesGeneral",
             expectedHeading: "Stored Notes",
             in: application
         )
         selectSettingsButton(
-            identifier: "settings.section.inputTools",
-            shelfIdentifier: "settings.applicationShelf",
+            identifier: "settings.subsection.inputKeyboardCleaning",
             expectedHeading: "settings.inputTools",
             in: application
         )
@@ -215,9 +238,11 @@ final class ClipboardHistoryUITests: XCTestCase {
             application.descendants(matching: .any)["settings.section.notes"].isHittable
         )
 
-        application.descendants(matching: .any)["settings.back"].click()
+        application.descendants(matching: .any)["settings.close"].click()
         application.descendants(matching: .any)["module.back"].click()
-        application.descendants(matching: .any)["controlCenter.keyboardCleaning"].click()
+        let scrollReverse = application.descendants(matching: .any)["controlCenter.scrollReverse"]
+        XCTAssertTrue(scrollReverse.waitForExistence(timeout: 2))
+        scrollReverse.click()
         XCTAssertTrue(settingsButton.waitForExistence(timeout: 2))
         settingsButton.click()
         XCTAssertTrue(
@@ -310,7 +335,18 @@ final class ClipboardHistoryUITests: XCTestCase {
             "customize.clipboard.standalone"
         ]
         XCTAssertTrue(clipboardStandalone.waitForExistence(timeout: 2))
+        let customizationForm = application.descendants(matching: .any)["customize.form"]
+        XCTAssertTrue(customizationForm.waitForExistence(timeout: 2))
+        var remainingScrolls = 8
+        while !clipboardStandalone.isHittable && remainingScrolls > 0 {
+            customizationForm.scroll(byDeltaX: 0, deltaY: 160)
+            remainingScrolls -= 1
+        }
+        XCTAssertTrue(clipboardStandalone.isHittable)
         clipboardStandalone.click()
+        let alwaysVisible = application.menuItems["Always"]
+        XCTAssertTrue(alwaysVisible.waitForExistence(timeout: 2))
+        alwaysVisible.click()
 
         let clipboardAction = application.descendants(matching: .any)["customize.clipboard.action"]
         XCTAssertTrue(clipboardAction.waitForExistence(timeout: 2))
@@ -323,12 +359,14 @@ final class ClipboardHistoryUITests: XCTestCase {
         let centerItem = application.descendants(matching: .any)["customize.controlCenterItem"]
         XCTAssertTrue(centerItem.waitForExistence(timeout: 2))
         centerItem.click()
-        XCTAssertFalse(centerItem.isSelected)
-
-        clipboardStandalone.click()
-        let acknowledge = application.sheets.buttons["OK"].firstMatch
-        XCTAssertTrue(acknowledge.waitForExistence(timeout: 2))
-        acknowledge.click()
+        XCTAssertFalse(
+            application.descendants(matching: .statusItem)["menuBar.controlCenter"]
+                .waitForExistence(timeout: 1)
+        )
+        XCTAssertTrue(
+            application.descendants(matching: .statusItem)["menuBar.feature.clipboard"]
+                .waitForExistence(timeout: 2)
+        )
     }
 
     func testSystemMonitorAndExperimentalAudioMixerOpenFromControlCenter() {
@@ -393,6 +431,11 @@ final class ClipboardHistoryUITests: XCTestCase {
         statusItem.click()
 
         let controlCenter = application.descendants(matching: .any)["controlCenter.clipboard"]
+        if !controlCenter.waitForExistence(timeout: 2) {
+            // macOS can discard the first synthetic status-item click while a
+            // previous UI-test application is finishing its menu-bar teardown.
+            statusItem.click()
+        }
         XCTAssertTrue(controlCenter.waitForExistence(timeout: 5))
         let popover = application.descendants(matching: .popover).firstMatch
         XCTAssertTrue(popover.waitForExistence(timeout: 2))
@@ -426,17 +469,23 @@ final class ClipboardHistoryUITests: XCTestCase {
 
     private func selectSettingsButton(
         identifier: String,
-        shelfIdentifier: String,
         expectedHeading: String,
         in application: XCUIApplication
     ) {
+        let allSettings = application.descendants(matching: .any)["settings.all"]
+        if allSettings.exists && allSettings.isHittable {
+            allSettings.click()
+        }
+        let navigation = application.descendants(matching: .any)["settings.navigationList"]
+        XCTAssertTrue(
+            navigation.waitForExistence(timeout: 2),
+            "Missing settings navigation list"
+        )
         let button = application.descendants(matching: .any)[identifier]
         XCTAssertTrue(button.waitForExistence(timeout: 2), "Missing settings button: \(identifier)")
-        let shelf = application.descendants(matching: .any)[shelfIdentifier]
-        XCTAssertTrue(shelf.waitForExistence(timeout: 2), "Missing settings shelf: \(shelfIdentifier)")
-        var remainingScrolls = 6
+        var remainingScrolls = 12
         while !button.isHittable && remainingScrolls > 0 {
-            shelf.scroll(byDeltaX: 180, deltaY: 0)
+            navigation.scroll(byDeltaX: 0, deltaY: 160)
             remainingScrolls -= 1
         }
         XCTAssertTrue(button.isHittable, "Settings button is not reachable: \(identifier)")

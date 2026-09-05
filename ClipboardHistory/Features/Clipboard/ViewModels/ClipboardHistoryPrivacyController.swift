@@ -136,7 +136,12 @@ extension ClipboardHistoryViewModel {
 
     func settingsDidChange() {
         guard !isShuttingDown else { return }
-        refreshDisplayedItems()
+        if appliedDisplayFilter != settings.selectedFilter
+            || appliedSortMode != settings.selectedSortMode {
+            appliedDisplayFilter = settings.selectedFilter
+            appliedSortMode = settings.selectedSortMode
+            refreshDisplayedItems()
+        }
         updateIgnoredPasteboardTypes()
         let maintenancePreferences = StorageMaintenancePreferences(
             historyLimit: settings.historyLimit,
@@ -151,7 +156,6 @@ extension ClipboardHistoryViewModel {
         maintenanceTask = Task { [weak self] in
             guard let self else { return }
             await thumbnailService.setCacheLimit(megabytes: settings.thumbnailCacheMegabytes)
-            guard !Task.isCancelled else { return }
             guard !Task.isCancelled else { return }
             await enforceUnpinnedHistoryLimit()
             guard !Task.isCancelled else { return }

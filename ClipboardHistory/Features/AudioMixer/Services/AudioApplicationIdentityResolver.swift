@@ -1,4 +1,3 @@
-import AppKit
 import Darwin
 import Foundation
 
@@ -8,19 +7,22 @@ enum AudioApplicationIdentityResolver {
         runningName: String?,
         bundleURL: URL?,
         executableURL: URL?
-    ) -> (bundleID: String, name: String) {
-        let applicationURL = outermostApplicationURL(in: bundleURL)
+    ) -> (bundleID: String, name: String, applicationURL: URL)? {
+        guard let applicationURL = outermostApplicationURL(in: bundleURL)
             ?? outermostApplicationURL(in: executableURL)
-        let applicationBundle = applicationURL.flatMap(Bundle.init(url:))
+        else { return nil }
+        guard isUserFacingApplicationURL(applicationURL) else { return nil }
+        let applicationBundle = Bundle(url: applicationURL)
         let fallbackBundleID = normalizedBundleID(reportedBundleID)
         let bundleID = canonicalBundleID(
             applicationBundle?.bundleIdentifier ?? fallbackBundleID
         )
-        let name = applicationURL.map(applicationName)
+        guard !bundleID.hasPrefix("pid."), bundleID != "unknown.application" else { return nil }
+        let name = applicationBundle.flatMap(localizedApplicationName)
             ?? usableRunningName(runningName)
-            ?? installedApplicationName(bundleID: bundleID)
-            ?? String(localized: "Unknown Application")
-        return (bundleID, name)
+            ?? applicationName(at: applicationURL)
+        guard !name.isEmpty, name != String(localized: "Unknown Application") else { return nil }
+        return (bundleID, name, applicationURL)
     }
 
     static func executableURL(for processID: pid_t) -> URL? {
@@ -51,6 +53,26 @@ enum AudioApplicationIdentityResolver {
         return (displayName as NSString).deletingPathExtension
     }
 
+    private static func isUserFacingApplicationURL(_ url: URL) -> Bool {
+        !url.standardizedFileURL.path
+            .lowercased()
+            .hasPrefix("/system/library/")
+    }
+
+    private static func localizedApplicationName(in bundle: Bundle) -> String? {
+        for key in ["CFBundleDisplayName", "CFBundleName"] {
+            if let value = bundle.localizedInfoDictionary?[key] as? String,
+               !value.isEmpty {
+                return value
+            }
+            if let value = bundle.object(forInfoDictionaryKey: key) as? String,
+               !value.isEmpty {
+                return value
+            }
+        }
+        return nil
+    }
+
     private static func normalizedBundleID(_ bundleID: String?) -> String {
         guard let bundleID, !bundleID.isEmpty else { return "unknown.application" }
         return bundleID
@@ -77,11 +99,4 @@ enum AudioApplicationIdentityResolver {
         return name
     }
 
-    private static func installedApplicationName(bundleID: String) -> String? {
-        guard !bundleID.hasPrefix("pid."),
-              let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
-            return nil
-        }
-        return applicationName(at: url)
-    }
 }

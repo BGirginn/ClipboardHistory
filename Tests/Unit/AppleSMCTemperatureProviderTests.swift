@@ -18,6 +18,7 @@ final class AppleSMCTemperatureProviderTests: XCTestCase {
         XCTAssertFalse(provider.isTemperatureType(0))
         XCTAssertTrue(provider.isCPUKey("Tp01"))
         XCTAssertTrue(provider.isCPUKey("Te05"))
+        XCTAssertTrue(provider.isCPUKey("Tf04"))
         XCTAssertTrue(provider.isCPUKey("TC0P"))
         XCTAssertFalse(provider.isCPUKey("TG0P"))
         XCTAssertTrue(provider.sensorName(for: "Te05").contains("Te05"))

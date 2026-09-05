@@ -16,7 +16,7 @@ ClipboardHistory; Pano, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Miks
 
 ## Güncel durum
 
-- Güncel Community beta: [`v1.0.0-beta.4`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4) (`1.0.0`, build `10004`)
+- Güncel Community beta: [`v1.0.0-beta.5`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) (`1.0.0`, build `10005`)
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
 - İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
@@ -47,7 +47,7 @@ Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall -
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, ClipboardHistory üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4) sayfasından da indirilebilir.
+ZIP, DMG ve paketlenmemiş Chromium eklentisi ZIP dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) sayfasından da indirilebilir.
 
 ## Özellikler
 
@@ -56,7 +56,7 @@ ZIP ve DMG dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHist
 - Kopyalama, geri yükleme, etkin uygulamaya yapıştırma, farklı biçimde yapıştırma, Quick Look, sürükle-bırak ve toplu işlemler
 - FIFO/LIFO Yapıştırma Yığını ve klavye odaklı gezinme
 - Anında düzenleme, yerel arama ve otomatik kayıt sunan menü çubuğu notları
-- 60 saniyelik güvenli Klavye Temizliği ile kademeli ve hassas kaydırma için ayrı dikey/yatay ayarlar sunan bağımsız Scroll Reverse modülleri
+- Fareyle açılıp tekrar tıklanana kadar etkin kalan, uyku/oturum kapanışı/uygulama çıkışında klavyeyi serbest bırakan Klavye Temizliği ile kademeli ve hassas kaydırma için ayrı dikey/yatay ayarlar sunan bağımsız Scroll Reverse modülleri
 - Sistem, Açık ve Koyu görünüm seçenekleri
 - Gizli Mod, geçici kayıt duraklatma ve uygulama hariç tutma
 - Birleşik Kontrol Merkezi, her modül için isteğe bağlı ayrı menü çubuğu ikonu, ayarlanabilir sol tıklama eylemleri ve güvenli sağ tık menüleri
@@ -150,7 +150,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-`v1.0.0-beta.4`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
+`v1.0.0-beta.5`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, Chromium eklenti ZIP'i, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
 
 ## Lisans
 

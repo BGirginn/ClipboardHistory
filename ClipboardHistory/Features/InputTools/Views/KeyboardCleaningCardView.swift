@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct KeyboardCleaningCardView: View {
-    @ObservedObject var controller: KeyboardCleaningController
+    let controller: KeyboardCleaningController
 
     var body: some View {
         GroupBox {
@@ -18,16 +18,9 @@ struct KeyboardCleaningCardView: View {
 
                 if controller.isActive {
                     Text(
-                        "Keyboard input unlocks automatically in \(controller.remainingSeconds) seconds. Mouse input stays available."
+                        "Keyboard input stays blocked until you stop cleaning. Mouse input stays available."
                     )
                     .foregroundStyle(.secondary)
-
-                    ProgressView(
-                        value: Double(controller.remainingSeconds),
-                        total: KeyboardCleaningController.defaultDuration
-                    )
-                    .accessibilityLabel("Keyboard Cleaning Mode remaining time")
-                    .accessibilityValue("\(controller.remainingSeconds) seconds")
 
                     Button(
                         "Stop Keyboard Cleaning",
@@ -39,7 +32,7 @@ struct KeyboardCleaningCardView: View {
                     .accessibilityIdentifier("keyboardCleaning.stop")
                 } else {
                     Text(
-                        "Keyboard input is blocked for 60 seconds. You can stop early with the mouse from this screen or the menu-bar right-click menu."
+                        "Start with the mouse, then click again when cleaning is complete. Sleep, sign-out, or quitting always releases the keyboard."
                     )
                     .foregroundStyle(.secondary)
 

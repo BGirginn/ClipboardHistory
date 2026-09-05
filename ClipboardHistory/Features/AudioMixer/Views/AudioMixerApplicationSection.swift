@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AudioMixerApplicationSection: View {
     let applications: [AudioApplication]
-    @ObservedObject var controller: AudioMixerController
+    let controller: AudioMixerController
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -14,13 +14,14 @@ struct AudioMixerApplicationSection: View {
                     description: Text("Start audio in an application to show it here.")
                 )
             } else {
-                ForEach(applications) { application in
+                ForEach(applications, id: \.bundleID) { application in
                     AudioApplicationRow(
                         application: application,
-                        setVolume: { controller.setVolume($0, for: application) },
+                        previewVolume: { controller.previewVolume($0, for: application) },
+                        commitVolume: { controller.setVolume($0, for: application) },
                         toggleMute: { controller.toggleMute(application) }
                     )
-                    if application.id != applications.last?.id { Divider() }
+                    if application.bundleID != applications.last?.bundleID { Divider() }
                 }
             }
         }

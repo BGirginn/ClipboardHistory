@@ -41,6 +41,7 @@ NSDictionary<NSString *, NSNumber *> *CHAppleSiliconTemperatureSensors(void) {
         BOOL isVerifiedCPUOrSoC = [product hasPrefix:@"pACC MTR Temp"]
             || [product hasPrefix:@"eACC MTR Temp"]
             || [product hasPrefix:@"SOC MTR Temp"]
+            || [product hasPrefix:@"PMGR SOC Die Temp"]
             || ([product hasPrefix:@"PMU"] && [product containsString:@" tdie"]);
         if (!isVerifiedCPUOrSoC) {
             continue;

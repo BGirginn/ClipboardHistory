@@ -21,10 +21,8 @@ extension ClipboardHistoryViewModel {
                 AppLog.clipboard.debug("Programmatic clipboard restore ignored")
                 return
             }
-            if pasteboardIdentity.changeCount > expectedIdentity.changeCount {
-                lastProgrammaticallyWrittenHash = nil
-                lastProgrammaticallyWrittenIdentity = nil
-            }
+            lastProgrammaticallyWrittenHash = nil
+            lastProgrammaticallyWrittenIdentity = nil
         } else if pasteboardIdentity == nil, let expectedHash = lastProgrammaticallyWrittenHash {
             lastProgrammaticallyWrittenHash = nil
             lastProgrammaticallyWrittenIdentity = nil

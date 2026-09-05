@@ -3,12 +3,12 @@ import Foundation
 struct FeatureRegistry: Sendable {
     let descriptors: [FeatureDescriptor]
 
-    func descriptor(for id: UtilityFeatureID) -> FeatureDescriptor {
-        descriptors.first { $0.id == id } ?? Self.live.descriptors[0]
+    func descriptor(for id: UtilityFeatureID) -> FeatureDescriptor? {
+        descriptors.first { $0.id == id }
     }
 
     func validatedAction(_ action: FeatureClickAction, for id: UtilityFeatureID) -> FeatureClickAction {
-        let descriptor = descriptor(for: id)
+        guard let descriptor = descriptor(for: id) else { return .open }
         return descriptor.supportedClickActions.contains(action)
             ? action
             : descriptor.defaultClickAction
@@ -22,7 +22,8 @@ struct FeatureRegistry: Sendable {
                 summary: String(localized: "Capture, find, and reuse clipboard items"),
                 systemImage: "clipboard",
                 supportedClickActions: [.open, .toggleClipboardRecording],
-                defaultClickAction: .open
+                defaultClickAction: .open,
+                supportedMenuBarVisibilityPolicies: [.hidden, .whenActive, .always]
             ),
             FeatureDescriptor(
                 id: .notes,
@@ -38,7 +39,8 @@ struct FeatureRegistry: Sendable {
                 summary: String(localized: "Temporarily block keyboard input"),
                 systemImage: "keyboard.badge.ellipsis",
                 supportedClickActions: [.open, .toggleKeyboardCleaning],
-                defaultClickAction: .open
+                defaultClickAction: .toggleKeyboardCleaning,
+                supportedMenuBarVisibilityPolicies: [.hidden, .whenActive, .always]
             ),
             FeatureDescriptor(
                 id: .scrollReverse,
@@ -46,7 +48,8 @@ struct FeatureRegistry: Sendable {
                 summary: String(localized: "Reverse mouse or trackpad scrolling"),
                 systemImage: "arrow.up.arrow.down.circle",
                 supportedClickActions: [.open, .toggleScrollReverse],
-                defaultClickAction: .open
+                defaultClickAction: .open,
+                supportedMenuBarVisibilityPolicies: [.hidden, .whenActive, .always]
             ),
             FeatureDescriptor(
                 id: .systemMonitor,
@@ -62,7 +65,8 @@ struct FeatureRegistry: Sendable {
                 summary: String(localized: "Control application and supported browser-tab volume"),
                 systemImage: "slider.horizontal.3",
                 supportedClickActions: [.open, .muteAllAudio],
-                defaultClickAction: .open
+                defaultClickAction: .open,
+                supportedMenuBarVisibilityPolicies: [.hidden, .whenActive, .always]
             )
         ]
     )

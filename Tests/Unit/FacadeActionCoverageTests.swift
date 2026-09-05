@@ -16,6 +16,22 @@ final class FacadeActionCoverageTests: XCTestCase {
             ["automatic", "kilobytes", "megabytes", "gigabytes"]
         )
         XCTAssertEqual(TemperatureMetricUnit.allCases.map(\.id), ["celsius", "fahrenheit"])
+        XCTAssertEqual(MenuBarMetricStyle.allCases.map(\.id), ["compact", "value", "iconAndValue"])
+        XCTAssertTrue(MenuBarMetricStyle.allCases.allSatisfy { !$0.title.isEmpty })
+        XCTAssertEqual(
+            ClipboardSettingsSection.allCases.map(\.id),
+            [.general, .privacy, .storage, .advanced]
+        )
+        XCTAssertTrue(ClipboardSettingsSection.allCases.allSatisfy {
+            !$0.title.isEmpty && !$0.systemImage.isEmpty
+        })
+        XCTAssertEqual(AppSettingsSection.allCases.map(\.id), AppSettingsSection.allCases)
+        XCTAssertTrue(AppSettingsSection.allCases.allSatisfy {
+            !$0.title.isEmpty
+                && !$0.systemImage.isEmpty
+                && !$0.subsections.isEmpty
+                && $0.defaultSubsection.section == $0
+        })
         for metric in MenuBarMetricID.allCases {
             XCTAssertEqual(metric.id, metric.rawValue)
             XCTAssertFalse(metric.title.isEmpty)
@@ -546,7 +562,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.viewModel.lastProgrammaticallyWrittenIdentity = ClipboardPasteboardIdentity(changeCount: 10)
         await context.viewModel.insert(
             .text(value: "new clipboard", hash: "new-clipboard"),
-            pasteboardIdentity: ClipboardPasteboardIdentity(changeCount: 11)
+            pasteboardIdentity: ClipboardPasteboardIdentity(changeCount: 1)
         )
         XCTAssertNil(context.viewModel.lastProgrammaticallyWrittenIdentity)
 

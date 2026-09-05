@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuBarCustomizationView: View {
-    @ObservedObject var model: ControlCenterModel
+    let model: ControlCenterModel
     let close: () -> Void
     let openSettings: () -> Void
 
@@ -15,10 +15,7 @@ struct MenuBarCustomizationView: View {
                 openSettings: openSettings
             ) { EmptyView() }
             Divider()
-            ScrollView {
-                MenuBarConfigurationContent(model: model)
-                .padding(AppDesign.horizontalPadding)
-            }
+            MenuBarConfigurationContent(model: model)
         }
     }
 }

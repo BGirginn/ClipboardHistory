@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct ClipboardSegmentedFilterControls: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    @ObservedObject var settings: AppSettings
 
     var body: some View {
         HStack(spacing: 8) {
-            Picker("Filter", selection: $viewModel.settings.selectedFilter) {
+            Picker("Filter", selection: $settings.selectedFilter) {
                 ForEach(ClipboardFilter.allCases) { filter in
                     Text(filter.title).tag(filter)
                 }
@@ -15,7 +15,7 @@ struct ClipboardSegmentedFilterControls: View {
             .fixedSize(horizontal: true, vertical: false)
             .accessibilityIdentifier("filter.picker")
 
-            ClipboardSortMenu(viewModel: viewModel)
+            ClipboardSortMenu(settings: settings)
         }
     }
 }

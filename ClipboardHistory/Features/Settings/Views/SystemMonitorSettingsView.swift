@@ -45,11 +45,6 @@ struct SystemMonitorSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .task {
-            controller.setDemand(.detail, active: true)
-            defer { controller.setDemand(.detail, active: false) }
-            try? await Task.sleep(for: .seconds(31_536_000))
-        }
     }
 
     private var temperature: String {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ClipboardPasteStackView: View {
-    @ObservedObject var viewModel: ClipboardHistoryViewModel
+    let viewModel: ClipboardHistoryViewModel
 
     var body: some View {
         HStack(spacing: 8) {

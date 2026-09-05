@@ -2,31 +2,43 @@ import AppKit
 
 @MainActor
 extension MenuBarController {
-    func rebuildStatusItems(configuration: MenuBarConfiguration? = nil) {
+    func rebuildStatusItems(
+        configuration: MenuBarConfiguration? = nil,
+        keyboardCleaningActive: Bool? = nil,
+        scrollReversalActive: Bool? = nil
+    ) {
         let configuration = configuration ?? appModel.controlCenter.configuration
-        var desired: Set<MenuBarItemID> = []
-        if configuration.showsControlCenterItem { desired.insert(.controlCenter) }
-        configuration.features
-            .filter { $0.placement.showsStandaloneItem }
-            .forEach { desired.insert(.feature($0.id)) }
-        if configuration.metricGroup.isVisible && !configuration.metricGroup.metrics.isEmpty {
+        var desired: [MenuBarItemID] = []
+        if configuration.showsControlCenterItem { desired.append(.controlCenter) }
+        desired.append(contentsOf: configuration.features
+            .filter {
+                $0.id != .systemMonitor && shouldShowFeatureStatusItem(
+                    $0,
+                    keyboardCleaningActive: keyboardCleaningActive,
+                    scrollReversalActive: scrollReversalActive
+                )
+            }
+            .map { .feature($0.id) })
+        if configuration.showsSystemMetricsInMenuBar {
             if configuration.metricGroup.showsSeparateItems {
-                configuration.metricGroup.metrics.forEach { desired.insert(.metric($0)) }
+                desired.append(contentsOf: configuration.visibleMenuBarMetrics.map(MenuBarItemID.metric))
             } else {
-                desired.insert(.metricGroup)
+                desired.append(.metricGroup)
             }
         }
         appModel.systemMetrics.setDemand(
-            .menuBar,
-            active: configuration.metricGroup.isVisible && !configuration.metricGroup.metrics.isEmpty
+            configuration.showsSystemMetricsInMenuBar ? .menuBar : nil,
+            for: .menuBar
         )
         let removesActiveAnchor = !desired.contains(activeAnchorID)
 
-        for itemID in Array(statusItems.keys) where !desired.contains(itemID) {
+        let desiredSet = Set(desired)
+        for itemID in Array(statusItems.keys) where !desiredSet.contains(itemID) {
             if let item = statusItems.removeValue(forKey: itemID) {
                 dependencies.removeStatusItem(item)
             }
             renderedStatusStates.removeValue(forKey: itemID)
+            metricStripViews.removeValue(forKey: itemID)?.removeFromSuperview()
         }
         for itemID in desired where statusItems[itemID] == nil {
             let item = dependencies.makeStatusItem()
@@ -45,10 +57,70 @@ extension MenuBarController {
         if statusItems[activeAnchorID] == nil {
             activeAnchorID = statusItems[.controlCenter] != nil
                 ? .controlCenter
-                : statusItems.keys.first ?? .controlCenter
+                : desired.first ?? .controlCenter
         }
-        updateStatusIcon()
+        updateStatusIcon(configuration: configuration)
+        appModel.controlCenter.setRequestedMenuBarItemsVisible(
+            desired.allSatisfy { statusItems[$0]?.isVisible == true }
+        )
         reanchorPopoverIfNeeded(removesActiveAnchor: removesActiveAnchor)
+    }
+
+    func refreshConditionalStatusItems(
+        keyboardCleaningActive: Bool? = nil,
+        scrollReversalActive: Bool? = nil
+    ) {
+        let configuration = appModel.controlCenter.configuration
+        let conditionalFeatures = configuration.features.filter {
+            $0.id != .systemMonitor && $0.placement.menuBarVisibility == .whenActive
+        }
+        let needsRebuild = conditionalFeatures.contains { feature in
+            let isPresent = statusItems[.feature(feature.id)] != nil
+            return isPresent != shouldShowFeatureStatusItem(
+                feature,
+                keyboardCleaningActive: keyboardCleaningActive,
+                scrollReversalActive: scrollReversalActive
+            )
+        }
+        if needsRebuild {
+            rebuildStatusItems(
+                configuration: configuration,
+                keyboardCleaningActive: keyboardCleaningActive,
+                scrollReversalActive: scrollReversalActive
+            )
+        } else {
+            updateStatusIcon(
+                configuration: configuration,
+                keyboardCleaningActive: keyboardCleaningActive,
+                scrollReversalActive: scrollReversalActive
+            )
+        }
+    }
+
+    private func shouldShowFeatureStatusItem(
+        _ feature: UtilityFeatureConfiguration,
+        keyboardCleaningActive: Bool? = nil,
+        scrollReversalActive: Bool? = nil
+    ) -> Bool {
+        switch feature.placement.menuBarVisibility {
+        case .hidden:
+            return false
+        case .always:
+            return true
+        case .whenActive:
+            return switch feature.id {
+            case .clipboard:
+                appModel.clipboard.isPrivateMode || appModel.clipboard.isPaused
+            case .keyboardCleaning:
+                keyboardCleaningActive ?? appModel.inputTools.keyboardCleaning.isActive
+            case .scrollReverse:
+                scrollReversalActive ?? appModel.inputTools.scrollReversal.isActive
+            case .audioMixer:
+                appModel.audioMixer.hasActiveUserIntervention
+            case .notes, .systemMonitor:
+                false
+            }
+        }
     }
 
     func quickActionTitle(for id: UtilityFeatureID) -> String {
@@ -85,9 +157,17 @@ extension MenuBarController {
         }
     }
 
-    func updateStatusIcon() {
+    func updateStatusIcon(
+        configuration: MenuBarConfiguration? = nil,
+        keyboardCleaningActive: Bool? = nil,
+        scrollReversalActive: Bool? = nil
+    ) {
+        let keyboardCleaningActive = keyboardCleaningActive
+            ?? appModel.inputTools.keyboardCleaning.isActive
+        let scrollReversalActive = scrollReversalActive
+            ?? appModel.inputTools.scrollReversal.isActive
         var activeStates: [String] = []
-        if appModel.inputTools.keyboardCleaning.isActive {
+        if keyboardCleaningActive {
             activeStates.append(String(localized: "Keyboard Cleaning Mode active"))
         }
         if appModel.clipboard.isPrivateMode {
@@ -95,7 +175,7 @@ extension MenuBarController {
         } else if appModel.clipboard.isPaused {
             activeStates.append(String(localized: "Recording paused"))
         }
-        if appModel.inputTools.scrollReversal.isActive {
+        if scrollReversalActive {
             activeStates.append(String(localized: "Scroll Reverse active"))
         }
         let stateSuffix = activeStates.isEmpty ? "" : " — " + activeStates.joined(separator: ", ")
@@ -114,74 +194,166 @@ extension MenuBarController {
             tooltip: String(localized: "Clipboard")
                 + (appModel.clipboard.isPaused ? " — " + String(localized: "Recording paused") : "")
         )
-        configureStatusItem(.feature(.notes), symbol: "note.text", description: String(localized: "Notes"), tooltip: String(localized: "Notes"))
+        configureStatusItem(
+            .feature(.notes),
+            symbol: "note.text",
+            description: String(localized: "Notes"),
+            tooltip: String(localized: "Notes")
+        )
         configureStatusItem(
             .feature(.keyboardCleaning),
-            symbol: appModel.inputTools.keyboardCleaning.isActive ? "keyboard.badge.ellipsis.fill" : "keyboard.badge.ellipsis",
+            symbol: keyboardCleaningActive ? "keyboard.badge.ellipsis.fill" : "keyboard.badge.ellipsis",
             description: String(localized: "Keyboard Cleaning"),
-            tooltip: String(localized: "Keyboard Cleaning") + (appModel.inputTools.keyboardCleaning.isActive ? " — " + String(localized: "Active") : "")
+            tooltip: String(localized: "Keyboard Cleaning")
+                + (keyboardCleaningActive ? " — " + String(localized: "Active") : "")
         )
         configureStatusItem(
             .feature(.scrollReverse),
-            symbol: appModel.inputTools.scrollReversal.isActive ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle",
+            symbol: scrollReversalActive ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle",
             description: String(localized: "Scroll Reverse"),
-            tooltip: String(localized: "Scroll Reverse") + (appModel.inputTools.scrollReversal.isActive ? " — " + String(localized: "Active") : "")
+            tooltip: String(localized: "Scroll Reverse")
+                + (scrollReversalActive ? " — " + String(localized: "Active") : "")
         )
-        configureStatusItem(.feature(.systemMonitor), symbol: "gauge.with.dots.needle.67percent", description: String(localized: "System Monitor"), tooltip: systemMetricsTooltip)
         configureStatusItem(
             .feature(.audioMixer),
-            symbol: appModel.audioMixer.isEverythingMuted ? "speaker.slash.fill" : "slider.horizontal.3",
+            symbol: "slider.horizontal.3",
             description: String(localized: "Audio Mixer"),
             tooltip: String(localized: "Audio Mixer")
         )
-        configureMetricItems()
+        updateMetricStatusItems(configuration: configuration)
     }
 
-    private var systemMetricsTooltip: String {
-        let metrics = appModel.systemMetrics
-        let formats = appModel.controlCenter.configuration.metricFormats
-        return "CPU \(metrics.value(for: .cpu, formats: formats)) · RAM \(metrics.value(for: .memory, formats: formats)) · \(metrics.value(for: .temperature, formats: formats))"
-    }
-
-    private func configureMetricItems() {
-        let group = appModel.controlCenter.configuration.metricGroup
-        guard group.isVisible else { return }
+    func updateMetricStatusItems(
+        configuration: MenuBarConfiguration? = nil,
+        snapshot: SystemMetricSnapshot? = nil
+    ) {
+        let configuration = configuration ?? appModel.controlCenter.configuration
+        let group = configuration.metricGroup
+        guard configuration.showsSystemMetricsInMenuBar else { return }
+        let metrics = configuration.visibleMenuBarMetrics
         if group.showsSeparateItems {
-            for metric in group.metrics {
-                configureMetricStatusItem(.metric(metric), metrics: [metric], style: group.style)
+            for metric in metrics {
+                configureMetricStatusItem(
+                    .metric(metric),
+                    metrics: [metric],
+                    style: group.style,
+                    configuration: configuration,
+                    snapshot: snapshot
+                )
             }
         } else {
-            configureMetricStatusItem(.metricGroup, metrics: group.metrics, style: group.style)
+            let visibleMetrics = Array(metrics.prefix(group.density.visibleMetricLimit))
+            configureMetricStatusItem(
+                .metricGroup,
+                metrics: visibleMetrics,
+                style: group.style,
+                configuration: configuration,
+                snapshot: snapshot,
+                tooltipMetrics: metrics
+            )
         }
     }
 
-    private func configureMetricStatusItem(_ id: MenuBarItemID, metrics: [MenuBarMetricID], style: MenuBarMetricStyle) {
-        let formats = appModel.controlCenter.configuration.metricFormats
-        let text = metrics.map { metric -> String in
-            let value = appModel.systemMetrics.value(for: metric, formats: formats)
-            return style == .compact ? value : "\(metric.title) \(value)"
-        }.joined(separator: "  ")
-        let tooltip = metrics.map {
-            "\($0.title): \(appModel.systemMetrics.value(for: $0, formats: formats))"
+    private func configureMetricStatusItem(
+        _ id: MenuBarItemID,
+        metrics: [MenuBarMetricID],
+        style: MenuBarMetricStyle,
+        configuration: MenuBarConfiguration,
+        snapshot: SystemMetricSnapshot?,
+        tooltipMetrics: [MenuBarMetricID]? = nil
+    ) {
+        let formats = configuration.metricFormats
+        let parts = metrics.map { metric -> String in
+            let value = appModel.systemMetrics.value(
+                for: metric,
+                snapshot: snapshot,
+                formats: formats
+            )
+            let title = menuBarTitle(for: metric, snapshot: snapshot)
+            return style == .compact ? value : "\(title) \(value)"
+        }
+        let text = parts.joined(separator: "  ")
+        let allMetrics = tooltipMetrics ?? metrics
+        let tooltip = allMetrics.map {
+            metricTooltip(for: $0, snapshot: snapshot, formats: formats)
         }.joined(separator: " · ") + String(localized: " — right-click for options")
+        if style == .iconAndValue {
+            let segments = metrics.map { metric in
+                MenuBarMetricSegmentState(
+                    metric: metric,
+                    symbol: metric.menuBarSymbol,
+                    leadingText: metric.menuBarTextLabel,
+                    value: appModel.systemMetrics.value(
+                        for: metric,
+                        snapshot: snapshot,
+                        formats: formats
+                    ),
+                    accessibilityLabel: metricTooltip(
+                        for: metric,
+                        snapshot: snapshot,
+                        formats: formats
+                    ),
+                    width: metric.menuBarSegmentWidth(formats: formats)
+                )
+            }
+            applyMetricStripState(
+                segments,
+                renderedTitle: text,
+                tooltip: tooltip,
+                to: id
+            )
+            return
+        }
         let metric = metrics.count == 1 ? metrics.first : nil
-        let symbol = style == .iconAndValue
+        let symbol = style == .iconAndValue && metric?.menuBarTextLabel == nil
             ? metric?.systemImage ?? "waveform.path.ecg"
             : nil
         applyRenderedState(
             MenuBarRenderedState(
                 title: text,
                 symbol: symbol,
-                accessibilityDescription: metric?.title ?? tooltip,
+                accessibilityDescription: metric.map {
+                    menuBarTitle(for: $0, snapshot: snapshot)
+                } ?? String(localized: "System Monitor"),
                 tooltip: tooltip
             ),
             to: id,
-            fixedLength: stableMetricItemLength(
-                metrics: metrics,
-                style: style,
-                formats: formats,
-                includesImage: symbol != nil
-            )
+            fixedLength: metrics.count > 1 ? nil : metric?.menuBarStandaloneWidth(formats: formats)
+        )
+    }
+
+    private func applyMetricStripState(
+        _ segments: [MenuBarMetricSegmentState],
+        renderedTitle: String,
+        tooltip: String,
+        to id: MenuBarItemID
+    ) {
+        guard let item = statusItems[id], let button = item.button else { return }
+        let stripView: MenuBarMetricStripView
+        if let existing = metricStripViews[id] {
+            stripView = existing
+        } else {
+            stripView = MenuBarMetricStripView(frame: .zero)
+            metricStripViews[id] = stripView
+            button.addSubview(stripView)
+            NSLayoutConstraint.activate([
+                stripView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+                stripView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
+            ])
+        }
+        stripView.apply(segments)
+        let desiredLength = stripView.intrinsicContentSize.width
+        if item.length != desiredLength { item.length = desiredLength }
+        if !button.title.isEmpty { button.title = "" }
+        if button.image != nil { button.image = nil }
+        button.imagePosition = .noImage
+        button.toolTip = tooltip
+        button.setAccessibilityLabel(tooltip)
+        renderedStatusStates[id] = MenuBarRenderedState(
+            title: renderedTitle,
+            symbol: nil,
+            accessibilityDescription: segments.map(\.accessibilityLabel).joined(separator: ", "),
+            tooltip: tooltip
         )
     }
 
@@ -204,30 +376,44 @@ extension MenuBarController {
     ) {
         guard let item = statusItems[id],
               let button = item.button else { return }
+        metricStripViews.removeValue(forKey: id)?.removeFromSuperview()
         let desiredLength = state.title.isEmpty
             ? NSStatusItem.squareLength
             : fixedLength ?? NSStatusItem.variableLength
+        let previousState = renderedStatusStates[id]
+        guard previousState != state || item.length != desiredLength else { return }
         if item.length != desiredLength {
             item.length = desiredLength
         }
-        if let cell = button.cell as? NSButtonCell {
-            cell.wraps = false
-            cell.lineBreakMode = .byClipping
+        if previousState == nil || previousState?.title.isEmpty != state.title.isEmpty {
+            if let cell = button.cell as? NSButtonCell {
+                cell.wraps = false
+                cell.lineBreakMode = .byClipping
+            }
+            button.imagePosition = state.title.isEmpty ? .imageOnly : .imageLeading
+            button.alignment = state.title.isEmpty ? .center : .left
+            if !state.title.isEmpty {
+                button.font = metricFont
+            }
         }
-        button.imagePosition = state.title.isEmpty ? .imageOnly : .imageLeading
-        button.alignment = state.title.isEmpty ? .center : .left
-        if !state.title.isEmpty {
-            button.font = metricFont
+        if previousState?.title != state.title {
+            button.title = state.title
+        }
+        if previousState?.symbol != state.symbol
+            || previousState?.accessibilityDescription != state.accessibilityDescription {
+            button.image = state.symbol.flatMap {
+                NSImage(
+                    systemSymbolName: $0,
+                    accessibilityDescription: state.accessibilityDescription
+                )
+            }
+        }
+        if previousState?.tooltip != state.tooltip {
+            button.toolTip = state.tooltip
+            button.setAccessibilityLabel(state.tooltip)
         }
 
-        guard renderedStatusStates[id] != state else { return }
         renderedStatusStates[id] = state
-        button.title = state.title
-        button.image = state.symbol.flatMap {
-            NSImage(systemSymbolName: $0, accessibilityDescription: state.accessibilityDescription)
-        }
-        button.toolTip = state.tooltip
-        button.setAccessibilityLabel(state.tooltip)
     }
 
     private var metricFont: NSFont {
@@ -237,72 +423,44 @@ extension MenuBarController {
         )
     }
 
-    private func stableMetricItemLength(
-        metrics: [MenuBarMetricID],
-        style: MenuBarMetricStyle,
-        formats: MetricFormatPreferences,
-        includesImage: Bool
-    ) -> CGFloat {
-        let attributes: [NSAttributedString.Key: Any] = [.font: metricFont]
-        let separatorWidth = ("  " as NSString).size(withAttributes: attributes).width
-        let textWidth = metrics.enumerated().reduce(CGFloat.zero) { width, entry in
-            let (index, metric) = entry
-            let prefix = style == .compact ? "" : "\(metric.title) "
-            let prefixWidth = (prefix as NSString).size(withAttributes: attributes).width
-            let valueWidth = stableValueCandidates(for: metric, formats: formats)
-                .map { ($0 as NSString).size(withAttributes: attributes).width }
-                .max() ?? 0
-            return width + (index == 0 ? 0 : separatorWidth) + prefixWidth + valueWidth
-        }
-        let imageWidth: CGFloat = includesImage ? 20 : 0
-        return ceil(textWidth + imageWidth + 8)
-    }
-
-    private func stableValueCandidates(
+    private func metricTooltip(
         for metric: MenuBarMetricID,
+        snapshot presentedSnapshot: SystemMetricSnapshot?,
         formats: MetricFormatPreferences
-    ) -> [String] {
+    ) -> String {
+        let snapshot = presentedSnapshot ?? appModel.systemMetrics.snapshot
+        let value = appModel.systemMetrics.value(
+            for: metric,
+            snapshot: snapshot,
+            formats: formats
+        )
+        let title = menuBarTitle(for: metric, snapshot: snapshot)
         switch metric {
         case .cpu:
-            return ["100%"]
-        case .memory where formats.memory == .usedAndTotal:
-            return ["999.99 TB/999.99 TB"]
+            let cpu = snapshot.cpu
+            let user = cpu.userPercent.formatted(.number.precision(.fractionLength(0)))
+            let system = cpu.systemPercent.formatted(.number.precision(.fractionLength(0)))
+            return "\(title): \(value) · \(String(localized: "User")) \(user)% "
+                + "· \(String(localized: "System")) \(system)%"
         case .memory:
-            return ["100%"]
-        case .temperature where formats.temperature == .fahrenheit:
-            return ["212°F"]
-        case .temperature:
-            return ["100°C"]
-        case .networkDownload, .networkUpload, .diskRead, .diskWrite:
-            return stableRateCandidates(unit: formats.rate)
+            let pressure = snapshot.memory.pressure.title
+            return "\(title): \(value) · \(pressure)"
+        default:
+            return "\(title): \(value)"
         }
     }
 
-    private func stableRateCandidates(unit: RateMetricUnit) -> [String] {
-        switch unit {
-        case .automatic:
-            return [
-                "999 B/s",
-                "999.9 KB/s",
-                "999.9 MB/s",
-                "999.99 GB/s",
-                "999.99 TB/s"
-            ]
-        case .kilobytes:
-            return [fixedRateCandidate(suffix: " KB/s", maximumFractionDigits: 1)]
-        case .megabytes:
-            return [fixedRateCandidate(suffix: " MB/s", maximumFractionDigits: 1)]
-        case .gigabytes:
-            return [fixedRateCandidate(suffix: " GB/s", maximumFractionDigits: 2)]
-        }
-    }
-
-    private func fixedRateCandidate(
-        suffix: String,
-        maximumFractionDigits: Int
+    private func menuBarTitle(
+        for metric: MenuBarMetricID,
+        snapshot presentedSnapshot: SystemMetricSnapshot?
     ) -> String {
-        9_999_999.9.formatted(
-            .number.precision(.fractionLength(maximumFractionDigits))
-        ) + suffix
+        if let textLabel = metric.menuBarTextLabel { return textLabel }
+        guard metric == .temperature else { return metric.title }
+        let snapshot = presentedSnapshot ?? appModel.systemMetrics.snapshot
+        guard let source = snapshot.primaryTemperatureReading?.localizedSourceName else {
+            return metric.title
+        }
+        return String(localized: "\(source) Temperature")
     }
+
 }

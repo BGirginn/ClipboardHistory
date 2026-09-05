@@ -15,6 +15,7 @@ final class ClipboardMonitor {
     private let timerScheduler: any RepeatingTimerScheduling
     private var previousChangeCount: Int
     private var lastDeliveredChangeCount = 0
+    private var processingGeneration: UInt = 0
     private var timer: (any RepeatingTimerToken)?
     var ignoredPasteboardTypes: Set<String> = ClipboardMonitor.alwaysIgnoredPasteboardTypes
 
@@ -31,7 +32,9 @@ final class ClipboardMonitor {
 
     func start() {
         guard timer == nil else { return }
-        previousChangeCount = pasteboard.changeCount
+        let changeCount = pasteboard.changeCount
+        previousChangeCount = changeCount
+        lastDeliveredChangeCount = changeCount
         timer = timerScheduler.schedule(
             interval: Self.pollingInterval,
             tolerance: 0.1
@@ -42,20 +45,42 @@ final class ClipboardMonitor {
     func stop() {
         timer?.cancel()
         timer = nil
+        processingGeneration &+= 1
         AppLog.clipboard.debug("Clipboard monitoring stopped")
     }
 
     func pollNow() {
+        let changeCount = pasteboard.changeCount
+        guard beginProcessing(changeCount: changeCount) else { return }
+        let generation = processingGeneration
         Task { [weak self] in
-            await self?.pollNowAndWait()
+            await self?.processChange(
+                changeCount: changeCount,
+                generation: generation
+            )
         }
     }
 
     func pollNowAndWait() async {
         let changeCount = pasteboard.changeCount
-        guard changeCount != previousChangeCount else { return }
-        previousChangeCount = changeCount
+        guard beginProcessing(changeCount: changeCount) else { return }
+        await processChange(
+            changeCount: changeCount,
+            generation: processingGeneration
+        )
+    }
 
+    private func beginProcessing(changeCount: Int) -> Bool {
+        guard changeCount != previousChangeCount else { return false }
+        if changeCount < previousChangeCount {
+            lastDeliveredChangeCount = changeCount
+            AppLog.clipboard.notice("Pasteboard change counter reset; capture baseline renewed")
+        }
+        previousChangeCount = changeCount
+        return true
+    }
+
+    private func processChange(changeCount: Int, generation: UInt) async {
         let presentTypes = Set(pasteboard.types?.map { $0.rawValue.lowercased() } ?? [])
         guard presentTypes.isDisjoint(with: ignoredPasteboardTypes) else {
             AppLog.clipboard.notice("Clipboard change ignored by pasteboard type policy")
@@ -88,6 +113,10 @@ final class ClipboardMonitor {
             rawContent,
             sourceBundleIdentifier: source
         ) else { return }
+        guard generation == processingGeneration else {
+            AppLog.clipboard.debug("Clipboard result from a stopped monitor ignored")
+            return
+        }
         guard pasteboard.changeCount == changeCount else {
             AppLog.clipboard.debug("Stale clipboard processing result ignored")
             return

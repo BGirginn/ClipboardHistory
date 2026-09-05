@@ -165,6 +165,33 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         XCTAssertEqual(value, "second valid copy")
     }
 
+    func testPasteboardCounterResetRenewsDeliveryBaseline() async {
+        let resettablePasteboard = ResettableClipboardPasteboardStub(
+            changeCount: 100,
+            text: "initial"
+        )
+        monitor = ClipboardMonitor(pasteboard: resettablePasteboard)
+        monitor.delegate = self
+        receivedContent = nil
+
+        resettablePasteboard.changeCount = 101
+        resettablePasteboard.text = "before reset"
+        await monitor.pollNowAndWait()
+        XCTAssertEqual(receivedIdentity?.changeCount, 101)
+
+        receivedContent = nil
+        receivedIdentity = nil
+        resettablePasteboard.changeCount = 1
+        resettablePasteboard.text = "after reset"
+        await monitor.pollNowAndWait()
+
+        guard case let .text(value, _, _, _, _, _) = receivedContent else {
+            return XCTFail("Expected capture to recover after the counter reset")
+        }
+        XCTAssertEqual(value, "after reset")
+        XCTAssertEqual(receivedIdentity?.changeCount, 1)
+    }
+
     func testStartStopAndPollWrapperUseInjectedScheduler() async {
         let pasteboard = NSPasteboard(name: .init("ClipboardMonitorScheduler-\(UUID().uuidString)"))
         let scheduler = MonitorTimerSchedulerSpy()
@@ -408,6 +435,38 @@ private final class MonitorTimerTokenSpy: RepeatingTimerToken, @unchecked Sendab
 
     func cancel() {
         cancelCount += 1
+    }
+}
+
+@MainActor
+private final class ResettableClipboardPasteboardStub: ClipboardPasteboard {
+    var changeCount: Int
+    var text: String
+    var pasteboardItems: [NSPasteboardItem]? { nil }
+    var types: [NSPasteboard.PasteboardType]? { [.string] }
+
+    init(changeCount: Int, text: String) {
+        self.changeCount = changeCount
+        self.text = text
+    }
+
+    func clearContents() -> Int {
+        changeCount += 1
+        text = ""
+        return changeCount
+    }
+
+    func data(forType dataType: NSPasteboard.PasteboardType) -> Data? { nil }
+
+    func string(forType dataType: NSPasteboard.PasteboardType) -> String? {
+        dataType == .string ? text : nil
+    }
+
+    func readObjects(
+        forClasses classArray: [AnyClass],
+        options: [NSPasteboard.ReadingOptionKey: Any]?
+    ) -> [Any]? {
+        nil
     }
 }
 

@@ -1,25 +1,26 @@
 import SwiftUI
 
 struct AppSettingsView: View {
-    @ObservedObject var viewModel: SettingsFeatureModel
-    let initialSection: AppSettingsSection
+    let viewModel: SettingsFeatureModel
+    let initialSection: AppSettingsSection?
     let initialSubsection: AppSettingsSubsection?
     let close: () -> Void
+    let selectionChanged: (AppSettingsSubsection?) -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var selectedSection: AppSettingsSection
-    @State private var selectedSubsection: AppSettingsSubsection
+    @State private var selectedSubsection: AppSettingsSubsection?
 
     init(
         viewModel: SettingsFeatureModel,
-        initialSection: AppSettingsSection = .general,
+        initialSection: AppSettingsSection? = nil,
         initialSubsection: AppSettingsSubsection? = nil,
-        close: @escaping () -> Void = {}
+        close: @escaping () -> Void = {},
+        selectionChanged: @escaping (AppSettingsSubsection?) -> Void = { _ in }
     ) {
         self.viewModel = viewModel
         self.initialSection = initialSection
         self.initialSubsection = initialSubsection
         self.close = close
-        _selectedSection = State(initialValue: initialSection)
+        self.selectionChanged = selectionChanged
         _selectedSubsection = State(
             initialValue: Self.resolveSubsection(
                 initialSubsection,
@@ -31,26 +32,27 @@ struct AppSettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             AppSettingsHeaderView(
-                selectedSection: $selectedSection,
                 selectedSubsection: $selectedSubsection,
                 close: close
             )
             .fixedSize(horizontal: false, vertical: true)
             Divider()
-            AppSettingsContentView(
-                selectedSection: selectedSection,
-                selectedSubsection: selectedSubsection,
-                viewModel: viewModel
-            )
+            Group {
+                if let selectedSubsection {
+                    AppSettingsContentView(
+                        selectedSection: selectedSubsection.section,
+                        selectedSubsection: selectedSubsection,
+                        viewModel: viewModel
+                    )
+                    .id("settings.content.\(selectedSubsection.rawValue)")
+                } else {
+                    SettingsNavigationList(selection: $selectedSubsection)
+                }
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
-            .id("settings.content.\(selectedSubsection.rawValue)")
             .transition(.opacity)
         }
-        .animation(
-            reduceMotion ? nil : .easeInOut(duration: 0.12),
-            value: selectedSection
-        )
         .animation(
             reduceMotion ? nil : .easeInOut(duration: 0.12),
             value: selectedSubsection
@@ -58,20 +60,17 @@ struct AppSettingsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
         .onChange(of: initialSection) { _, section in
-            selectedSection = section
             selectedSubsection = Self.resolveSubsection(
                 initialSubsection,
                 for: section
             )
         }
         .onChange(of: initialSubsection) { _, subsection in
-            selectedSubsection = Self.resolveSubsection(
-                subsection,
-                for: selectedSection
-            )
+            selectedSubsection = subsection
+                ?? Self.resolveSubsection(nil, for: initialSection)
         }
-        .onChange(of: selectedSection) { _, section in
-            selectedSubsection = section.defaultSubsection
+        .onChange(of: selectedSubsection) { _, subsection in
+            selectionChanged(subsection)
         }
     }
 
@@ -81,8 +80,9 @@ struct AppSettingsView: View {
 
     private static func resolveSubsection(
         _ subsection: AppSettingsSubsection?,
-        for section: AppSettingsSection
-    ) -> AppSettingsSubsection {
+        for section: AppSettingsSection?
+    ) -> AppSettingsSubsection? {
+        guard let section else { return nil }
         guard let subsection, section.subsections.contains(subsection) else {
             return section.defaultSubsection
         }

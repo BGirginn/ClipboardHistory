@@ -34,4 +34,32 @@ enum MenuBarMetricID: String, CaseIterable, Codable, Identifiable {
         case .diskWrite: "arrow.up.to.line.compact"
         }
     }
+
+    var menuBarTextLabel: String? {
+        switch self {
+        case .cpu: String(localized: "CPU")
+        case .memory: String(localized: "RAM")
+        default: nil
+        }
+    }
+
+    var menuBarSymbol: String? {
+        switch self {
+        case .cpu, .memory, .temperature: nil
+        default: systemImage
+        }
+    }
+
+    func menuBarSegmentWidth(formats: MetricFormatPreferences) -> CGFloat {
+        switch self {
+        case .cpu: 28
+        case .memory: formats.memory == .usedAndTotal ? 68 : 28
+        case .temperature: 40
+        case .networkDownload, .networkUpload, .diskRead, .diskWrite: 68
+        }
+    }
+
+    func menuBarStandaloneWidth(formats: MetricFormatPreferences) -> CGFloat {
+        menuBarSegmentWidth(formats: formats) + 4
+    }
 }

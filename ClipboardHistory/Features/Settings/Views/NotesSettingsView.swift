@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct NotesSettingsView: View {
-    @ObservedObject var viewModel: SettingsFeatureModel
     @ObservedObject private var notes: NoteController
     let selectedSubsection: AppSettingsSubsection
 
@@ -9,7 +8,6 @@ struct NotesSettingsView: View {
         viewModel: SettingsFeatureModel,
         selectedSubsection: AppSettingsSubsection = .notesGeneral
     ) {
-        self.viewModel = viewModel
         self.selectedSubsection = selectedSubsection
         _notes = ObservedObject(wrappedValue: viewModel.notes)
     }

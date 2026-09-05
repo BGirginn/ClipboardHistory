@@ -5,13 +5,16 @@ import Foundation
 @MainActor
 final class SystemMetricsController: ObservableObject {
     @Published private(set) var snapshot: SystemMetricSnapshot = .empty
-    @Published private(set) var history: [SystemMetricSnapshot] = []
-    @Published private(set) var errorMessage: String?
+    private(set) var history: [SystemMetricSnapshot] = []
+    private(set) var errorMessage: String?
     @Published private(set) var networkInterfaceScope: NetworkInterfaceScope
 
     private let provider: any SystemMetricsProviding
-    private var demands: Set<SystemMetricsDemand> = []
+    private var demands: [SamplingDemandSource: SystemMetricsDemand] = [:]
     private var samplingTask: Task<Void, Never>?
+    private var activeSamplingInterval: Duration?
+    private var inFlightSampleTask: Task<SystemMetricSnapshot, Never>?
+    private var inFlightSampleID = 0
     private let maximumHistoryCount: Int
     private let defaults: UserDefaults
     private let networkScopeKey = "systemMonitor.networkInterfaceScope.v1"
@@ -31,20 +34,27 @@ final class SystemMetricsController: ObservableObject {
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification] {
             NSWorkspace.shared.notificationCenter.publisher(for: name)
                 .sink { [weak self] _ in
-                    guard let self else { return }
-                    Task { await self.provider.resetBaselines() }
+                    Task { @MainActor [weak self] in
+                        await self?.resetBaselinesAfterLifecycleChange()
+                    }
                 }
                 .store(in: &workspaceCancellables)
         }
     }
 
-    func setDemand(_ demand: SystemMetricsDemand, active: Bool) {
-        if active {
-            demands.insert(demand)
+    func setDemand(_ demand: SystemMetricsDemand?, for source: SamplingDemandSource) {
+        let previousDemand = demands[source]
+        if let demand {
+            demands[source] = demand
         } else {
-            demands.remove(demand)
+            demands.removeValue(forKey: source)
         }
+        guard previousDemand != demand else { return }
         restartSamplingIfNeeded()
+    }
+
+    func setDemand(_ demand: SystemMetricsDemand, active: Bool) {
+        setDemand(active ? demand : nil, for: SamplingDemandSource(id: "legacy-\(demand)"))
     }
 
     func refresh() {
@@ -56,35 +66,70 @@ final class SystemMetricsController: ObservableObject {
     }
 
     var hasActiveSampling: Bool { samplingTask != nil }
+    var demandCount: Int { demands.count }
 
     func setNetworkInterfaceScope(_ scope: NetworkInterfaceScope) {
+        guard networkInterfaceScope != scope else { return }
         networkInterfaceScope = scope
         defaults.set(scope.rawValue, forKey: networkScopeKey)
+        cancelInFlightSample()
         Task { [weak self] in
             guard let self else { return }
             await provider.setNetworkInterfaceScope(scope)
+            guard networkInterfaceScope == scope else { return }
             await sampleOnce()
         }
     }
 
     func temperatureStatistics(for sensorID: String) -> (minimum: Double, average: Double, maximum: Double)? {
-        let values = history.compactMap { snapshot in
-            snapshot.temperatures.first(where: { $0.id == sensorID })?.celsius
+        temperatureStatisticsBySensorID()[sensorID]
+    }
+
+    func temperatureStatisticsBySensorID() -> [
+        String: (minimum: Double, average: Double, maximum: Double)
+    ] {
+        var accumulators: [String: (minimum: Double, maximum: Double, total: Double, count: Int)] = [:]
+        for sample in history {
+            for reading in sample.temperatures {
+                if var values = accumulators[reading.id] {
+                    values.minimum = min(values.minimum, reading.celsius)
+                    values.maximum = max(values.maximum, reading.celsius)
+                    values.total += reading.celsius
+                    values.count += 1
+                    accumulators[reading.id] = values
+                } else {
+                    accumulators[reading.id] = (
+                        reading.celsius,
+                        reading.celsius,
+                        reading.celsius,
+                        1
+                    )
+                }
+            }
         }
-        guard let minimum = values.min(), let maximum = values.max(), !values.isEmpty else { return nil }
-        return (minimum, values.reduce(0, +) / Double(values.count), maximum)
+        return accumulators.mapValues {
+            (
+                minimum: $0.minimum,
+                average: $0.total / Double($0.count),
+                maximum: $0.maximum
+            )
+        }
     }
 
     func stop() {
         demands.removeAll()
         samplingTask?.cancel()
         samplingTask = nil
+        activeSamplingInterval = nil
+        cancelInFlightSample()
     }
 
     func value(
         for metric: MenuBarMetricID,
+        snapshot presentedSnapshot: SystemMetricSnapshot? = nil,
         formats: MetricFormatPreferences = .defaults
     ) -> String {
+        let snapshot = presentedSnapshot ?? snapshot
         switch metric {
         case .cpu:
             return snapshot.cpu.totalPercent.formatted(.number.precision(.fractionLength(0))) + "%"
@@ -97,7 +142,7 @@ final class SystemMetricsController: ObservableObject {
             return snapshot.primaryTemperature.map {
                 let value = formats.temperature == .fahrenheit ? ($0 * 9 / 5 + 32) : $0
                 let unit = formats.temperature == .fahrenheit ? "°F" : "°C"
-                return value.formatted(.number.precision(.fractionLength(0))) + unit
+                return value.formatted(.number.precision(.fractionLength(1))) + unit
             } ?? "—"
         case .networkDownload:
             return rateValue(snapshot.network.receivedBytesPerSecond, unit: formats.rate)
@@ -137,15 +182,21 @@ final class SystemMetricsController: ObservableObject {
     }
 
     private func restartSamplingIfNeeded() {
+        let desiredInterval = demands.isEmpty ? nil : samplingInterval
+        guard desiredInterval != activeSamplingInterval else { return }
         samplingTask?.cancel()
         samplingTask = nil
-        guard !demands.isEmpty else { return }
+        activeSamplingInterval = desiredInterval
+        guard let desiredInterval else {
+            cancelInFlightSample()
+            return
+        }
         samplingTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
                 await sampleOnce()
                 do {
-                    try await Task.sleep(for: samplingInterval)
+                    try await Task.sleep(for: desiredInterval)
                 } catch {
                     return
                 }
@@ -154,23 +205,51 @@ final class SystemMetricsController: ObservableObject {
     }
 
     private var samplingInterval: Duration {
-        if demands.contains(.detail) { return SystemMetricsDemand.detail.interval }
-        if demands.contains(.menuBar) { return SystemMetricsDemand.menuBar.interval }
+        if demands.values.contains(.detail) { return SystemMetricsDemand.detail.interval }
+        if demands.values.contains(.menuBar) { return SystemMetricsDemand.menuBar.interval }
         return SystemMetricsDemand.controlCenter.interval
     }
 
     private func sampleOnce() async {
-        let sample = await provider.sample(at: .now)
-        guard !Task.isCancelled else { return }
-        snapshot = sample
+        let sampleTask: Task<SystemMetricSnapshot, Never>
+        let sampleID: Int
+        if let inFlightSampleTask {
+            sampleTask = inFlightSampleTask
+            sampleID = inFlightSampleID
+        } else {
+            inFlightSampleID += 1
+            sampleID = inFlightSampleID
+            sampleTask = Task { [provider] in
+                await provider.sample(at: .now)
+            }
+            inFlightSampleTask = sampleTask
+        }
+        let sample = await sampleTask.value
+        guard sampleID == inFlightSampleID,
+              inFlightSampleTask != nil else { return }
+        inFlightSampleTask = nil
+        guard sample.timestamp >= snapshot.timestamp else { return }
         history.append(sample)
         history.removeAll { $0.timestamp < sample.timestamp.addingTimeInterval(-15 * 60) }
         if history.count > maximumHistoryCount {
             history.removeFirst(history.count - maximumHistoryCount)
         }
-        errorMessage = sample.temperatures.isEmpty
-            ? String(localized: "CPU temperature is unavailable on this Mac.")
+        let updatedErrorMessage = sample.temperatures.isEmpty
+            ? String(localized: "Temperature data is unavailable on this Mac.")
             : nil
+        errorMessage = updatedErrorMessage
+        snapshot = sample
+    }
+
+    private func cancelInFlightSample() {
+        inFlightSampleID += 1
+        inFlightSampleTask?.cancel()
+        inFlightSampleTask = nil
+    }
+
+    private func resetBaselinesAfterLifecycleChange() async {
+        cancelInFlightSample()
+        await provider.resetBaselines()
     }
 
     private func formattedRate(

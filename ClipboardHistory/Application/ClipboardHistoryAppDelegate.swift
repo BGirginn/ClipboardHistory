@@ -35,7 +35,9 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
                 MenuBarController(appModel: $0, applicationWindowPresenter: $1)
             },
             activationPolicySetter: { NSApplication.shared.setActivationPolicy($0) },
-            terminationReply: { $0.reply(toApplicationShouldTerminate: $1) }
+            terminationReply: { application, shouldTerminate in
+                application.reply(toApplicationShouldTerminate: shouldTerminate)
+            }
         )
     }
 
@@ -50,8 +52,8 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         activationPolicySetter: @escaping ActivationPolicySetter = {
             NSApplication.shared.setActivationPolicy($0)
         },
-        terminationReply: @escaping TerminationReply = {
-            $0.reply(toApplicationShouldTerminate: $1)
+        terminationReply: @escaping TerminationReply = { application, shouldTerminate in
+            application.reply(toApplicationShouldTerminate: shouldTerminate)
         }
     ) {
         self.environment = environment

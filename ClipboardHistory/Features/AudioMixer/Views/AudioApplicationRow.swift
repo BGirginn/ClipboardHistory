@@ -2,17 +2,21 @@ import SwiftUI
 
 struct AudioApplicationRow: View {
     let application: AudioApplication
-    let setVolume: (Double) -> Void
+    let previewVolume: (Double) -> Void
+    let commitVolume: (Double) -> Void
     let toggleMute: () -> Void
     @State private var volume: Double
+    @State private var isEditingVolume = false
 
     init(
         application: AudioApplication,
-        setVolume: @escaping (Double) -> Void,
+        previewVolume: @escaping (Double) -> Void,
+        commitVolume: @escaping (Double) -> Void,
         toggleMute: @escaping () -> Void
     ) {
         self.application = application
-        self.setVolume = setVolume
+        self.previewVolume = previewVolume
+        self.commitVolume = commitVolume
         self.toggleMute = toggleMute
         _volume = State(initialValue: application.volume)
     }
@@ -20,7 +24,8 @@ struct AudioApplicationRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label(application.name, systemImage: application.isProducingOutput ? "speaker.wave.2" : "speaker")
+                AudioApplicationIcon(applicationURL: application.applicationURL)
+                Text(application.name)
                     .lineLimit(1)
                 Spacer()
                 Text(volume / 100, format: .percent.precision(.fractionLength(0)))
@@ -34,9 +39,14 @@ struct AudioApplicationRow: View {
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
             }
-            Slider(value: $volume, in: 0...100, step: 1)
+            Slider(value: $volume, in: 0...100, step: 1) { editing in
+                isEditingVolume = editing
+                if !editing { commitVolume(volume) }
+            }
                 .accessibilityLabel(String(localized: "Volume for \(application.name)"))
-                .onChange(of: volume) { _, newValue in setVolume(newValue) }
+                .onChange(of: volume) { _, newValue in
+                    if isEditingVolume { previewVolume(newValue) }
+                }
             if case let .failed(message) = application.controlState {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)

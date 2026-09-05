@@ -99,7 +99,7 @@ struct ClipboardPanelView: View {
                     backToHome: backToHome,
                     openSettings: openSettings
                 )
-                ClipboardFilterBar(viewModel: viewModel)
+                ClipboardFilterBar(settings: settings)
                 if viewModel.selectedItemIDs.count > 1 {
                     ClipboardBulkActionsView(viewModel: viewModel)
                 }
@@ -125,6 +125,13 @@ struct ClipboardPanelView: View {
     }
 
     func handleKeyEvent(_ event: NSEvent) -> Bool {
+        Self.handleKeyEvent(event, viewModel: viewModel)
+    }
+
+    static func handleKeyEvent(
+        _ event: NSEvent,
+        viewModel: ClipboardHistoryViewModel
+    ) -> Bool {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if event.keyCode == 53 {
             viewModel.closePanel()

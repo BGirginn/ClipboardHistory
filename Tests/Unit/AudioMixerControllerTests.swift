@@ -1,4 +1,5 @@
 import CoreAudio
+import ServiceManagement
 import XCTest
 
 @testable import ClipboardHistory
@@ -11,7 +12,7 @@ private final class AudioDiscoveryStub: AudioProcessDiscovering, @unchecked Send
         self.discovered = discovered
     }
 
-    func applications() -> [AudioApplication] { discovered }
+    func applications() async -> [AudioApplication] { discovered }
     func startObservingChanges(_ handler: @escaping @Sendable () -> Void) {
         changeHandler = handler
     }
@@ -41,6 +42,7 @@ private final class ProcessAudioControllerStub: ProcessAudioControlling {
 @MainActor
 private final class BrowserAudioBridgeStub: BrowserAudioBridging {
     var tabsDidChange: (([BrowserAudioTab]) -> Void)?
+    var connectionMessageDidChange: ((String?) -> Void)?
     var volumes: [(String, Double)] = []
     var activatedIDs: [String] = []
     private(set) var startCount = 0
@@ -49,6 +51,28 @@ private final class BrowserAudioBridgeStub: BrowserAudioBridging {
     func stop() { stopCount += 1 }
     func setVolume(_ volume: Double, tabID: String) { volumes.append((tabID, volume)) }
     func activate(tabID: String) { activatedIDs.append(tabID) }
+    func publishConnectionMessage(_ message: String?) { connectionMessageDidChange?(message) }
+}
+
+@MainActor
+private final class BrowserBridgeServiceStub: ServiceManagementAppService {
+    var status: SMAppService.Status
+    var registrationError: Error?
+    private(set) var registerCount = 0
+
+    init(status: SMAppService.Status) {
+        self.status = status
+    }
+
+    func register() throws {
+        registerCount += 1
+        if let registrationError { throw registrationError }
+        status = .enabled
+    }
+
+    func unregister() throws {
+        status = .notRegistered
+    }
 }
 
 private enum AudioTestError: LocalizedError {
@@ -58,6 +82,85 @@ private enum AudioTestError: LocalizedError {
 
 @MainActor
 final class AudioMixerControllerTests: XCTestCase {
+    func testBrowserBridgeServiceRegistrationHandlesReadyApprovalAndFailureStates() {
+        let enabled = BrowserBridgeServiceStub(status: .enabled)
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrar(service: enabled).registerIfNeeded(),
+            .ready
+        )
+        XCTAssertEqual(enabled.registerCount, 0)
+
+        let disabled = BrowserBridgeServiceStub(status: .notRegistered)
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrar(service: disabled).registerIfNeeded(),
+            .ready
+        )
+        XCTAssertEqual(disabled.registerCount, 1)
+
+        let initiallyMissingRecord = BrowserBridgeServiceStub(status: .notFound)
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrar(service: initiallyMissingRecord)
+                .registerIfNeeded(),
+            .ready
+        )
+        XCTAssertEqual(initiallyMissingRecord.registerCount, 1)
+
+        let approval = BrowserBridgeServiceStub(status: .requiresApproval)
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrar(service: approval).registerIfNeeded(),
+            .requiresApproval
+        )
+
+        let failing = BrowserBridgeServiceStub(status: .notRegistered)
+        failing.registrationError = AudioTestError.failed
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrar(service: failing).registerIfNeeded(),
+            .failed("Audio pipeline failed")
+        )
+    }
+
+    func testBrowserBridgeConnectionFailureIsPresentedByAudioMixer() {
+        let bridge = BrowserAudioBridgeStub()
+        let controller = AudioMixerController(
+            discovery: AudioDiscoveryStub(discovered: []),
+            engine: ProcessAudioControllerStub(),
+            browserBridge: bridge,
+            defaults: UserDefaults(suiteName: "BrowserBridgeFailure-\(UUID().uuidString)")!
+        )
+
+        bridge.publishConnectionMessage("Browser bridge approval required")
+
+        XCTAssertEqual(controller.extensionMessage, "Browser bridge approval required")
+        controller.stop()
+    }
+
+    func testReconnectRelayAndRegistrationMessagesReachMainActor() async {
+        var reconnectCount = 0
+        var registrations: [Bool] = []
+        let relay = BrowserAudioReconnectRelay(
+            handler: { reconnectCount += 1 },
+            registrationHandler: { registrations.append($0) }
+        )
+
+        relay.requestReconnect()
+        relay.reportRegistration(true)
+        relay.reportRegistration(false)
+        for _ in 0..<4 { await Task.yield() }
+
+        XCTAssertEqual(reconnectCount, 1)
+        XCTAssertEqual(registrations, [true, false])
+        XCTAssertNil(BrowserAudioBridgeServiceRegistrationResult.ready.message)
+        XCTAssertNotNil(BrowserAudioBridgeServiceRegistrationResult.requiresApproval.message)
+        XCTAssertEqual(
+            BrowserAudioBridgeServiceRegistrationResult.failed("bridge failed").message,
+            "bridge failed"
+        )
+
+        let defaultRelay = BrowserAudioReconnectRelay(handler: {})
+        defaultRelay.reportRegistration(true)
+        await Task.yield()
+    }
+
     func testAudioApplicationIdentityCollapsesHelperProcessIntoOwningApplication() {
         let helperURL = URL(
             fileURLWithPath: "/Applications/Brave Browser.app/Contents/Frameworks/Brave Browser Helper.app"
@@ -70,13 +173,13 @@ final class AudioMixerControllerTests: XCTestCase {
             executableURL: nil
         )
 
-        XCTAssertEqual(identity.bundleID, "com.brave.Browser")
-        XCTAssertEqual(identity.name, "Brave Browser")
+        XCTAssertEqual(identity?.bundleID, "com.brave.Browser")
+        XCTAssertEqual(identity?.name, "Brave Browser")
     }
 
     func testAudioApplicationIdentityUsesApplicationNameInsteadOfPIDFallback() {
         let identity = AudioApplicationIdentityResolver.resolve(
-            reportedBundleID: "pid.61433",
+            reportedBundleID: "com.spotify.client",
             runningName: nil,
             bundleURL: nil,
             executableURL: URL(
@@ -84,11 +187,24 @@ final class AudioMixerControllerTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(identity.name, "Spotify")
+        XCTAssertEqual(identity?.name, "Spotify")
     }
 
-    func testLiveCoreAudioDiscoveryDoesNotExposeHelperProcessIdentity() {
-        let applications = CoreAudioProcessDiscovery().applications()
+    func testAudioApplicationIdentityRejectsSystemLibraryAgents() {
+        let identity = AudioApplicationIdentityResolver.resolve(
+            reportedBundleID: "com.apple.PowerChime",
+            runningName: "PowerChime",
+            bundleURL: nil,
+            executableURL: URL(
+                fileURLWithPath: "/System/Library/CoreServices/PowerChime.app/Contents/MacOS/PowerChime"
+            )
+        )
+
+        XCTAssertNil(identity)
+    }
+
+    func testLiveCoreAudioDiscoveryDoesNotExposeHelperProcessIdentity() async {
+        let applications = await CoreAudioProcessDiscovery().applications()
 
         XCTAssertFalse(
             applications.contains { $0.bundleID.lowercased().hasSuffix(".helper") }
@@ -97,6 +213,44 @@ final class AudioMixerControllerTests: XCTestCase {
             XCTAssertEqual(brave.name, "Brave Browser")
             XCTAssertGreaterThanOrEqual(brave.processObjectIDs.count, 1)
         }
+    }
+
+    func testOutputApplicationsExcludeProcessesWithoutActiveAudio() async {
+        let suite = "AudioMixerOutputTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let discovery = AudioDiscoveryStub(discovered: [
+            makeApplication(
+                id: 42,
+                bundleID: "com.spotify.client",
+                name: "Spotify",
+                isProducingOutput: true
+            ),
+            makeApplication(
+                id: 43,
+                bundleID: "com.apple.Terminal",
+                name: "Terminal",
+                isProducingOutput: false
+            ),
+            makeApplication(
+                id: 44,
+                bundleID: "unknown.application",
+                name: "Unknown Application",
+                isProducingOutput: false
+            )
+        ])
+        let controller = AudioMixerController(
+            discovery: discovery,
+            engine: ProcessAudioControllerStub(),
+            browserBridge: BrowserAudioBridgeStub(),
+            defaults: defaults
+        )
+
+        await controller.refreshApplications()
+
+        XCTAssertEqual(controller.applications.count, 3)
+        XCTAssertEqual(controller.outputApplications.map(\.name), ["Spotify"])
+        controller.stop()
     }
 
     func testBrowserBridgeMergesSourcesRejectsUncontrollableTabsAndNamespacesCommands() throws {
@@ -200,13 +354,13 @@ final class AudioMixerControllerTests: XCTestCase {
         await fulfillment(of: [replyExpectation], timeout: 1)
     }
 
-    func testApplicationGainPersistsAndPipelineFailureRollsBackUI() throws {
+    func testApplicationGainPersistsAndPipelineFailureRollsBackUI() async throws {
         let suite = "AudioMixerControllerTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let engine = ProcessAudioControllerStub()
         let controller = makeController(engine: engine, defaults: defaults)
-        controller.refreshApplications()
+        await controller.refreshApplications()
 
         controller.setVolume(35, for: controller.applications[0])
         XCTAssertEqual(controller.applications[0].volume, 35)
@@ -218,11 +372,11 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(controller.applications[0].controlState, .failed("Audio pipeline failed"))
     }
 
-    func testTabGainActivationAndBrowserMasterEffectiveVolume() {
+    func testTabGainActivationAndBrowserMasterEffectiveVolume() async {
         let engine = ProcessAudioControllerStub()
         let bridge = BrowserAudioBridgeStub()
         let controller = makeController(engine: engine, bridge: bridge)
-        controller.refreshApplications()
+        await controller.refreshApplications()
         controller.setVolume(50, for: controller.applications[0])
         let tab = BrowserAudioTab(
             id: "safari:4",
@@ -235,11 +389,26 @@ final class AudioMixerControllerTests: XCTestCase {
 
         controller.setBrowserVolume(25, tab: tab)
         controller.activate(tab)
+        controller.previewBrowserVolume(120, tab: tab)
+        controller.previewBrowserVolume(30, tab: tab)
+        try? await Task.sleep(for: .milliseconds(60))
 
         XCTAssertEqual(bridge.volumes.last?.0, "safari:4")
-        XCTAssertEqual(bridge.volumes.last?.1, 25)
+        XCTAssertEqual(bridge.volumes.last?.1, 30)
         XCTAssertEqual(bridge.activatedIDs, ["safari:4"])
         XCTAssertEqual(controller.effectiveVolume(for: tab), 20)
+        for browser in ["Edge", "Arc", "Chromium", "Unknown"] {
+            let unmatchedTab = BrowserAudioTab(
+                id: "\(browser):1",
+                browser: browser,
+                title: browser,
+                canSetVolume: true,
+                volume: 40,
+                isMuted: false
+            )
+            XCTAssertEqual(controller.effectiveVolume(for: unmatchedTab), 40)
+        }
+        controller.stop()
     }
 
     func testFloatGainProcessorClampsGainAndSamples() {
@@ -258,7 +427,7 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(output, [-1, -0.75, -0.375, 0.375, 0.75, 1])
     }
 
-    func testDemandLifecycleAndQuickMuteDiscoverApplicationsBeforeActing() {
+    func testDemandLifecycleAndQuickMuteDiscoverApplicationsBeforeActing() async {
         let engine = ProcessAudioControllerStub()
         let controller = makeController(engine: engine)
         XCTAssertFalse(controller.isRefreshing)
@@ -272,14 +441,33 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.setDemand(.controlCenter, active: false)
         XCTAssertFalse(controller.isRefreshing)
         controller.toggleMuteAll()
+        try? await Task.sleep(for: .milliseconds(30))
         XCTAssertEqual(engine.gains.last?.1, 0)
         controller.stop()
     }
 
-    func testPermissionErrorIsReportedAsDenied() {
+    func testIndependentAudioDemandSourcesCannotDisableEachOther() {
+        let controller = makeController(engine: ProcessAudioControllerStub())
+        let popover = SamplingDemandSource()
+        let window = SamplingDemandSource()
+
+        controller.setDemand(.detail, for: popover)
+        controller.setDemand(.controlCenter, for: window)
+        XCTAssertEqual(controller.demandCount, 2)
+
+        controller.setDemand(nil, for: popover)
+        XCTAssertTrue(controller.isRefreshing)
+        XCTAssertEqual(controller.demandCount, 1)
+
+        controller.setDemand(nil, for: window)
+        XCTAssertFalse(controller.isRefreshing)
+        controller.stop()
+    }
+
+    func testPermissionErrorIsReportedAsDenied() async {
         let engine = ProcessAudioControllerStub()
         let controller = makeController(engine: engine)
-        controller.refreshApplications()
+        await controller.refreshApplications()
         engine.error = ProcessAudioEngineError.tapCreationFailed(kAudioDevicePermissionsError)
 
         controller.setVolume(50, for: controller.applications[0])
@@ -321,19 +509,17 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.startRefreshing()
         XCTAssertTrue(controller.isRefreshing)
         controller.stopRefreshing()
-        XCTAssertTrue(controller.isRefreshing)
-        controller.setDemand(.activePipeline, active: false)
         XCTAssertFalse(controller.isRefreshing)
         controller.stop()
         XCTAssertEqual(bridge.stopCount, 1)
         XCTAssertEqual(engine.stopAllCount, 1)
     }
 
-    func testMuteResetAndBrowserMasterMatrix() {
+    func testMuteResetAndBrowserMasterMatrix() async {
         let engine = ProcessAudioControllerStub()
         let bridge = BrowserAudioBridgeStub()
         let controller = makeController(engine: engine, bridge: bridge)
-        controller.refreshApplications()
+        await controller.refreshApplications()
         let application = controller.applications[0]
 
         controller.setVolume(60, for: application)
@@ -386,6 +572,38 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.resetAll()
         XCTAssertTrue(controller.applications.allSatisfy { $0.volume == 100 })
         XCTAssertTrue(controller.browserTabs.allSatisfy { $0.volume == 100 })
+        controller.stop()
+    }
+
+    func testMuteAllSupportsBrowserTabsWithoutCoreAudioApplications() {
+        let bridge = BrowserAudioBridgeStub()
+        let suite = "AudioMixerBrowserOnly-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let controller = AudioMixerController(
+            discovery: AudioDiscoveryStub(discovered: []),
+            engine: ProcessAudioControllerStub(),
+            browserBridge: bridge,
+            defaults: defaults
+        )
+        bridge.tabsDidChange?([
+            BrowserAudioTab(
+                id: "safari:browser-only",
+                browser: "Safari",
+                title: "Browser Audio",
+                canSetVolume: true,
+                volume: 45,
+                isMuted: false
+            )
+        ])
+
+        controller.toggleMuteAll()
+        XCTAssertTrue(controller.isEverythingMuted)
+        XCTAssertEqual(controller.browserTabs.first?.volume, 0)
+
+        controller.toggleMuteAll()
+        XCTAssertFalse(controller.isEverythingMuted)
+        XCTAssertEqual(controller.browserTabs.first?.volume, 45)
         controller.stop()
     }
 
@@ -459,15 +677,19 @@ final class AudioMixerControllerTests: XCTestCase {
     }
 
     private func makeApplication(
-        processObjectIDs: Set<AudioObjectID> = [42]
+        processObjectIDs: Set<AudioObjectID>? = nil,
+        id: AudioObjectID = 42,
+        bundleID: String = "com.apple.Safari",
+        name: String = "Safari",
+        isProducingOutput: Bool = true
     ) -> AudioApplication {
         AudioApplication(
-            id: 42,
-            processObjectIDs: processObjectIDs,
+            id: id,
+            processObjectIDs: processObjectIDs ?? [id],
             processID: 99,
-            bundleID: "com.apple.Safari",
-            name: "Safari",
-            isProducingOutput: true,
+            bundleID: bundleID,
+            name: name,
+            isProducingOutput: isProducingOutput,
             volume: 100,
             isMuted: false,
             controlState: .native

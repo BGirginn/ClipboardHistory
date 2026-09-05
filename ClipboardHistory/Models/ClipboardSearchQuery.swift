@@ -10,11 +10,17 @@ struct ClipboardSearchQuery: Sendable {
     var isEmpty: Bool { terms.isEmpty }
 
     func matches(_ item: ClipboardItem, collectionName: String?) -> Bool {
-        terms.allSatisfy { term in
+        var generalText: String?
+        var recognizedText: String?
+        return terms.allSatisfy { term in
             switch term {
             case let .any(value):
-                return searchableText(for: item, collectionName: collectionName)
-                    .localizedStandardContains(value)
+                let text = generalText ?? searchableText(
+                    for: item,
+                    collectionName: collectionName
+                )
+                generalText = text
+                return text.localizedStandardContains(value)
             case let .source(value):
                 return item.sourceApplicationBundleID?.localizedStandardContains(value) == true
             case let .type(value):
@@ -27,10 +33,14 @@ struct ClipboardSearchQuery: Sendable {
                     $0.localizedStandardContains(value)
                 }
             case let .recognizedText(value):
-                return [item.protectedMetadata.extractedText, item.protectedMetadata.qrCodeText]
-                    .compactMap { $0 }
-                    .joined(separator: " ")
-                    .localizedStandardContains(value)
+                let text = recognizedText ?? [
+                    item.protectedMetadata.extractedText,
+                    item.protectedMetadata.qrCodeText
+                ]
+                .compactMap { $0 }
+                .joined(separator: " ")
+                recognizedText = text
+                return text.localizedStandardContains(value)
             case let .after(date):
                 return item.creationDate >= date
             case let .before(date):
