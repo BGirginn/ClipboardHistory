@@ -413,6 +413,16 @@
         }
       }
     },
+    "Allow ClipboardHistory Browser Audio in System Settings > General > Login Items & Extensions.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde ClipboardHistory Tarayıcı Sesi'ne izin verin."
+          }
+        }
+      }
+    },
     "Allowed applications override exclusions. Excluded clipboard content is never read or stored.": {
       "localizations": {
         "tr": {
@@ -563,16 +573,6 @@
         }
       }
     },
-    "Allow ClipboardHistory Browser Audio in System Settings > General > Login Items & Extensions.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde ClipboardHistory Tarayıcı Sesi'ne izin verin."
-          }
-        }
-      }
-    },
     "Back": {
       "localizations": {
         "tr": {
@@ -643,12 +643,12 @@
         }
       }
     },
-    "Browser audio service could not be registered.": {
+    "Browser Tabs": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarayıcı ses servisi kaydedilemedi."
+            "value": "Tarayıcı Sekmeleri"
           }
         }
       }
@@ -663,12 +663,12 @@
         }
       }
     },
-    "Browser audio service rejected the application connection.": {
+    "Browser audio service could not be registered.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarayıcı ses servisi uygulama bağlantısını reddetti."
+            "value": "Tarayıcı ses servisi kaydedilemedi."
           }
         }
       }
@@ -683,22 +683,22 @@
         }
       }
     },
+    "Browser audio service rejected the application connection.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi uygulama bağlantısını reddetti."
+          }
+        }
+      }
+    },
     "Browser audio service returned an unknown status.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Tarayıcı ses servisi bilinmeyen bir durum döndürdü."
-          }
-        }
-      }
-    },
-    "Browser Tabs": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tarayıcı Sekmeleri"
           }
         }
       }
@@ -759,6 +759,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "İptal"
+          }
+        }
+      }
+    },
+    "Cancelled capture cleanup needs to be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal edilen kaydın temizliği yeniden denenmeli."
           }
         }
       }
@@ -839,6 +849,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Değişiklikler düzenleme sırasında otomatik olarak kaydedilir."
+          }
+        }
+      }
+    },
+    "Charts and Sensors": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grafikler ve Sensörler"
           }
         }
       }
@@ -953,16 +973,6 @@
         }
       }
     },
-    "Click to start cleaning": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Temizliği başlatmak için tıklayın"
-          }
-        }
-      }
-    },
     "Clipboard": {
       "localizations": {
         "tr": {
@@ -1059,6 +1069,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "ClipboardHistory Kontrol Merkezi"
+          }
+        }
+      }
+    },
+    "Close Search": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aramayı Kapat"
           }
         }
       }
@@ -2009,6 +2029,16 @@
         }
       }
     },
+    "History recovery is required. Recovery files were preserved. Restart the application to retry recovery.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişin kurtarılması gerekiyor. Kurtarma dosyaları korundu. Kurtarmayı yeniden denemek için uygulamayı yeniden başlatın."
+          }
+        }
+      }
+    },
     "Hold mode requests Accessibility permission only when release triggers Paste to Active App.": {
       "localizations": {
         "tr": {
@@ -2095,6 +2125,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kurtarma Arşivini İçe Aktar…"
+          }
+        }
+      }
+    },
+    "Import failed and some created files could not be removed. Retry storage cleanup before importing again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İçe aktarma başarısız oldu ve oluşturulan bazı dosyalar kaldırılamadı. Yeniden içe aktarmadan önce depolama temizliğini tekrar deneyin."
           }
         }
       }
@@ -3221,6 +3261,16 @@
         }
       }
     },
+    "Open in Window": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pencerede Aç"
+          }
+        }
+      }
+    },
     "Optional Title": {
       "localizations": {
         "tr": {
@@ -4209,6 +4259,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uygulamalarda Ara"
+          }
+        }
+      }
+    },
+    "Search History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişte Ara"
           }
         }
       }
@@ -5219,6 +5279,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bilinmeyen Uygulama"
+          }
+        }
+      }
+    },
+    "Unsaved Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş Değişiklikler"
           }
         }
       }

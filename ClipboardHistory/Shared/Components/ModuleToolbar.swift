@@ -48,6 +48,7 @@ struct ModuleToolbar<Actions: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .layoutPriority(1)
 
+            OpenInWindowButton()
             if let openSettings {
                 Button("Open Settings", systemImage: "gearshape", action: openSettings)
                     .labelStyle(.iconOnly)

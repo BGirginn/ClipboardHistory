@@ -140,9 +140,13 @@ extension ClipboardHistoryViewModel {
 
     func flushPendingWritesForShutdown() async -> Bool {
         let wasMonitoring = hasStarted
+        isShuttingDown = true
+        invalidatePendingCaptures()
         stopMonitoring()
+        await drainCaptureMutations()
         let saved = await drainPendingItemWrites()
         if !saved {
+            isShuttingDown = false
             errorMessage = String(localized: "Clipboard changes could not be saved. Quit was cancelled so you can retry or remove the affected items.")
             if wasMonitoring { startMonitoring() }
         }

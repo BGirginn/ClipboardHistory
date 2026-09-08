@@ -20,7 +20,7 @@ struct AppPreferencesView: View {
 
     var body: some View {
         Form {
-            if selectedSubsection == .appPresentation {
+            if selectedSubsection == .appPresentation || selectedSubsection == .appStartup {
                 Section("Presentation") {
                     Picker("Appearance", selection: $settings.appearance) {
                         ForEach(AppAppearance.allCases) { appearance in
@@ -43,7 +43,7 @@ struct AppPreferencesView: View {
                 }
             }
 
-            if selectedSubsection == .appStartup {
+            if selectedSubsection == .appPresentation || selectedSubsection == .appStartup {
                 Section("Startup") {
                     Toggle("Launch at login", isOn: launchAtLoginBinding)
                         .accessibilityIdentifier("settings.launchAtLogin")

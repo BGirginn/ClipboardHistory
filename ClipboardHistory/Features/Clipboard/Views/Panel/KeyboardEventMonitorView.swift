@@ -9,8 +9,9 @@ struct KeyboardEventMonitorView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSView {
-        context.coordinator.start()
-        return NSView(frame: .zero)
+        let view = NSView(frame: .zero)
+        context.coordinator.start(in: view)
+        return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
@@ -21,18 +22,27 @@ struct KeyboardEventMonitorView: NSViewRepresentable {
         coordinator.stop()
     }
 
+    @MainActor
     final class Coordinator {
         var handler: (NSEvent) -> Bool
         private var monitor: Any?
+        private weak var ownerView: NSView?
 
         init(handler: @escaping (NSEvent) -> Bool) {
             self.handler = handler
         }
 
-        func start() {
+        func start(in view: NSView? = nil) {
+            ownerView = view
             guard monitor == nil else { return }
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                self?.handler(event) == true ? nil : event
+                guard let self, let window = self.ownerView?.window,
+                      event.window === window,
+                      window.attachedSheet == nil,
+                      NSApp.modalWindow == nil,
+                      !(window.firstResponder is NSTextView),
+                      RunLoop.current.currentMode != .eventTracking else { return event }
+                return self.handler(event) ? nil : event
             }
         }
 
@@ -44,7 +54,7 @@ struct KeyboardEventMonitorView: NSViewRepresentable {
         }
 
         deinit {
-            stop()
+            MainActor.assumeIsolated { stop() }
         }
     }
 }

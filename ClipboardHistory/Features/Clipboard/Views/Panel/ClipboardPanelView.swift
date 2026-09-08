@@ -23,11 +23,17 @@ struct ClipboardPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             if !viewModel.isStorageAvailable {
+                ModuleToolbar(title: String(localized: "Clipboard"), subtitle: nil,
+                              backTitle: String(localized: "Back to Control Center"),
+                              back: backToHome, openSettings: openSettings) { }
                 ContentUnavailableView(
                     "Clipboard Storage Unavailable",
                     systemImage: "externaldrive.badge.exclamationmark",
                     description: Text("Open Settings from Control Center to inspect or recover clipboard storage.")
                 )
+                Button("Open Settings", action: openSettings)
+                Button("Try Again") { Task { await viewModel.loadHistoryAndStartMonitoring() } }
+                    .padding(.bottom)
             } else {
                 panelContent
             }
@@ -99,6 +105,9 @@ struct ClipboardPanelView: View {
                     backToHome: backToHome,
                     openSettings: openSettings
                 )
+                if viewModel.isSearchVisible {
+                    ClipboardSearchField(model: viewModel)
+                }
                 ClipboardFilterBar(settings: settings)
                 if viewModel.selectedItemIDs.count > 1 {
                     ClipboardBulkActionsView(viewModel: viewModel)
@@ -114,7 +123,7 @@ struct ClipboardPanelView: View {
                     selectedItemID: viewModel.selectedItemID,
                     selectedItemIDs: viewModel.selectedItemIDs,
                     copiedItemID: viewModel.copiedItemID,
-                    hasSearch: false,
+                    hasSearch: !viewModel.searchText.isEmpty,
                     storage: viewModel.storage,
                     thumbnailService: viewModel.thumbnailService,
                     actions: itemActions,

@@ -2,7 +2,7 @@ import CoreAudio
 import AudioToolbox
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class ProcessAudioEngineTests: XCTestCase {

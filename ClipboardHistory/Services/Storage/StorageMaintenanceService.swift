@@ -174,7 +174,7 @@ extension StorageService {
                 }
             }
 
-            var currentBytes = try allItems.reduce(into: Int64(0)) { total, item in
+            var currentBytes = try allItems.filter { !removalIDs.contains($0.id) }.reduce(into: Int64(0)) { total, item in
                 total += try reclaimableStorageCost(for: item)
             }
             if currentBytes > maximumStorageBytes {

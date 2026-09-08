@@ -121,6 +121,9 @@ actor ExportImportService {
         guard archive.notes.count <= maximumItemCount else { throw ExportImportError.archiveTooLarge }
         try validateAssetPaths(archive.assets.keys)
         try validateArchiveIntegrity(archive)
+        let existingNotes = try await storage.loadNotesThrowing()
+        var noteFingerprints = Set(try existingNotes.map(noteContentChecksum))
+        var noteIDs = Set(existingNotes.map(\.id))
         var hashes = Set(existingItems.map(\.hash))
         var itemIDs = Set(existingItems.map(\.id))
         var imported = 0
@@ -147,14 +150,14 @@ actor ExportImportService {
                 )
                 materializedItems.append(importedItem)
                 imported += 1
+            } catch ExportImportError.cleanupFailed {
+                try await removeMaterializedAssets(materializedItems, storage: storage)
+                throw ExportImportError.cleanupFailed
             } catch {
                 rejected += 1
             }
         }
 
-        let existingNotes = try await storage.loadNotesThrowing()
-        var noteFingerprints = Set(try existingNotes.map(noteContentChecksum))
-        var noteIDs = Set(existingNotes.map(\.id))
         var importedNotes = 0
         var duplicateNotes = 0
         var rejectedNotes = 0
@@ -185,7 +188,7 @@ actor ExportImportService {
                 notes: acceptedNotes
             )
         } catch {
-            await storage.deleteImages(for: materializedItems)
+            try await removeMaterializedAssets(materializedItems, storage: storage)
             throw error
         }
         AppLog.storage.notice("Archive import completed; imported=\(imported); duplicates=\(duplicates); rejected=\(rejected); notes=\(importedNotes)")
@@ -240,10 +243,16 @@ actor ExportImportService {
                 importedNoteCount: archive.notes.count
             )
         } catch {
-            _ = try? await storage.deleteBatchThrowing(items: materializedItems)
+            var cleanupFailed = false
+            do {
+                let outcome = try await storage.deleteBatchThrowing(items: materializedItems)
+                cleanupFailed = outcome.requiresCleanupRetry
+            } catch { cleanupFailed = true }
             for note in archive.notes {
-                try? await storage.deleteNoteThrowing(id: note.id)
+                do { try await storage.deleteNoteThrowing(id: note.id) }
+                catch { cleanupFailed = true }
             }
+            guard !cleanupFailed else { throw ExportImportError.cleanupFailed }
             throw error
         }
     }
@@ -459,7 +468,7 @@ actor ExportImportService {
             }
             return copy
         } catch {
-            await storage.deleteImages(for: [copy])
+            try await removeMaterializedAssets([copy], storage: storage)
             throw error
         }
     }

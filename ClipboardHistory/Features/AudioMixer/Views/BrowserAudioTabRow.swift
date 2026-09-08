@@ -37,6 +37,7 @@ struct BrowserAudioTabRow: View {
                 Spacer()
                 Text(volume / 100, format: .percent.precision(.fractionLength(0)))
                     .monospacedDigit()
+                    .frame(width: 40, alignment: .trailing)
                 Button(
                     tab.isMuted ? "Unmute Tab" : "Mute Tab",
                     systemImage: tab.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
@@ -48,11 +49,11 @@ struct BrowserAudioTabRow: View {
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
             }
-            if abs(effectiveVolume - volume) > 0.5 {
                 Text("Effective volume with browser master: \(effectiveVolume / 100, format: .percent.precision(.fractionLength(0)))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
+                    .lineLimit(1)
+                    .monospacedDigit()
             Slider(value: $volume, in: 0...100, step: 1) { editing in
                 isEditingVolume = editing
                 if !editing { commitVolume(volume) }
@@ -64,7 +65,7 @@ struct BrowserAudioTabRow: View {
         }
         .padding(.vertical, 6)
         .onChange(of: tab.volume) { _, newValue in
-            if abs(volume - newValue) > 0.5 { volume = newValue }
+            if !isEditingVolume, abs(volume - newValue) > 0.5 { volume = newValue }
         }
     }
 }

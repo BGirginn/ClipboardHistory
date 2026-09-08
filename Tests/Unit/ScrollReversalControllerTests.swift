@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class ScrollReversalControllerTests: XCTestCase {

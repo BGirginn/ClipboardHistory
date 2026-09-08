@@ -1,5 +1,5 @@
 import Foundation
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 actor RecordingSleepClock: SleepClock {
     private var durations: [Duration] = []

@@ -30,6 +30,7 @@ struct AudioApplicationRow: View {
                 Spacer()
                 Text(volume / 100, format: .percent.precision(.fractionLength(0)))
                     .monospacedDigit()
+                    .frame(width: 40, alignment: .trailing)
                     .foregroundStyle(.secondary)
                 Button(
                     application.isMuted ? "Unmute" : "Mute",
@@ -47,15 +48,26 @@ struct AudioApplicationRow: View {
                 .onChange(of: volume) { _, newValue in
                     if isEditingVolume { previewVolume(newValue) }
                 }
-            if case let .failed(message) = application.controlState {
-                Label(message, systemImage: "exclamationmark.triangle.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.red)
-            }
+            controlStatus
+                .font(.caption)
+                .lineLimit(1)
+                .frame(height: 16, alignment: .leading)
         }
         .padding(.vertical, 6)
         .onChange(of: application.volume) { _, newValue in
-            if abs(volume - newValue) > 0.5 { volume = newValue }
+            if !isEditingVolume, abs(volume - newValue) > 0.5 { volume = newValue }
+        }
+    }
+
+    @ViewBuilder
+    private var controlStatus: some View {
+        if case let .failed(message) = application.controlState {
+            Label(message, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+                .help(message)
+        } else {
+            Text(application.isMuted ? "Muted" : "Application Volume")
+                .foregroundStyle(.secondary)
         }
     }
 }

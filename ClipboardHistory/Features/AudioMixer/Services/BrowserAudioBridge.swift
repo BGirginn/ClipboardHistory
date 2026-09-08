@@ -68,6 +68,7 @@ final class BrowserAudioBridge: BrowserAudioBridging {
     }
 
     func activate(tabID: String) {
+        guard currentPresentedTabs.contains(where: { $0.id == tabID }) else { return }
         pendingActivations.insert(tabID)
     }
 
@@ -119,13 +120,15 @@ final class BrowserAudioBridge: BrowserAudioBridging {
             tabsDidChange?(presentedTabs)
         }
         let response = HostResponse(
-            commands: desiredVolumes.map {
+            commands: desiredVolumes.filter { isValid(tabID: $0.key, source: source) }.map {
                 BrowserCommand(id: $0.key, volume: $0.value, action: nil)
-            } + pendingActivations.map {
+            } + pendingActivations.filter { isValid(tabID: $0, source: source) }.map {
                 BrowserCommand(id: $0, volume: nil, action: "activate")
             }
         )
-        pendingActivations.removeAll()
+        pendingActivations = pendingActivations.filter {
+            activeIDs.contains($0) && !isValid(tabID: $0, source: source)
+        }
         return try? encoder.encode(response)
     }
 

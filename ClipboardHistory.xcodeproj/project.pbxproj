@@ -51,6 +51,7 @@ objectVersion = 77;
 		B10000000000000000000010 /* ClipboardImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ClipboardImageThumbnail.swift */; };
 		B10000000000000000000017 /* ClipboardPanelHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* ClipboardPanelHeaderView.swift */; };
 		B10000000000000000000018 /* ClipboardEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* ClipboardEmptyStateView.swift */; };
+		FB91B2E2A7C3DCC860DE8E7D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F26DFBBA273486E7AF16742 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +87,8 @@ objectVersion = 77;
 		A20000000000000000000020 /* ClipboardHistory.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipboardHistory.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000021 /* ClipboardHistoryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipboardHistoryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D20000000000000000000001 /* ClipboardHistoryUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipboardHistoryUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		80667A22AA980F7D1E57444F /* ClipboardHistoryTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipboardHistoryTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8F26DFBBA273486E7AF16742 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -178,6 +181,14 @@ objectVersion = 77;
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0284083DD98274677A3E472B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB91B2E2A7C3DCC860DE8E7D /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXContainerItemProxy section */
@@ -206,15 +217,15 @@ objectVersion = 77;
 			isa = PBXContainerItemProxy;
 			containerPortal = A80000000000000000000001 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A50000000000000000000001;
-			remoteInfo = ClipboardHistory;
+			remoteGlobalIDString = F7679A0DD30E27564C2F0E59;
+			remoteInfo = ClipboardHistoryTestHost;
 		};
 		D10000000000000000000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A80000000000000000000001 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A50000000000000000000001;
-			remoteInfo = ClipboardHistory;
+			remoteGlobalIDString = F7679A0DD30E27564C2F0E59;
+			remoteInfo = ClipboardHistoryTestHost;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -240,6 +251,13 @@ objectVersion = 77;
 			);
 			target = A50000000000000000000001 /* ClipboardHistory */;
 		};
+		5358167F4707F692CDD1755E /* Exceptions for "ClipboardHistory" folder in "ClipboardHistoryTestHost" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F7679A0DD30E27564C2F0E59 /* ClipboardHistoryTestHost */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXGroup section */
@@ -251,17 +269,19 @@ objectVersion = 77;
 				G40000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */,
 				E40000000000000000000001 /* ClipboardHistoryLoginItem */,
 				F40000000000000000000001 /* ClipboardHistorySafariExtension */,
-				A40000000000000000000008 /* ClipboardHistoryTests */,
-				D40000000000000000000001 /* ClipboardHistoryUITests */,
+				A40000000000000000000008 /* Tests/Unit */,
+				D40000000000000000000001 /* Tests/UI */,
 				A20000000000000000000016 /* README.md */,
 				A40000000000000000000009 /* Products */,
+				F5CC9ECFA91DA5D1E1EECAA8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		A40000000000000000000002 /* ClipboardHistory */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C10000000000000000000002 /* Exceptions for ClipboardHistory folder in ClipboardHistory target */,
+				C10000000000000000000002 /* Exceptions for "ClipboardHistory" folder in "ClipboardHistory" target */,
+				5358167F4707F692CDD1755E /* Exceptions for "ClipboardHistory" folder in "ClipboardHistoryTestHost" target */,
 			);
 			explicitFileTypes = {
 			};
@@ -341,6 +361,7 @@ objectVersion = 77;
 				F20000000000000000000001 /* ClipboardHistorySafariExtension.appex */,
 				A20000000000000000000021 /* ClipboardHistoryTests.xctest */,
 				D20000000000000000000001 /* ClipboardHistoryUITests.xctest */,
+				80667A22AA980F7D1E57444F /* ClipboardHistoryTestHost.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -386,6 +407,22 @@ objectVersion = 77;
 			);
 			name = ClipboardHistoryUITests;
 			path = Tests/UI;
+			sourceTree = "<group>";
+		};
+		F5CC9ECFA91DA5D1E1EECAA8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				86EA9CF0F1344FA2137EA869 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		86EA9CF0F1344FA2137EA869 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				8F26DFBBA273486E7AF16742 /* Cocoa.framework */,
+			);
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -520,6 +557,26 @@ objectVersion = 77;
 			productReference = D20000000000000000000001 /* ClipboardHistoryUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		F7679A0DD30E27564C2F0E59 /* ClipboardHistoryTestHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74BBA51B0CD22D549F690396 /* Build configuration list for PBXNativeTarget "ClipboardHistoryTestHost" */;
+			buildPhases = (
+				17D72D87C5BDF948BE6B1524 /* Sources */,
+				0284083DD98274677A3E472B /* Frameworks */,
+				F7DFBE5345772A069F5CB2B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A40000000000000000000002 /* ClipboardHistory */,
+			);
+			name = ClipboardHistoryTestHost;
+			productName = ClipboardHistoryTestHost;
+			productReference = 80667A22AA980F7D1E57444F /* ClipboardHistoryTestHost.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -538,7 +595,7 @@ objectVersion = 77;
 					};
 					D50000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
-						TestTargetID = A50000000000000000000001;
+						TestTargetID = F7679A0DD30E27564C2F0E59;
 					};
 					E50000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
@@ -561,10 +618,10 @@ objectVersion = 77;
 				Base,
 			);
 			mainGroup = A40000000000000000000001;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = A40000000000000000000009 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			preferredProjectObjectVersion = 77;
 			targets = (
 				A50000000000000000000001 /* ClipboardHistory */,
 				G50000000000000000000001 /* ClipboardHistoryBrowserAudioBridge */,
@@ -572,6 +629,7 @@ objectVersion = 77;
 				F50000000000000000000001 /* ClipboardHistorySafariExtension */,
 				A50000000000000000000002 /* ClipboardHistoryTests */,
 				D50000000000000000000001 /* ClipboardHistoryUITests */,
+				F7679A0DD30E27564C2F0E59 /* ClipboardHistoryTestHost */,
 			);
 		};
 /* End PBXProject section */
@@ -619,6 +677,13 @@ objectVersion = 77;
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F7DFBE5345772A069F5CB2B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -639,12 +704,12 @@ objectVersion = 77;
 		};
 		C10000000000000000000003 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A50000000000000000000001 /* ClipboardHistory */;
+			target = F7679A0DD30E27564C2F0E59 /* ClipboardHistoryTestHost */;
 			targetProxy = C10000000000000000000001 /* PBXContainerItemProxy */;
 		};
 		D10000000000000000000002 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A50000000000000000000001 /* ClipboardHistory */;
+			target = F7679A0DD30E27564C2F0E59 /* ClipboardHistoryTestHost */;
 			targetProxy = D10000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -686,6 +751,13 @@ objectVersion = 77;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17D72D87C5BDF948BE6B1524 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -882,7 +954,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistory.app/Contents/MacOS/ClipboardHistory";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistoryTestHost.app/Contents/MacOS/ClipboardHistoryTestHost";
 			};
 			name = Debug;
 		};
@@ -898,7 +970,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistory.app/Contents/MacOS/ClipboardHistory";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistoryTestHost.app/Contents/MacOS/ClipboardHistoryTestHost";
 			};
 			name = Release;
 		};
@@ -914,7 +986,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistory.app/Contents/MacOS/ClipboardHistory";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipboardHistoryTestHost.app/Contents/MacOS/ClipboardHistoryTestHost";
 			};
 			name = CommunityRelease;
 		};
@@ -929,7 +1001,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = ClipboardHistory;
+				TEST_TARGET_NAME = ClipboardHistoryTestHost;
 			};
 			name = Debug;
 		};
@@ -944,7 +1016,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = ClipboardHistory;
+				TEST_TARGET_NAME = ClipboardHistoryTestHost;
 			};
 			name = Release;
 		};
@@ -959,7 +1031,7 @@ objectVersion = 77;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = ClipboardHistory;
+				TEST_TARGET_NAME = ClipboardHistoryTestHost;
 			};
 			name = CommunityRelease;
 		};
@@ -1149,6 +1221,99 @@ objectVersion = 77;
 			};
 			name = CommunityRelease;
 		};
+		9D7F7A61A8980319A3700715 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClipboardHistory/ClipboardHistory.entitlements;
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistory/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CLIPBOARD_HISTORY_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "ClipboardHistory/ClipboardHistory-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		2B13B5AAB4F35123642E64AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClipboardHistory/ClipboardHistory.entitlements;
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistory/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CLIPBOARD_HISTORY_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "ClipboardHistory/ClipboardHistory-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		94BB87C7C9A209D19B579C24 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLIPBOARD_HISTORY_BETA_VERSION = "1.0.0-beta.5";
+				CODE_SIGN_ENTITLEMENTS = ClipboardHistory/ClipboardHistory.entitlements;
+				CODE_SIGN_IDENTITY = "ClipboardHistory Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 10005;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipboardHistory/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.ClipboardHistory.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) CLIPBOARD_HISTORY_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "ClipboardHistory/ClipboardHistory-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1218,6 +1383,16 @@ objectVersion = 77;
 				GG0000000000000000000001 /* Debug */,
 				GG0000000000000000000002 /* Release */,
 				GG0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74BBA51B0CD22D549F690396 /* Build configuration list for PBXNativeTarget "ClipboardHistoryTestHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D7F7A61A8980319A3700715 /* Release */,
+				2B13B5AAB4F35123642E64AC /* Debug */,
+				94BB87C7C9A209D19B579C24 /* CommunityRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

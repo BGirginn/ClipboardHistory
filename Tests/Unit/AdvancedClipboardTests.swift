@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import PDFKit
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class AdvancedClipboardTests: XCTestCase {

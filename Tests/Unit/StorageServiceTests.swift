@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import SQLite3
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class StorageServiceTests: XCTestCase {
     private var temporaryDirectory: URL!

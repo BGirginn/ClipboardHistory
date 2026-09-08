@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class ClipboardAssetStoreCoverageTests: XCTestCase {
     func testStoreLoadReplaceEncryptAndRejectUnsafeOrMissingAssets() async throws {

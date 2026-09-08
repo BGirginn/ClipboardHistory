@@ -66,6 +66,7 @@ extension ClipboardHistoryViewModel {
         privateModeTask = nil
         pauseTask?.cancel()
         pauseTask = nil
+        invalidatePendingCaptures()
         isPrivateMode = enabled
         privateModeUntil = nil
         pauseUntil = nil
@@ -74,6 +75,7 @@ extension ClipboardHistoryViewModel {
     }
 
     func enablePrivateMode(minutes: Int) {
+        invalidatePendingCaptures()
         privateModeTask?.cancel()
         pauseTask?.cancel()
         pauseTask = nil
@@ -100,6 +102,7 @@ extension ClipboardHistoryViewModel {
     }
 
     func pauseRecording(minutes: Int) {
+        invalidatePendingCaptures()
         privateModeTask?.cancel()
         privateModeTask = nil
         pauseTask?.cancel()

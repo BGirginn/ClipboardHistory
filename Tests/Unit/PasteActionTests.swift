@@ -1,7 +1,7 @@
 import AppKit
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class PasteActionTests: XCTestCase {
     @MainActor

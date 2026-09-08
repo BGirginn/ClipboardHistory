@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import SwiftUI
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class PerformanceBenchmarkTests: XCTestCase {
@@ -104,10 +104,23 @@ final class PerformanceBenchmarkTests: XCTestCase {
         XCTAssertLessThanOrEqual(readP95, 50 * instrumentationAllowance)
         XCTAssertLessThanOrEqual(loadP95, 100 * instrumentationAllowance)
         XCTAssertLessThanOrEqual(filterP95, 50 * instrumentationAllowance)
-        XCTAssertLessThanOrEqual(panelP95, 120 * instrumentationAllowance)
+        XCTAssertLessThanOrEqual(panelP95, 50 * instrumentationAllowance)
         AppLog.performance.notice(
             "benchmark items=5000 repetitions=\(repetitionCount) writeP95Ms=\(writeP95) readP95Ms=\(readP95) viewModelLoadP95Ms=\(loadP95) filterP95Ms=\(filterP95) panelP95Ms=\(panelP95)"
         )
+
+        let metrics: [String: Any] = [
+            "itemCount": itemCount, "repetitions": repetitionCount,
+            "writeP95Ms": writeP95, "readP95Ms": readP95,
+            "modelLoadP95Ms": loadP95, "filterP95Ms": filterP95, "layoutP95Ms": panelP95
+        ]
+        let attachment = XCTAttachment(
+            data: try JSONSerialization.data(withJSONObject: metrics, options: [.sortedKeys, .prettyPrinted]),
+            uniformTypeIdentifier: "public.json"
+        )
+        attachment.name = "performance-metrics"
+        attachment.lifetime = .keepAlways
+        add(attachment)
 
         viewModel.prepareForShutdown()
         await storage.close()

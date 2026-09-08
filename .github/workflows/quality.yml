@@ -27,7 +27,7 @@ jobs:
       - uses: ./.github/actions/setup-required-tools
       - name: Unit and integration tests
         run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath /private/tmp/ClipboardHistoryCI \
             CODE_SIGNING_ALLOWED=NO -only-testing:ClipboardHistoryTests test
@@ -106,7 +106,7 @@ jobs:
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-community-signing.sh
       - run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath /private/tmp/ClipboardHistorySignedUI \
             CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \

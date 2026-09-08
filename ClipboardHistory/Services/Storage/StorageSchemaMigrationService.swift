@@ -3,6 +3,7 @@ import SQLite3
 
 extension StorageService {
     func ensureInitialized() throws {
+        guard !requiresRecovery else { throw DatabaseError.recoveryRequired }
         guard !isClosed else { throw DatabaseError.closed }
         guard !isInitialized else { return }
         try createDirectoriesIfNeeded()

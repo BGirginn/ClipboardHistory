@@ -4,6 +4,11 @@ import Foundation
 
 @MainActor
 final class AppModel: ObservableObject {
+    #if CLIPBOARD_HISTORY_TEST_HOST
+    var uiTestRoot: URL?
+    #endif
+    var requestOpenWindow: (@MainActor @Sendable () -> Void)?
+    private var navigationGeneration: UInt = 0
     let router: AppRouter
     let clipboard: ClipboardHistoryViewModel
     let notes: NoteController
@@ -151,10 +156,14 @@ final class AppModel: ObservableObject {
         to feature: AppFeature,
         settingsSection: AppSettingsSection? = nil
     ) {
+        navigationGeneration &+= 1
+        let generation = navigationGeneration
+        let routeGeneration = router.navigationGeneration
         Task { [weak self] in
             guard let self else { return }
             let outcome = await notes.flushPendingSave()
-            guard outcome.allowsTransition else { return }
+            guard outcome.allowsTransition, generation == navigationGeneration,
+                  routeGeneration == router.navigationGeneration else { return }
             switch feature {
             case .controlCenter:
                 router.showControlCenter()

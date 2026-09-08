@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class ExportImportDeepCoverageTests: XCTestCase {
     func testMetadataOnlyExportRedactsEveryPayloadAndCannotBeImported() async throws {

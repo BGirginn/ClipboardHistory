@@ -4,7 +4,7 @@ import Foundation
 import Security
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class CryptoFailureCoverageTests: XCTestCase {
     func testEncryptionBackendCoversLiveSuccessAndFailClosedSealPath() throws {

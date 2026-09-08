@@ -20,14 +20,14 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
         appModel: AppModel,
         makeWindow: @escaping () -> NSWindow = {
             NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
+                contentRect: NSRect(x: 0, y: 0, width: 760, height: 620),
                 styleMask: [.titled, .closable, .miniaturizable, .resizable],
                 backing: .buffered,
                 defer: false
             )
         },
         makeContentViewController: @escaping (AppModel) -> NSViewController = {
-            NSHostingController(rootView: AppShellView(model: $0))
+            NSHostingController(rootView: AppShellView(model: $0, isWindow: true))
         }
     ) {
         self.appModel = appModel

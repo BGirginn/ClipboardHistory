@@ -35,6 +35,7 @@ struct ClipboardDetailView: View {
                 Text("Item Details")
                     .font(.headline)
                 Spacer()
+                OpenInWindowButton()
                 Button("Copy", systemImage: "doc.on.doc", action: copyItem)
                     .buttonStyle(.borderless)
                     .accessibilityIdentifier("detail.copy")
@@ -54,7 +55,6 @@ struct ClipboardDetailView: View {
                 .padding(14)
             }
         }
-        .accessibilityIdentifier("clipboard.detail")
         .onChange(of: viewModel.sensitiveDetailItemID) { _, revealedID in
             guard revealedID == item.id else { return }
             draftTitle = item.displayTitle ?? ""

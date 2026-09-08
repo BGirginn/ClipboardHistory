@@ -61,7 +61,7 @@ Run unit and UI coverage separately and merge their `.xccovreport`/`.xccovarchiv
 scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
 ```
 
-The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty production entitlement file. UI launches use Debug-only switches for an isolated temporary database, named pasteboard, UserDefaults suite, and ephemeral test key. Release and CommunityRelease do not compile those switches.
+The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty production entitlement file. Unit, UI, sanitizer, mutation and performance runs use the `ClipboardHistoryTests` scheme and the separate `ClipboardHistoryTestHost` application. It compiles the same application sources with `CLIPBOARD_HISTORY_TEST_HOST`, an isolated bundle identifier, and no embedded login or browser helpers. UI composition injects temporary storage, a named pasteboard, a dedicated UserDefaults suite, ephemeral keys, and inert input, authentication, paste, login, metrics and audio adapters. The production application does not compile test routing, even in Debug. Optimized host results validate shared code; they do not validate native adapters or the packaged production application.
 
 The suite retains compact unit/UI JSON summaries and the merged coverage report/archive, then removes successful raw `.xcresult` bundles, transient DerivedData, and exported intermediate coverage directories on exit. Set `CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS=1` only when raw result bundles are required as release evidence. Failed runs retain their raw `.xcresult` bundles for diagnosis. Each UI test creates its isolated database under the test runner's temporary directory and removes that root plus its UserDefaults suite during teardown. This keeps reproducible evidence without accumulating rebuildable multi-gigabyte test trees in temporary storage.
 
@@ -77,3 +77,11 @@ scripts/verify-community-signing.sh
 ```
 
 CI uses Apple-silicon `macos-14`, `macos-15`, and `macos-26` runners with Xcode 16.2, 26.3, and 26.5 respectively. Pinning installed toolchains prevents runner-default changes from silently changing the OS matrix. Hosted builds also disable Swift batch compilation because these toolchains can crash the Swift frontend while compiling this target's SwiftUI files in multi-primary-file batches. Release optimization settings are unchanged. The signed UI job remains opt-in on a protected interactive arm64 runner. The current macOS 26.5 Community-signed UI run passed all ten automated tests, but it does not replace physical input/audio/browser checks or the external OS matrix.
+
+Browser messaging regression tests use Node's built-in runner and mocked extension APIs:
+
+```sh
+node --test Tests/Browser/BrowserAudioMessagingTests.cjs
+```
+
+`verify-performance.sh` exports the optimized benchmark's JSON attachment before removing transient build data. The 5,000-item first-layout budget is 50 ms; the 120 ms status-item-to-visible-frame budget is a separate native measurement. Do not substitute the layout benchmark for frame-presentation or eight-hour soak evidence.

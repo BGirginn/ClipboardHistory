@@ -1,5 +1,5 @@
 import Foundation
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class StubSystemAuthenticator: SystemAuthenticating {

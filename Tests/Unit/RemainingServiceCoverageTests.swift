@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class RemainingServiceCoverageTests: XCTestCase {

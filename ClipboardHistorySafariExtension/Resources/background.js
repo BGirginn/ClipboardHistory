@@ -1,4 +1,7 @@
 const tabs = new Map();
+let publishTimer = null;
+let publishing = false;
+let publishAgain = false;
 
 browser.runtime.onMessage.addListener((message, sender) => {
   if (message.type !== "media-state" || !sender.tab || sender.tab.incognito) return;
@@ -25,6 +28,10 @@ browser.tabs.onRemoved.addListener(tabId => {
 });
 
 async function publishState() {
+  if (tabs.size > 0 && publishTimer === null) publishTimer = setInterval(publishState, 1000);
+  if (tabs.size === 0 && publishTimer !== null) { clearInterval(publishTimer); publishTimer = null; }
+  if (publishing) { publishAgain = true; return; }
+  publishing = true;
   try {
     const response = await browser.runtime.sendNativeMessage("com.brgirgin.ClipboardHistory", {
       version: 1,
@@ -44,7 +51,10 @@ async function publishState() {
       }
       await browser.tabs.sendMessage(tabId, { type: "set-volume", volume: command.volume }).catch(() => {});
     }
-  } catch (_) {}
+  } catch (_) {
+    // The next active-tab heartbeat retries a disconnected native host.
+  } finally {
+    publishing = false;
+    if (publishAgain) { publishAgain = false; publishState(); }
+  }
 }
-
-setInterval(publishState, 1000);

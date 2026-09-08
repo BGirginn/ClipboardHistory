@@ -1,5 +1,6 @@
 const captures = new Map();
 let nativePort = null;
+let publishTimer = null;
 const browserName = navigator.brave
   ? "Brave"
   : /Edg\//.test(navigator.userAgent)
@@ -16,7 +17,7 @@ function connectNative() {
     nativePort.onMessage.addListener(handleNativeCommands);
     nativePort.onDisconnect.addListener(() => {
       nativePort = null;
-      setTimeout(connectNative, 2000);
+      if (captures.size > 0) setTimeout(publishState, 2000);
     });
   } catch (_) {
     nativePort = null;
@@ -24,6 +25,9 @@ function connectNative() {
 }
 
 function publishState() {
+  if (captures.size > 0 && publishTimer === null) publishTimer = setInterval(publishState, 1000);
+  if (captures.size === 0 && publishTimer !== null) { clearInterval(publishTimer); publishTimer = null; }
+  if (captures.size === 0 && !nativePort) return;
   connectNative();
   if (!nativePort) return;
   nativePort.postMessage({
@@ -43,6 +47,7 @@ function publishState() {
 
 function handleNativeCommands(message) {
   if (message.version !== 1 || !Array.isArray(message.commands)) return;
+  let changed = false;
   for (const command of message.commands) {
     const prefix = `chromium:${browserID}:`;
     if (typeof command.id !== "string" || !command.id.startsWith(prefix)) continue;
@@ -54,9 +59,11 @@ function handleNativeCommands(message) {
     const capture = captures.get(tabId);
     if (!capture) continue;
     const volume = Math.max(0, Math.min(100, Number(command.volume)));
+    if (!Number.isFinite(volume) || capture.gain.gain.value === volume / 100) continue;
     capture.gain.gain.setValueAtTime(volume / 100, capture.context.currentTime);
+    changed = true;
   }
-  publishState();
+  if (changed) publishState();
 }
 
 async function captureTab(message) {
@@ -93,6 +100,3 @@ chrome.runtime.onMessage.addListener(message => {
   if (message.type === "capture-tab") captureTab(message).catch(() => {});
   if (message.type === "remove-tab") removeTab(message.tabId);
 });
-
-connectNative();
-setInterval(publishState, 1000);

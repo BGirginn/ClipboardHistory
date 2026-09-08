@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 private actor SystemMetricsProviderStub: SystemMetricsProviding {
     private var index = 0
@@ -58,6 +58,30 @@ private actor EmptyTemperatureMetricsProvider: SystemMetricsProviding {
 
 @MainActor
 final class SystemMetricsControllerTests: XCTestCase {
+    func testLowPowerCadenceUsesFastestSharedDemandAndStopsAfterCycles() {
+        let controller = SystemMetricsController(provider: SystemMetricsProviderStub(), lowPowerMode: { true })
+        let panel = SamplingDemandSource()
+        let menu = SamplingDemandSource()
+        let window = SamplingDemandSource()
+        XCTAssertFalse(controller.hasSample)
+        for _ in 0..<100 {
+            controller.setDemand(.controlCenter, for: panel)
+            XCTAssertEqual(controller.samplingInterval, .seconds(10))
+            controller.setDemand(.menuBar, for: menu)
+            XCTAssertEqual(controller.samplingInterval, .seconds(4))
+            controller.setDemand(.detail, for: window)
+            XCTAssertEqual(controller.samplingInterval, .seconds(2))
+            XCTAssertEqual(controller.demandCount, 3)
+            controller.setDemand(nil, for: window)
+            controller.setDemand(nil, for: menu)
+            XCTAssertEqual(controller.samplingInterval, .seconds(10))
+            controller.setDemand(nil, for: panel)
+            XCTAssertEqual(controller.demandCount, 0)
+            XCTAssertFalse(controller.hasActiveSampling)
+        }
+        controller.stop()
+    }
+
     func testRefreshPublishesCompleteNumericSnapshotAndFormatsMenuBarValues() async {
         let controller = SystemMetricsController(provider: SystemMetricsProviderStub())
 

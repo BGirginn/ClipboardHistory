@@ -18,8 +18,6 @@ extension ClipboardHistoryViewModel {
             .sorted { $0.creationDate > $1.creationDate }
         guard unpinned.count > settings.historyLimit else { return }
         for item in unpinned.dropFirst(settings.historyLimit) {
-            items.removeAll { $0.id == item.id }
-            pasteboardIdentityByItemID[item.id] = nil
             await finishDeleting(item)
         }
     }

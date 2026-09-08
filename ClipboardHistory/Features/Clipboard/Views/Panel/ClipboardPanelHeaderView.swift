@@ -14,6 +14,11 @@ struct ClipboardPanelHeaderView: View {
                 back: backToHome,
                 openSettings: openSettings
             ) {
+                Button("Search History", systemImage: "magnifyingglass", action: viewModel.toggleSearch)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .help("Search History")
+                    .accessibilityIdentifier("clipboard.search")
                 ClipboardHistoryActionsMenu(viewModel: viewModel)
             }
 

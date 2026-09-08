@@ -54,7 +54,9 @@ struct NoteEditorStatusView: View {
                 HStack(spacing: 6) {
                     switch controller.saveState {
                     case .idle:
-                        EmptyView()
+                        if controller.hasPendingChanges {
+                            Label("Unsaved Changes", systemImage: "circle.dotted")
+                        }
                     case .saving:
                         ProgressView()
                             .controlSize(.small)

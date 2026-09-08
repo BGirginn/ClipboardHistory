@@ -31,6 +31,54 @@ final class ClipboardHistoryUITests: XCTestCase {
         )
     }
 
+    func testSearchFocusClearAndWindowTransferPreserveQuery() {
+        let application = launchApplication()
+        defer { terminate(application) }
+        openClipboard(in: application)
+        application.buttons["clipboard.search"].click()
+        let search = application.textFields["clipboard.searchField"]
+        XCTAssertTrue(search.waitForExistence(timeout: 2))
+        application.typeText("Alpha")
+        XCTAssertEqual(search.value as? String, "Alpha")
+        XCTAssertEqual(rows(in: application).count, 1)
+        application.buttons["module.openWindow"].click()
+        XCTAssertTrue(application.windows.firstMatch.waitForExistence(timeout: 2))
+        XCTAssertEqual(application.textFields["clipboard.searchField"].value as? String, "Alpha")
+        XCTAssertFalse(application.descendants(matching: .popover).firstMatch.exists)
+        application.buttons["clipboard.closeSearch"].click()
+        XCTAssertFalse(application.textFields["clipboard.searchField"].exists)
+        XCTAssertGreaterThanOrEqual(rows(in: application).count, 3)
+    }
+
+    func testDetailEditorKeepsSpaceAndArrowInputAndSaves() {
+        let application = launchApplication()
+        defer { terminate(application) }
+        openClipboard(in: application)
+        rows(in: application).firstMatch.rightClick()
+        application.menuItems["Show Details"].click()
+        let title = application.textFields["detail.title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 2))
+        title.click()
+        application.typeKey("a", modifierFlags: .command)
+        // Bulk typeText drops lowercase i on the Turkish-PC layout in the
+        // macOS 27 runner; individual key events preserve the exact input.
+        for character in "Edited title" {
+            title.typeKey(String(character), modifierFlags: [])
+        }
+        application.typeKey(.leftArrow, modifierFlags: [])
+        application.typeText("!")
+        XCTAssertEqual(title.value as? String, "Edited titl!e")
+        application.buttons["detail.save"].click()
+        application.buttons["detail.back"].click()
+        let editedRow = rows(in: application).matching(
+            NSPredicate(format: "label CONTAINS %@", "Edited titl!e")
+        ).firstMatch
+        XCTAssertTrue(editedRow.waitForExistence(timeout: 2))
+        editedRow.rightClick()
+        application.menuItems["Show Details"].click()
+        XCTAssertEqual(title.value as? String, "Edited titl!e")
+    }
+
     func testContextMenuOpensDetailsWithoutClosingPanel() {
         let application = launchApplication()
         defer { terminate(application) }
@@ -337,32 +385,30 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertTrue(clipboardStandalone.waitForExistence(timeout: 2))
         let customizationForm = application.descendants(matching: .any)["customize.form"]
         XCTAssertTrue(customizationForm.waitForExistence(timeout: 2))
-        var remainingScrolls = 8
-        while !clipboardStandalone.isHittable && remainingScrolls > 0 {
-            customizationForm.scroll(byDeltaX: 0, deltaY: 160)
-            remainingScrolls -= 1
-        }
-        XCTAssertTrue(clipboardStandalone.isHittable)
+        scrollToControl(clipboardStandalone, in: customizationForm)
         clipboardStandalone.click()
         let alwaysVisible = application.menuItems["Always"]
         XCTAssertTrue(alwaysVisible.waitForExistence(timeout: 2))
         alwaysVisible.click()
+        XCTAssertEqual(clipboardStandalone.value as? String, "Always")
 
         let clipboardAction = application.descendants(matching: .any)["customize.clipboard.action"]
         XCTAssertTrue(clipboardAction.waitForExistence(timeout: 2))
+        scrollToControl(clipboardAction, in: customizationForm)
         clipboardAction.click()
         XCTAssertTrue(
             application.menuItems["Pause or Resume Recording"].waitForExistence(timeout: 2)
         )
         application.menuItems["Pause or Resume Recording"].click()
+        XCTAssertEqual(clipboardAction.value as? String, "Pause or Resume Recording")
 
         let centerItem = application.descendants(matching: .any)["customize.controlCenterItem"]
         XCTAssertTrue(centerItem.waitForExistence(timeout: 2))
+        scrollToControl(centerItem, in: customizationForm, deltaY: -160)
         centerItem.click()
-        XCTAssertFalse(
-            application.descendants(matching: .statusItem)["menuBar.controlCenter"]
-                .waitForExistence(timeout: 1)
-        )
+        let controlCenterStatus = application.descendants(matching: .statusItem)["menuBar.controlCenter"]
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: controlCenterStatus)
+        waitForExpectations(timeout: 3)
         XCTAssertTrue(
             application.descendants(matching: .statusItem)["menuBar.feature.clipboard"]
                 .waitForExistence(timeout: 2)
@@ -387,6 +433,20 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertTrue(application.staticTexts["Audio Mixer"].waitForExistence(timeout: 2))
         XCTAssertTrue(application.staticTexts["Applications"].exists)
         XCTAssertTrue(application.descendants(matching: .any)["Audio Actions"].exists)
+    }
+
+    private func scrollToControl(
+        _ control: XCUIElement,
+        in container: XCUIElement,
+        deltaY: CGFloat = 160
+    ) {
+        for _ in 0..<8 {
+            if control.isHittable && container.frame.insetBy(dx: 0, dy: 4).contains(control.frame) {
+                return
+            }
+            container.scroll(byDeltaX: 0, deltaY: deltaY)
+        }
+        XCTFail("Control is not fully visible: \(control.identifier)")
     }
 
     private func launchApplication(language: String? = nil) -> XCUIApplication {

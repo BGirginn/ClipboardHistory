@@ -3,11 +3,34 @@ import SwiftUI
 import UniformTypeIdentifiers
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 #if DEBUG
 @MainActor
 final class FacadeActionCoverageTests: XCTestCase {
+    private var hostedWindows: [NSWindow] = []
+
+    private func host<Content: View>(_ content: Content) -> NSView {
+        let view = NSHostingView(rootView: content.environment(\.locale, Locale(identifier: "en")))
+        view.frame = NSRect(x: 0, y: 0, width: 420, height: 700)
+        let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = view
+        view.layoutSubtreeIfNeeded()
+        RunLoop.current.run(until: Date.now.addingTimeInterval(0.02))
+        view.layoutSubtreeIfNeeded()
+        hostedWindows.append(window)
+        return view
+    }
+
+    override func tearDown() async throws {
+        await MainActor.run {
+            hostedWindows.forEach { $0.close() }
+            hostedWindows.removeAll()
+        }
+        try await super.tearDown()
+    }
+
     func testLocalizedEnumsIdentifiersAndDefaultProtocolHooks() async {
         XCTAssertEqual(UtilityFeatureID.allCases.map(\.id), UtilityFeatureID.allCases.map(\.rawValue))
         XCTAssertEqual(MemoryMetricFormat.allCases.map(\.id), ["percentage", "usedAndTotal"])
@@ -541,7 +564,8 @@ final class FacadeActionCoverageTests: XCTestCase {
             viewModel: context.appModel.settingsFeature,
             newCollectionName: "View Actions"
         )
-        advancedSettings.addCollection()
+        _ = host(advancedSettings)
+        context.appModel.settingsFeature.createCollection(named: "View Actions")
         await waitUntil { context.viewModel.collections.contains { $0.name == "View Actions" } }
         let addedCollection = try XCTUnwrap(
             context.viewModel.collections.first { $0.name == "View Actions" }
@@ -766,7 +790,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         row.selectAndCopy()
         row.updateHover(true)
         _ = row.dragProvider()
-        _ = row.body
+        _ = host(row)
 
         let encryptedImage = ClipboardItem(
             type: .imageGroup,
@@ -774,12 +798,12 @@ final class FacadeActionCoverageTests: XCTestCase {
             assetFilenames: ["first.png", "second.png"],
             isEncrypted: true
         )
-        _ = ImageClipboardItemRow(
+        _ = host(ImageClipboardItemRow(
             item: encryptedImage,
             storage: context.storage,
             thumbnailService: .shared
-        ).body
-        _ = DocumentClipboardItemRow(
+        ))
+        _ = host(DocumentClipboardItemRow(
             item: ClipboardItem(
                 type: .files,
                 hash: "encrypted-document-row",
@@ -788,7 +812,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             ),
             storage: context.storage,
             thumbnailService: .shared
-        ).body
+        ))
 
         let png = try makePNG()
         let imageID = UUID()
@@ -801,45 +825,50 @@ final class FacadeActionCoverageTests: XCTestCase {
             hash: "preview-image",
             contentSubtype: .image
         )
-        await ClipboardFullPreview(item: imageItem, storage: context.storage).loadImage()
-        await ClipboardFullPreview(
+        _ = host(ClipboardFullPreview(item: imageItem, storage: context.storage))
+        _ = host(ClipboardFullPreview(
             item: ClipboardItem(type: .pdf, hash: "preview-pdf", contentSubtype: .pdf),
             storage: context.storage
-        ).loadImage()
-        await ClipboardFullPreview(
+        ))
+        _ = host(ClipboardFullPreview(
             item: ClipboardItem(type: .image, hash: "preview-without-file", contentSubtype: .image),
             storage: context.storage
-        ).loadImage()
-        _ = ClipboardFullPreview(
+        ))
+        _ = host(ClipboardFullPreview(
             item: imageItem,
             storage: context.storage,
             image: NSImage(size: NSSize(width: 2, height: 2))
-        ).body
+        ))
         let thumbnail = ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
             thumbnailService: .shared
         )
-        await thumbnail.loadThumbnail()
-        _ = ClipboardImageThumbnail(
+        _ = host(thumbnail)
+        _ = host(ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
             thumbnailService: .shared,
             image: NSImage(size: NSSize(width: 2, height: 2))
-        ).body
-        _ = ClipboardImageThumbnail(
+        ))
+        _ = host(ClipboardImageThumbnail(
             item: imageItem,
             storage: context.storage,
             thumbnailService: .shared,
             didFail: true
-        ).body
+        ))
 
         let detail = ClipboardDetailView(item: item, viewModel: context.viewModel)
         context.viewModel.detailItem = item
         detail.goBack()
         XCTAssertNil(context.viewModel.detailItem)
         detail.copyItem()
-        detail.saveChanges()
+        _ = host(detail)
+        context.viewModel.updateItem(item, title: "Edited", editedText: "panel edited", tags: "tag", collectionID: nil, isSnippet: false)
+        let detailSaved = await context.viewModel.drainPendingItemWrites()
+        XCTAssertTrue(detailSaved)
+        let savedDetail = try await context.storage.loadHistoryThrowing().first { $0.id == item.id }
+        XCTAssertEqual(savedDetail?.displayTitle, "Edited")
         var transformedText = "hello world"
         let transformBinding = Binding(
             get: { transformedText },
@@ -850,68 +879,68 @@ final class FacadeActionCoverageTests: XCTestCase {
             text: transformBinding
         ).apply()
         XCTAssertEqual(transformedText, "HELLO WORLD")
-        _ = ClipboardTextTransformationButton(
+        _ = host(ClipboardTextTransformationButton(
             transformation: .lowercase,
             text: transformBinding
-        ).body
+        ))
 
         let menuCommands = ClipboardItemMenuCommands(item: item, actions: rowActions)
         for representation in PasteRepresentation.allCases {
-            _ = ClipboardItemRepresentationMenuButton(
+            _ = host(ClipboardItemRepresentationMenuButton(
                 command: ClipboardItemRepresentationMenuCommand(
                     commands: menuCommands,
                     representation: representation,
                     operation: .copy
                 )
-            ).body
+            ))
         }
         let collection = ClipboardCollection(name: "Coverage")
-        _ = ClipboardItemCollectionMenuButton(
+        _ = host(ClipboardItemCollectionMenuButton(
             title: collection.name,
             command: ClipboardItemCollectionMenuCommand(
                 commands: menuCommands,
                 collectionID: collection.id
             )
-        ).body
-        _ = ClipboardItemContextMenu(
+        ))
+        _ = host(ClipboardItemContextMenu(
             item: ClipboardItem(type: .files, hash: "files-menu", fileURLs: ["/tmp/file"]),
             actions: rowActions
-        ).body
-        _ = ClipboardCollectionSettingsRow(
+        ))
+        _ = host(ClipboardCollectionSettingsRow(
             viewModel: context.appModel.settingsFeature,
             collection: collection
-        ).body
-        _ = ClipboardSettingsMessage(message: nil, color: .red).body
-        _ = ClipboardSettingsMessage(message: "Text error", color: .red).body
-        _ = ClipboardSettingsMessage(
+        ))
+        _ = host(ClipboardSettingsMessage(message: nil, color: .red))
+        _ = host(ClipboardSettingsMessage(message: "Text error", color: .red))
+        _ = host(ClipboardSettingsMessage(
             message: "Label error",
             color: .orange,
             usesLabel: true
-        ).body
-        _ = ClipboardRecordingStatusView(isPrivateMode: true, pauseUntil: nil).body
-        _ = ClipboardRecordingStatusView(
+        ))
+        _ = host(ClipboardRecordingStatusView(isPrivateMode: true, pauseUntil: nil))
+        _ = host(ClipboardRecordingStatusView(
             isPrivateMode: false,
             pauseUntil: .now.addingTimeInterval(60)
-        ).body
-        _ = ClipboardRecordingStatusView(isPrivateMode: false, pauseUntil: nil).body
+        ))
+        _ = host(ClipboardRecordingStatusView(isPrivateMode: false, pauseUntil: nil))
         let storageSettings = ClipboardSettingsStorageView(
             viewModel: context.appModel.settingsFeature,
             archivePassword: "password",
             includeArchiveAssets: false,
             includeArchiveFileReferences: false
         )
+        _ = host(storageSettings)
         storageSettings.runCleanup()
-        storageSettings.exportMetadata()
-        storageSettings.exportEncrypted()
+        let feature = context.appModel.settingsFeature
+        feature.exportArchive(mode: .metadataOnly, includeImagesAndDocuments: false, includeFileReferences: false)
+        feature.exportArchive(mode: .encrypted, includeImagesAndDocuments: false, includeFileReferences: false, password: "password")
         storageSettings.requestUnencryptedExport()
         storageSettings.requestClearHistory()
-        storageSettings.exportUnencrypted()
-        storageSettings.importArchive()
+        feature.exportArchive(mode: .fullUnencrypted, includeImagesAndDocuments: false, includeFileReferences: false)
+        feature.importArchive(password: "password")
         storageSettings.cancelDialog()
-        ClipboardStorageRecoveryView(
-            viewModel: context.appModel.settingsFeature,
-            archivePassword: "password"
-        ).importArchive()
+        _ = host(ClipboardStorageRecoveryView(viewModel: feature, archivePassword: "password"))
+        feature.importStorageRecoveryArchive(password: "password")
         await drainTasks()
 
         ClipboardQuickSelectionButton(viewModel: context.viewModel, index: 0).restore()
@@ -935,7 +964,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         header.openSettings()
         XCTAssertTrue(didOpenSettings)
         let panel = ClipboardPanelView(viewModel: context.viewModel)
-        _ = panel.body
+        _ = host(panel)
         panel.cancelDialog()
         XCTAssertFalse(panel.handleKeyEvent(keyEvent(keyCode: 3, modifiers: .command, characters: "f")))
         XCTAssertTrue(panel.handleKeyEvent(keyEvent(keyCode: 53)))

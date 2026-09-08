@@ -87,6 +87,11 @@ final class ClipboardHistoryViewModel: ObservableObject {
     var appliedDisplayFilter: ClipboardFilter
     var appliedSortMode: ClipboardSortMode
     var isShuttingDown = false
+    var captureGeneration: UInt = 0
+    var activeCaptureMutations = 0
+    var isClearingHistory = false
+    var captureDrainWaiters: [CheckedContinuation<Void, Never>] = []
+    @Published var isSearchVisible = false
 
     init(
         storage: StorageService = StorageService(),
@@ -241,6 +246,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
     }
 
     func prepareForShutdown() {
+        invalidatePendingCaptures()
         isShuttingDown = true
         stopMonitoring()
         settingsCancellable = nil
@@ -268,8 +274,14 @@ final class ClipboardHistoryViewModel: ObservableObject {
     /// Actor serialization ensures pending SQLite work has yielded before close.
     @discardableResult
     func shutdown() async -> Bool {
+        isShuttingDown = true
+        invalidatePendingCaptures()
         stopMonitoring()
-        guard await drainPendingItemWrites() else { return false }
+        await drainCaptureMutations()
+        guard await drainPendingItemWrites() else {
+            isShuttingDown = false
+            return false
+        }
         prepareForShutdown()
         await storage.close()
         return true

@@ -7,6 +7,7 @@ enum ExportImportError: LocalizedError, Sendable {
     case unsafePath
     case archiveTooLarge
     case missingAsset
+    case cleanupFailed
 
     var errorDescription: String? {
         switch self {
@@ -16,6 +17,7 @@ enum ExportImportError: LocalizedError, Sendable {
         case .unsafePath: String(localized: "The archive contains an unsafe asset path.")
         case .archiveTooLarge: String(localized: "The archive exceeds the safe import limit.")
         case .missingAsset: String(localized: "The archive is missing required content.")
+        case .cleanupFailed: String(localized: "Import failed and some created files could not be removed. Retry storage cleanup before importing again.")
         }
     }
 }

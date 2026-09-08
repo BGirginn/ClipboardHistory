@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 private struct FixedMasterKeyProvider: MasterKeyProvider {
     let key: Data

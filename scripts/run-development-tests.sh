@@ -59,7 +59,7 @@ if [[ "$selector" == ClipboardHistoryUITests* ]]; then
   ui_derived_data=$(mktemp -d /private/tmp/clipboardhistory-development-ui.XXXXXX)
   xcodebuild -quiet \
     -project ClipboardHistory.xcodeproj \
-    -scheme ClipboardHistory \
+    -scheme ClipboardHistoryTests \
     -configuration Debug \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$ui_derived_data" \
@@ -72,7 +72,7 @@ if [[ "$selector" == ClipboardHistoryUITests* ]]; then
 else
   xcodebuild -quiet \
     -project ClipboardHistory.xcodeproj \
-    -scheme ClipboardHistory \
+    -scheme ClipboardHistoryTests \
     -configuration Debug \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$derived_data" \

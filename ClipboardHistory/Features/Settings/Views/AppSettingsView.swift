@@ -54,7 +54,7 @@ struct AppSettingsView: View {
             .transition(.opacity)
         }
         .animation(
-            reduceMotion ? nil : .easeInOut(duration: 0.12),
+            AppMotion.transition(reduceMotion: reduceMotion),
             value: selectedSubsection
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)

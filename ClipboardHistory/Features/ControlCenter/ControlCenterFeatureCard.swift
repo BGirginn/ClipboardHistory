@@ -50,7 +50,7 @@ struct ControlCenterFeatureCard: View {
                     .accessibilityHidden(true)
             }
             .contentShape(.rect)
-            .padding(AppDesign.cardPadding)
+            .padding(AppDesign.compactCardPadding)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(accessibilityIdentifier)

@@ -49,12 +49,16 @@ struct NotesListView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .buttonStyle(.plain)
+                            .id(note.id)
+                            .accessibilityAddTraits(controller.selectedNoteID == note.id ? .isSelected : [])
                             .accessibilityIdentifier("notes.row.\(note.id.uuidString.lowercased())")
                         }
                     }
+                    .scrollTargetLayout()
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
                 }
+                .scrollPosition(id: $controller.listScrollPosition)
                 .accessibilityIdentifier("notes.list")
             }
         }

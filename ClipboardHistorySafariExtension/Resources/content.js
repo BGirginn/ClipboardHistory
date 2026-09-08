@@ -58,7 +58,9 @@ browser.runtime.onMessage.addListener(message => {
     return;
   }
   if (message.type !== "set-volume") return;
-  currentGain = Math.max(0, Math.min(100, Number(message.volume))) / 100;
+  const nextGain = Math.max(0, Math.min(100, Number(message.volume))) / 100;
+  if (!Number.isFinite(nextGain) || nextGain === currentGain) return;
+  currentGain = nextGain;
   for (const media of controllableMedia()) applyGain(media);
   publishCapability();
 });

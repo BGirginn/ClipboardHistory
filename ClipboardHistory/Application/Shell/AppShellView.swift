@@ -3,13 +3,16 @@ import SwiftUI
 
 struct AppShellView: View {
     let model: AppModel
+    let isWindow: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject private var router: AppRouter
     @ObservedObject private var settings: AppSettings
     private let clipboard: ClipboardHistoryViewModel
     private let notes: NoteController
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
-    init(model: AppModel) {
+    init(model: AppModel, isWindow: Bool = false) {
+        self.isWindow = isWindow
         self.model = model
         _router = ObservedObject(wrappedValue: model.router)
         _settings = ObservedObject(wrappedValue: model.settings)
@@ -22,7 +25,7 @@ struct AppShellView: View {
         .frame(
             minWidth: AppDesign.panelMinimumWidth,
             idealWidth: AppDesign.panelIdealWidth,
-            maxWidth: AppDesign.panelMaximumWidth,
+            maxWidth: isWindow ? .infinity : AppDesign.panelMaximumWidth,
             minHeight: AppDesign.panelMinimumHeight,
             idealHeight: AppDesign.panelIdealHeight,
             maxHeight: .infinity
@@ -32,6 +35,11 @@ struct AppShellView: View {
                 ? AnyShapeStyle(Color(nsColor: .windowBackgroundColor))
                 : AnyShapeStyle(.regularMaterial)
         )
+        .environment(\.applicationPresentation, ApplicationPresentation(
+            isWindow: isWindow,
+            openWindow: { model.requestOpenWindow?() }
+        ))
+        .animation(AppMotion.transition(reduceMotion: reduceMotion), value: router.activeFeature)
         .background(KeyboardEventMonitorView(handler: handleKeyEvent))
         .preferredColorScheme(settings.appearance.colorScheme)
     }
@@ -124,16 +132,7 @@ struct AppShellView: View {
     }
 
     private func activateControlCenterFeature(_ id: UtilityFeatureID) {
-        guard id == .keyboardCleaning else {
-            showFeature(id)
-            return
-        }
-        if model.performStandaloneAction(
-            for: id,
-            action: .toggleKeyboardCleaning
-        ) != nil {
-            model.showKeyboardCleaning()
-        }
+        showFeature(id)
     }
 
     private func handleKeyEvent(_ event: NSEvent) -> Bool {

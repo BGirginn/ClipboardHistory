@@ -2,7 +2,7 @@ import CoreAudio
 import ServiceManagement
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 private final class AudioDiscoveryStub: AudioProcessDiscovering, @unchecked Sendable {
     var discovered: [AudioApplication]
@@ -515,6 +515,29 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(engine.stopAllCount, 1)
     }
 
+    func testResetForgetsClosedApplicationGainAcrossRestart() async throws {
+        let suite = "AudioReset-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(["com.example.closed": 35.0], forKey: "audioMixer.applicationGains.v1")
+        let controller = AudioMixerController(
+            discovery: AudioDiscoveryStub(discovered: []),
+            engine: ProcessAudioControllerStub(), browserBridge: BrowserAudioBridgeStub(), defaults: defaults
+        )
+        controller.resetAll()
+        for _ in 0..<100 where defaults.dictionary(forKey: "audioMixer.applicationGains.v1")?["com.example.closed"] != nil {
+            await Task.yield()
+        }
+        XCTAssertNil(defaults.dictionary(forKey: "audioMixer.applicationGains.v1")?["com.example.closed"])
+        controller.stop()
+        let restarted = AudioMixerController(
+            discovery: AudioDiscoveryStub(discovered: []),
+            engine: ProcessAudioControllerStub(), browserBridge: BrowserAudioBridgeStub(), defaults: defaults
+        )
+        XCTAssertFalse(restarted.hasActiveUserIntervention)
+        restarted.stop()
+    }
+
     func testMuteResetAndBrowserMasterMatrix() async {
         let engine = ProcessAudioControllerStub()
         let bridge = BrowserAudioBridgeStub()
@@ -617,6 +640,7 @@ final class AudioMixerControllerTests: XCTestCase {
         let installer = BrowserExtensionInstaller(
             supportRoot: root,
             resourceBundle: .main,
+            helperURL: URL(fileURLWithPath: "/usr/bin/true"),
             workspace: workspace
         )
         var openedSafariIdentifier: String?

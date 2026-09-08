@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class StorageFailClosedTests: XCTestCase {
     private struct InjectedFailure: Error {}

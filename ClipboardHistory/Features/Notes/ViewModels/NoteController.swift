@@ -25,6 +25,8 @@ final class NoteController: ObservableObject {
 
     @Published var notes: [Note] = []
     @Published var searchText = ""
+    @Published var listScrollPosition: UUID?
+    @Published private(set) var selectedNoteID: UUID?
     @Published private(set) var screen: NoteScreen = .list
     @Published var draftTitle = "" {
         didSet { draftDidChange() }
@@ -50,6 +52,7 @@ final class NoteController: ObservableObject {
     private var lastPersistedTitle = ""
     private var lastPersistedBody = ""
     private var hasLoaded = false
+    private var loadingTask: Task<Void, Never>?
 
     init(storage: StorageService, debounceDuration: Duration = .milliseconds(400)) {
         self.storage = storage
@@ -78,16 +81,26 @@ final class NoteController: ObservableObject {
 
     func loadIfNeeded() async {
         guard !hasLoaded else { return }
-        do {
-            notes = try await storage.loadNotesThrowing()
-                .sorted { $0.updatedAt > $1.updatedAt }
-            hasLoaded = true
-        } catch {
-            errorMessage = String(localized: "Notes could not be loaded: \(error.localizedDescription)")
+        if let loadingTask {
+            await loadingTask.value
+            return
         }
+        let task = Task { [weak self] in
+            guard let self else { return }
+            do {
+                notes = try await storage.loadNotesThrowing().sorted { $0.updatedAt > $1.updatedAt }
+                hasLoaded = true
+            } catch {
+                errorMessage = String(localized: "Notes could not be loaded: \(error.localizedDescription)")
+            }
+        }
+        loadingTask = task
+        await task.value
+        loadingTask = nil
     }
 
     func reload() async {
+        await loadingTask?.value
         hasLoaded = false
         await loadIfNeeded()
     }
@@ -115,6 +128,7 @@ final class NoteController: ObservableObject {
     }
 
     func openEditor(for note: Note) {
+        selectedNoteID = note.id
         debounceTask?.cancel()
         configureDraft(with: note)
         screen = .editor
@@ -210,6 +224,7 @@ final class NoteController: ObservableObject {
         guard !isConfiguringDraft else { return }
         draftRevision += 1
         validateDraft()
+        if saveState != .failed { saveState = .idle }
         debounceTask?.cancel()
         let revision = draftRevision
         debounceTask = Task { [weak self, debounceDuration] in

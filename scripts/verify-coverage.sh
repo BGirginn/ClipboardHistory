@@ -18,9 +18,9 @@ if [[ -d "$result_bundle" ]]; then
 else
   xcrun xccov view --json "$result_bundle" > "$report"
 fi
-target_name=$(jq -r '.targets[] | select(.name == "ClipboardHistory.app") | .name' "$report")
-if [[ "$target_name" != "ClipboardHistory.app" ]]; then
-  print -u2 "coverage gate: ClipboardHistory.app target is missing"
+target_name=$(jq -r '.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .name' "$report")
+if [[ "$target_name" != "ClipboardHistoryTestHost.app" ]]; then
+  print -u2 "coverage gate: ClipboardHistoryTestHost.app target is missing"
   exit 1
 fi
 
@@ -28,7 +28,7 @@ failed=0
 while IFS= read -r source; do
   absolute="$repository_root/$source"
   values=$(jq -r --arg path "$absolute" '
-    [.targets[] | select(.name == "ClipboardHistory.app") | .files[] | select(.path == $path)]
+    [.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .files[] | select(.path == $path)]
     | if length == 1 then "\(.[0].lineCoverage)\t\(.[0].coveredLines)\t\(.[0].executableLines)" else "missing" end
   ' "$report")
   if [[ "$values" == "missing" ]]; then
@@ -47,7 +47,7 @@ while IFS= read -r source; do
   fi
 done < <(cd "$repository_root" && rg --files ClipboardHistory -g '*.swift' | sort)
 
-target_coverage=$(jq -r '.targets[] | select(.name == "ClipboardHistory.app") | .lineCoverage' "$report")
+target_coverage=$(jq -r '.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .lineCoverage' "$report")
 if ! jq -en \
   --argjson coverage "$target_coverage" \
   --argjson minimum "$minimum_aggregate_coverage" \

@@ -47,17 +47,21 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         backend: shortcutBackend
     )
 
+    private var navigationGeneration: UInt = 0
+
     private var viewModel: ClipboardHistoryViewModel { appModel.clipboard }
 
     init(
         appModel: AppModel,
-        dependencies: MenuBarControllerDependencies = .live,
+        dependencies: MenuBarControllerDependencies? = nil,
         panelEventMonitor: any PanelEventMonitoring = SystemPanelEventMonitor(),
-        shortcutBackend: any GlobalShortcutBackend = SystemGlobalShortcutBackend(),
+        shortcutBackend: (any GlobalShortcutBackend)? = nil,
         applicationWindowPresenter: (any ApplicationWindowPresenting)? = nil,
         popoverAnchor: (() -> NSView?)? = nil
     ) {
         self.appModel = appModel
+        let dependencies = MenuBarControllerDependencies.resolve(for: appModel, provided: dependencies)
+        let shortcutBackend = MenuBarControllerDependencies.resolveShortcut(for: appModel, provided: shortcutBackend)
         self.dependencies = dependencies
         self.shortcutBackend = shortcutBackend
         self.applicationWindowPresenter = applicationWindowPresenter
@@ -65,6 +69,11 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         popover = dependencies.makePopover()
         quickLookService = dependencies.quickLookPresenter
         super.init()
+        appModel.requestOpenWindow = { [weak self] in
+            guard let self else { return }
+            closePopoverNow()
+            applicationWindowPresenter?.showActiveFeature()
+        }
 
         rebuildStatusItems()
 
@@ -200,12 +209,17 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         preparesDestination: Bool = true,
         settingsSection: AppSettingsSection? = nil
     ) {
+        navigationGeneration &+= 1
+        let generation = navigationGeneration
+        let routeGeneration = appModel.router.navigationGeneration
         Task { [weak self] in
             guard let self else { return }
             if appModel.router.activeFeature == .notes, feature != .notes {
                 let outcome = await appModel.notes.flushPendingSave()
                 guard outcome.allowsTransition else { return }
             }
+            guard generation == navigationGeneration, !isStopped,
+                  routeGeneration == appModel.router.navigationGeneration else { return }
             if isPopoverShown {
                 if let anchorID,
                    activeAnchorID != anchorID,
@@ -445,13 +459,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     private func applyAppearance(_ appearance: AppAppearance) {
-        let name: NSAppearance.Name?
-        switch appearance {
-        case .system: name = nil
-        case .light: name = .aqua
-        case .dark: name = .darkAqua
-        }
-        let resolvedAppearance = name.flatMap { NSAppearance(named: $0) }
+        let resolvedAppearance = appearance.nativeAppearance
         popover.appearance = resolvedAppearance
         detachablePanel?.appearance = resolvedAppearance
     }

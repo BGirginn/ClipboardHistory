@@ -352,6 +352,11 @@ final class AudioMixerController: ObservableObject {
     }
 
     private func resetLoadedApplications() {
+        let activeBundles = Set(applications.map(\.bundleID))
+        gains = gains.filter { activeBundles.contains($0.key) }
+        defaults.set(gains, forKey: gainsKey)
+        preMuteGains.removeAll()
+        browserPreMuteGains.removeAll()
         for application in applications {
             setVolume(100, for: application)
         }

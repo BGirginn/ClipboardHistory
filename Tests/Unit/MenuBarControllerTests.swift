@@ -3,7 +3,7 @@ import Carbon
 import CoreAudio
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class MenuBarControllerTests: XCTestCase {
@@ -91,6 +91,48 @@ final class MenuBarControllerTests: XCTestCase {
 
         controller.stop()
         XCTAssertGreaterThanOrEqual(quickLook.closeCount, 2)
+        await cleanup(context)
+    }
+
+    func testOpenInWindowReusesWindowAndPreservesSearchSelectionAndDraft() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        var createdWindows = 0
+        let presenter = ApplicationWindowController(
+            appModel: context.appModel,
+            makeWindow: { createdWindows += 1; return MenuPanelStub() },
+            makeContentViewController: { _ in NSViewController() }
+        )
+        let popover = MenuPopoverStub()
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: { NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength) },
+                makePopover: { popover }, makePanel: { _ in MenuPanelStub() }, quickLookPresenter: MenuQuickLookSpy()
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub(), applicationWindowPresenter: presenter
+        )
+        await context.viewModel.insert(.text(value: "Synthetic", hash: "transfer"))
+        let item = try XCTUnwrap(context.viewModel.items.first)
+        context.appModel.showClipboard()
+        context.viewModel.toggleSearch()
+        context.viewModel.searchText = "Synthetic"
+        context.viewModel.selectOnly(item)
+        controller.showActiveFeature()
+        context.appModel.requestOpenWindow?()
+        XCTAssertFalse(popover.isShown)
+        XCTAssertEqual(context.appModel.router.activeFeature, .clipboard)
+        XCTAssertEqual(context.viewModel.searchText, "Synthetic")
+        XCTAssertEqual(context.viewModel.selectedItemID, item.id)
+        context.appModel.showQuickNote()
+        context.appModel.notes.draftBody = "Preserved draft"
+        let session = context.appModel.notes.draftSessionID
+        for _ in 0..<100 { context.appModel.requestOpenWindow?() }
+        XCTAssertEqual(createdWindows, 1)
+        XCTAssertEqual(context.appModel.notes.draftSessionID, session)
+        XCTAssertEqual(context.appModel.notes.draftBody, "Preserved draft")
+        presenter.stop()
+        controller.stop()
         await cleanup(context)
     }
 

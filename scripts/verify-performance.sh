@@ -8,7 +8,7 @@ log="$temporary_root/performance.log"
 
 if ! xcodebuild -quiet \
     -project "$repository_root/ClipboardHistory.xcodeproj" \
-    -scheme ClipboardHistory \
+    -scheme ClipboardHistoryTests \
     -configuration Release \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$temporary_root/DerivedData" \
@@ -27,4 +27,8 @@ result=$(xcrun xcresulttool get test-results summary --path "$temporary_root/Per
   print -u2 "performance gate: optimized benchmark did not pass"
   exit 1
 }
+xcrun xcresulttool export attachments --path "$temporary_root/Performance.xcresult" --output-path "$temporary_root/attachments" >/dev/null
+while IFS= read -r attachment; do
+  jq 'select(type == "object") | select(.itemCount == 5000)' "$attachment"
+done < <(rg --files "$temporary_root/attachments" -g '*.json')
 print "performance gate: optimized arm64 p95 benchmark passed"

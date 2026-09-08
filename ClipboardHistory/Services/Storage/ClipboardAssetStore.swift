@@ -9,6 +9,7 @@ extension StorageService {
         encrypt: Bool
     ) -> Bool {
         do {
+            guard !isClosed, !requiresRecovery else { throw DatabaseError.recoveryRequired }
             try operationFailureInjector?(.storeAsset(logicalFilename))
             guard let logicalFilename = ManagedFilename(logicalFilename) else {
                 throw DatabaseError.unsafeFilename

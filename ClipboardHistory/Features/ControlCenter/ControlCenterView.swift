@@ -18,7 +18,7 @@ struct ControlCenterView: View {
             Divider()
 
             ScrollView {
-                LazyVStack(spacing: AppDesign.sectionSpacing) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 12)], spacing: 12) {
                     if controlCenter.controlCenterFeatures.isEmpty {
                         ContentUnavailableView(
                             "No Modules in Control Center",
@@ -34,7 +34,11 @@ struct ControlCenterView: View {
                 .padding(AppDesign.horizontalPadding)
             }
         }
-        .task { await notes.loadIfNeeded() }
+        .task(id: controlCenter.controlCenterFeatures.contains { $0.id == .notes }) {
+            if controlCenter.controlCenterFeatures.contains(where: { $0.id == .notes }) {
+                await notes.loadIfNeeded()
+            }
+        }
     }
 
     private var controlCenterToolbar: some View {
@@ -48,6 +52,7 @@ struct ControlCenterView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            OpenInWindowButton()
             Button("Customize Menu Bar", systemImage: "switch.2", action: customizeMenuBar)
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)

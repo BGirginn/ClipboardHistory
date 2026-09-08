@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 private struct ImmediateSleepClock: SleepClock {
     func sleep(for duration: Duration) async throws {}

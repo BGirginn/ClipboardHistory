@@ -26,8 +26,14 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarConfigurationCancellable: AnyCancellable?
     private var terminationTask: Task<Void, Never>?
     override convenience init() {
+        #if CLIPBOARD_HISTORY_TEST_HOST
+        var environment = ProcessInfo.processInfo.environment
+        environment["CLIPBOARD_HISTORY_TEST_HOST_ENTRY"] = "1"
+        #else
+        let environment = ProcessInfo.processInfo.environment
+        #endif
         self.init(
-            environment: ProcessInfo.processInfo.environment,
+            environment: environment,
             arguments: ProcessInfo.processInfo.arguments,
             appModelFactory: { AppModel() },
             applicationWindowPresenterFactory: { ApplicationWindowController(appModel: $0) },
@@ -35,9 +41,7 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
                 MenuBarController(appModel: $0, applicationWindowPresenter: $1)
             },
             activationPolicySetter: { NSApplication.shared.setActivationPolicy($0) },
-            terminationReply: { application, shouldTerminate in
-                application.reply(toApplicationShouldTerminate: shouldTerminate)
-            }
+            terminationReply: { $0.reply(toApplicationShouldTerminate: $1) }
         )
     }
 
@@ -52,8 +56,8 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         activationPolicySetter: @escaping ActivationPolicySetter = {
             NSApplication.shared.setActivationPolicy($0)
         },
-        terminationReply: @escaping TerminationReply = { application, shouldTerminate in
-            application.reply(toApplicationShouldTerminate: shouldTerminate)
+        terminationReply: @escaping TerminationReply = {
+            $0.reply(toApplicationShouldTerminate: $1)
         }
     ) {
         self.environment = environment
@@ -67,13 +71,13 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        #if DEBUG
+        #if CLIPBOARD_HISTORY_TEST_HOST
         if environment["CLIPBOARD_HISTORY_UI_TESTING"] == "1" {
             launchForUITesting()
             return
         }
-        guard environment["XCTestConfigurationFilePath"] == nil else {
-            AppLog.lifecycle.debug("Application services disabled for hosted unit tests")
+        if environment["CLIPBOARD_HISTORY_TEST_HOST_ENTRY"] == "1" {
+            AppLog.lifecycle.debug("Application services disabled for hosted tests")
             return
         }
         #endif
@@ -97,55 +101,31 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
-    #if DEBUG
+    #if CLIPBOARD_HISTORY_TEST_HOST
     private func launchForUITesting() {
-        let requestedRoot = environment["CLIPBOARD_HISTORY_TEST_ROOT"].map(
-            URL.init(fileURLWithPath:)
-        )
-        let fallbackRoot = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistory-UITesting-\(UUID().uuidString)",
-            directoryHint: .isDirectory
-        )
-        let root = requestedRoot?.standardizedFileURL.path.hasPrefix("/private/tmp/") == true
-            ? requestedRoot ?? fallbackRoot
-            : fallbackRoot
-        let suiteName = environment["CLIPBOARD_HISTORY_TEST_DEFAULTS"]
-            ?? "ClipboardHistory.UITesting.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName) ?? .standard
-        defaults.set(false, forKey: "closePanelAfterCopying")
-        defaults.set(1, forKey: "closePanelAfterCopyingMigrationVersion")
-        let pasteboard = NSPasteboard(
-            name: .init("ClipboardHistory.UITesting.\(UUID().uuidString)")
-        )
-        let appModel = AppModel(
-            storage: StorageService(baseDirectory: root, encryptionService: .ephemeral()),
-            monitor: ClipboardMonitor(pasteboard: pasteboard),
-            restorePasteboard: pasteboard,
-            settings: AppSettings(defaults: defaults),
-            audioMixerController: AudioMixerController(defaults: defaults),
-            controlCenter: ControlCenterModel(
-                store: MenuBarConfigurationStore(defaults: defaults)
-            ),
-            startsAutomatically: false
-        )
+        guard let appModel = UITestCompositionRoot.makeModel(environment: environment) else { return }
         appModel.controlCenter.setShownInControlCenter(true, for: .audioMixer)
-        _ = configurePresentation(for: appModel)
         let seedItems = [
             ClipboardItem(type: .text, text: "Alpha clipboard item", hash: "ui-alpha"),
             ClipboardItem(type: .text, text: "Beta clipboard item", hash: "ui-beta"),
             ClipboardItem(type: .text, text: "Gamma clipboard item", hash: "ui-gamma")
         ]
         let seedCollection = ClipboardCollection(name: "Coverage Collection")
-        appModel.clipboard.items = seedItems
-        appModel.clipboard.collections = [seedCollection]
-        appModel.clipboard.refreshDisplayedItems()
-        Task {
-            for item in seedItems {
-                try? await appModel.clipboard.storage.upsertThrowing(item)
+        Task { [weak self] in
+            do {
+                for item in seedItems {
+                    try await appModel.clipboard.storage.upsertThrowing(item)
+                }
+                try await appModel.clipboard.storage.upsertCollection(seedCollection)
+                appModel.clipboard.items = seedItems
+                appModel.clipboard.collections = [seedCollection]
+                appModel.clipboard.refreshDisplayedItems()
+                _ = self?.configurePresentation(for: appModel)
+                AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
+            } catch {
+                AppLog.lifecycle.error("Isolated UI test data could not be initialized")
             }
-            try? await appModel.clipboard.storage.upsertCollection(seedCollection)
         }
-        AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
     }
 
     #endif

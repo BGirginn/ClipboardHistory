@@ -3,7 +3,10 @@ import Foundation
 
 @MainActor
 final class AppRouter: ObservableObject {
-    @Published private(set) var activeFeature: AppFeature
+    @Published private(set) var activeFeature: AppFeature {
+        didSet { navigationGeneration &+= 1 }
+    }
+    private(set) var navigationGeneration: UInt = 0
     @Published private(set) var settingsSection: AppSettingsSection?
     @Published private(set) var settingsSubsection: AppSettingsSubsection?
 

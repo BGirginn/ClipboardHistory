@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class MasterKeyProviderTests: XCTestCase {
     func testAllConfigurationsUseStableLoginKeychainService() {

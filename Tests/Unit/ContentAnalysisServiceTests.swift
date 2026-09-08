@@ -2,7 +2,7 @@ import AppKit
 import CoreImage
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 final class ContentAnalysisServiceTests: XCTestCase {
     func testColorNormalizationAndClassification() {

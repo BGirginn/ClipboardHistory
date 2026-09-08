@@ -30,6 +30,7 @@ actor StorageService {
     nonisolated(unsafe) var database: OpaquePointer?
     var isInitialized = false
     var isClosed = false
+    var requiresRecovery = false
 
     init(
         baseDirectory: URL = StorageService.defaultBaseDirectory(),

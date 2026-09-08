@@ -38,19 +38,25 @@ extension StorageService {
                 try setSettingValue(operationID, for: "lastCommittedClearOperation")
                 try execute("COMMIT")
             } catch {
-                try? execute("ROLLBACK")
+                do { try execute("ROLLBACK") } catch { requiresRecovery = true }
                 throw error
             }
         } catch {
+            guard !requiresRecovery else { throw DatabaseError.recoveryRequired }
             for move in movedDirectories.reversed() {
-                if fileManager.fileExists(atPath: move.source.path) {
-                    try? fileManager.removeItem(at: move.source)
-                }
-                if fileManager.fileExists(atPath: move.quarantined.path) {
-                    try? fileManager.moveItem(at: move.quarantined, to: move.source)
+                do {
+                    if fileManager.fileExists(atPath: move.source.path) {
+                        try fileManager.removeItem(at: move.source)
+                    }
+                    if fileManager.fileExists(atPath: move.quarantined.path) {
+                        try fileManager.moveItem(at: move.quarantined, to: move.source)
+                    }
+                } catch {
+                    requiresRecovery = true
                 }
             }
-            try? fileManager.removeItem(at: quarantine)
+            guard !requiresRecovery else { throw DatabaseError.recoveryRequired }
+            try fileManager.removeItem(at: quarantine)
             throw error
         }
 

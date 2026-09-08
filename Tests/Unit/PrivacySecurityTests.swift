@@ -2,7 +2,7 @@ import AppKit
 import Carbon
 import Foundation
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class PrivacySecurityTests: XCTestCase {

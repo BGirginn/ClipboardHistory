@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class NoteControllerTests: XCTestCase {
@@ -14,6 +14,17 @@ final class NoteControllerTests: XCTestCase {
         XCTAssertEqual(outcome, .nothingToSave)
         let notes = try await context.storage.loadNotesThrowing()
         XCTAssertEqual(notes, [])
+    }
+
+    func testConcurrentFirstLoadsShareOneReadAndReloadReadsAgain() async throws {
+        let reads = NoteReadCounter()
+        let context = makeContext(operationFailureInjector: reads.inspect)
+        async let panel: Void = context.controller.loadIfNeeded()
+        async let window: Void = context.controller.loadIfNeeded()
+        _ = await (panel, window)
+        XCTAssertEqual(reads.count, 1)
+        await context.controller.reload()
+        XCTAssertEqual(reads.count, 2)
     }
 
     func testDebounceKeepsOnlyNewestGeneration() async throws {
@@ -400,5 +411,16 @@ private final class ClipboardWriteFailureSwitch: @unchecked Sendable {
               case let .prepareSQL(sql) = operation,
               sql.contains("INSERT OR REPLACE INTO ClipboardItems") else { return }
         throw CocoaError(.fileWriteUnknown)
+    }
+}
+
+private final class NoteReadCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = 0
+    var count: Int { lock.withLock { value } }
+    func inspect(_ operation: StorageOperation) {
+        if case let .prepareSQL(sql) = operation, sql.contains("FROM Notes") {
+            lock.withLock { value += 1 }
+        }
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import LocalAuthentication
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class SystemAuthenticatorTests: XCTestCase {

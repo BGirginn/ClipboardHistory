@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class BrowserExtensionInstallerTests: XCTestCase {
@@ -11,6 +11,7 @@ final class BrowserExtensionInstallerTests: XCTestCase {
         let installer = BrowserExtensionInstaller(
             supportRoot: root,
             resourceBundle: .main,
+            helperURL: URL(fileURLWithPath: "/usr/bin/true"),
             workspace: workspace
         )
 

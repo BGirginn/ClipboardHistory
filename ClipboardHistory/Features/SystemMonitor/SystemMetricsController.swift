@@ -18,19 +18,27 @@ final class SystemMetricsController: ObservableObject {
     private let maximumHistoryCount: Int
     private let defaults: UserDefaults
     private let networkScopeKey = "systemMonitor.networkInterfaceScope.v1"
+    private let lowPowerMode: @Sendable () -> Bool
+    private var powerCancellable: AnyCancellable?
     private var workspaceCancellables: Set<AnyCancellable> = []
 
     init(
         provider: any SystemMetricsProviding = SystemMetricsProvider(),
         maximumHistoryCount: Int = 900,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        lowPowerMode: @escaping @Sendable () -> Bool = { ProcessInfo.processInfo.isLowPowerModeEnabled }
     ) {
         self.provider = provider
+        self.lowPowerMode = lowPowerMode
         self.maximumHistoryCount = max(maximumHistoryCount, 1)
         self.defaults = defaults
         networkInterfaceScope = defaults.string(forKey: networkScopeKey)
             .flatMap(NetworkInterfaceScope.init(rawValue:)) ?? .primaryWiFi
         Task { await provider.setNetworkInterfaceScope(networkInterfaceScope) }
+        powerCancellable = NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in self?.restartSamplingIfNeeded() }
+            }
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification] {
             NSWorkspace.shared.notificationCenter.publisher(for: name)
                 .sink { [weak self] _ in
@@ -204,11 +212,13 @@ final class SystemMetricsController: ObservableObject {
         }
     }
 
-    private var samplingInterval: Duration {
-        if demands.values.contains(.detail) { return SystemMetricsDemand.detail.interval }
-        if demands.values.contains(.menuBar) { return SystemMetricsDemand.menuBar.interval }
-        return SystemMetricsDemand.controlCenter.interval
+    var samplingInterval: Duration {
+        let demand: SystemMetricsDemand = demands.values.contains(.detail) ? .detail
+            : demands.values.contains(.menuBar) ? .menuBar : .controlCenter
+        return demand.interval * (lowPowerMode() ? 2 : 1)
     }
+
+    var hasSample: Bool { snapshot.timestamp != SystemMetricSnapshot.empty.timestamp }
 
     private func sampleOnce() async {
         let sampleTask: Task<SystemMetricSnapshot, Never>

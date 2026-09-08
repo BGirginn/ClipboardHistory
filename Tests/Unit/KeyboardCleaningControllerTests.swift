@@ -2,7 +2,7 @@ import AppKit
 import CoreGraphics
 import Foundation
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class KeyboardCleaningControllerTests: XCTestCase {

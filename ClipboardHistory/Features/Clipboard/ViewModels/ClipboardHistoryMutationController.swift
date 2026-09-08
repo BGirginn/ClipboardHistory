@@ -8,7 +8,8 @@ extension ClipboardHistoryViewModel {
         _ content: ClipboardContent,
         pasteboardIdentity: ClipboardPasteboardIdentity? = nil
     ) async {
-        guard !isPaused else {
+        let generation = captureGeneration
+        guard captureIsCurrent(generation) else {
             AppLog.clipboard.debug("Clipboard capture skipped while recording is paused")
             return
         }
@@ -43,6 +44,9 @@ extension ClipboardHistoryViewModel {
             content,
             recognizesImageText: settings.imageTextRecognitionEnabled
         )
+        guard captureIsCurrent(generation) else { return }
+        activeCaptureMutations += 1
+        defer { finishCaptureMutation() }
         let sensitiveResult = sensitivityResult(for: content, analysis: analysis)
         let isTemporarySensitive = sensitiveResult.isSensitive
         let shouldEncrypt = false
@@ -55,6 +59,10 @@ extension ClipboardHistoryViewModel {
             analysis: analysis
         ) else { return }
 
+        guard captureIsCurrent(generation) else {
+            await discardCancelledCapture(item)
+            return
+        }
         if isTemporarySensitive {
             temporaryContent[item.id] = content
             scheduleExpiration(for: item)
@@ -70,6 +78,10 @@ extension ClipboardHistoryViewModel {
                 errorMessage = String(localized: "Clipboard content could not be saved. Recording continues, but this item was not added.")
                 return
             }
+        }
+        guard captureIsCurrent(generation) else {
+            await discardCancelledCapture(item)
+            return
         }
         if let pasteboardIdentity {
             pasteboardIdentityByItemID[item.id] = pasteboardIdentity
@@ -424,6 +436,11 @@ extension ClipboardHistoryViewModel {
     }
 
     func clearHistoryNow() async {
+        guard !isClearingHistory else { return }
+        isClearingHistory = true
+        defer { isClearingHistory = false }
+        invalidatePendingCaptures()
+        await drainCaptureMutations()
         await cancelAndAwaitAllPendingWrites()
         do {
             let outcome = try await storage.clearAll()
@@ -446,6 +463,10 @@ extension ClipboardHistoryViewModel {
             if outcome.requiresCleanupRetry {
                 cleanupMessage = String(localized: "Clipboard history was deleted, but residual cleanup could not be completed. Cleanup will be retried.")
             }
+        } catch DatabaseError.recoveryRequired {
+            isStorageAvailable = false
+            stopMonitoring()
+            errorMessage = DatabaseError.recoveryRequired.localizedDescription
         } catch {
             errorMessage = String(localized: "Clipboard history could not be cleared. Your saved history was preserved.")
         }

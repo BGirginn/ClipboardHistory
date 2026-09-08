@@ -7,7 +7,7 @@ struct SettingsNavigationList: View {
         List {
             ForEach(AppSettingsSection.allCases) { section in
                 Section {
-                    ForEach(section.subsections) { subsection in
+                    ForEach(section.subsections.filter { $0 != .appStartup }) { subsection in
                         Button {
                             selection = subsection
                         } label: {

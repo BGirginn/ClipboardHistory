@@ -46,16 +46,20 @@ run_mutation() {
 
   if xcodebuild -quiet \
       -project "$checkout/ClipboardHistory.xcodeproj" \
-      -scheme ClipboardHistory \
+      -scheme ClipboardHistoryTests \
       -configuration Debug \
       -destination 'platform=macOS,arch=arm64' \
       -derivedDataPath "$mutation_root/DerivedData" \
+      -resultBundlePath "$mutation_root/Mutation.xcresult" \
       CODE_SIGNING_ALLOWED=NO \
       "-only-testing:$selector" test > "$log" 2>&1; then
     print -u2 "mutation survived: $name"
     (( survived += 1 ))
   else
-    if rg -q 'Test Case.*failed|Failing tests:|error:' "$log"; then
+    local summary
+    summary=$(xcrun xcresulttool get test-results summary \
+      --path "$mutation_root/Mutation.xcresult" 2>/dev/null) || summary='{}'
+    if jq -e '.result == "Failed" and .failedTests > 0' <<<"$summary" >/dev/null; then
       print "mutation killed: $name"
       (( killed += 1 ))
     else

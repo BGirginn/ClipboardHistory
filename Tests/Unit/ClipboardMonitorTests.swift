@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {

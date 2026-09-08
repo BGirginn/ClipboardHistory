@@ -17,6 +17,7 @@ struct SystemMonitorControlCenterCard: View {
     }
 
     private var summary: String {
+        guard controller.hasSample else { return "CPU — · RAM — · —" }
         let cpu = controller.snapshot.cpu.totalPercent.formatted(
             .number.precision(.fractionLength(0))
         )

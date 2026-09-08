@@ -11,7 +11,7 @@ run_sanitizer() {
   local log="$temporary_root/$name.log"
   if ! xcodebuild -quiet \
       -project "$repository_root/ClipboardHistory.xcodeproj" \
-      -scheme ClipboardHistory \
+      -scheme ClipboardHistoryTests \
       -configuration Debug \
       -destination 'platform=macOS,arch=arm64' \
       -derivedDataPath "$temporary_root/$name" \

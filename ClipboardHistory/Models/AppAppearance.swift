@@ -15,6 +15,15 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    @MainActor
+    var nativeAppearance: NSAppearance? {
+        switch self {
+        case .system: nil
+        case .light: NSAppearance(named: .aqua)
+        case .dark: NSAppearance(named: .darkAqua)
+        }
+    }
+
     var colorScheme: ColorScheme? {
         switch self {
         case .system: nil

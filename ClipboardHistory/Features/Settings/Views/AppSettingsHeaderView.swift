@@ -28,6 +28,7 @@ struct AppSettingsHeaderView: View {
                 .lineLimit(1)
                 .accessibilityIdentifier(sectionIdentifier)
             Spacer()
+            OpenInWindowButton()
             Button("Close Settings", systemImage: "xmark", action: close)
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)

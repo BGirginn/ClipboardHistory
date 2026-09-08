@@ -4,7 +4,7 @@ import PDFKit
 import ServiceManagement
 import XCTest
 
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class CoverageCompletionTests: XCTestCase {

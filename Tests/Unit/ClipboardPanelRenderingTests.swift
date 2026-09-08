@@ -3,7 +3,7 @@ import CoreAudio
 import PDFKit
 import SwiftUI
 import XCTest
-@testable import ClipboardHistory
+@testable import ClipboardHistoryTestHost
 
 @MainActor
 final class ClipboardPanelRenderingTests: XCTestCase {

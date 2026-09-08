@@ -38,7 +38,31 @@ struct MenuBarControllerDependencies {
         self.terminateApplication = terminateApplication
     }
 
+    static func resolve(for model: AppModel, provided: MenuBarControllerDependencies?) -> MenuBarControllerDependencies {
+        if let provided { return provided }
+        #if CLIPBOARD_HISTORY_TEST_HOST
+        if let root = model.uiTestRoot { return .isolated(temporaryRoot: root) }
+        #endif
+        return .live
+    }
+
+    static func resolveShortcut(for model: AppModel, provided: (any GlobalShortcutBackend)?) -> any GlobalShortcutBackend {
+        if let provided { return provided }
+        #if CLIPBOARD_HISTORY_TEST_HOST
+        if model.uiTestRoot != nil { return UITestSystemServices() }
+        #endif
+        return SystemGlobalShortcutBackend()
+    }
+
     static var live: MenuBarControllerDependencies {
+        make(quickLookPresenter: QuickLookService())
+    }
+
+    static func isolated(temporaryRoot: URL) -> MenuBarControllerDependencies {
+        make(quickLookPresenter: QuickLookService(panelProvider: { nil }, temporaryDirectoryProvider: { temporaryRoot }))
+    }
+
+    private static func make(quickLookPresenter: any QuickLookPresenting) -> MenuBarControllerDependencies {
         MenuBarControllerDependencies(
             makeStatusItem: {
                 NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -56,12 +80,13 @@ struct MenuBarControllerDependencies {
                 panel.level = .floating
                 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 panel.contentMinSize = NSSize(width: 340, height: 420)
+                panel.contentMaxSize = NSSize(width: 420, height: CGFloat.greatestFiniteMagnitude)
                 panel.contentViewController = NSHostingController(
                     rootView: AppShellView(model: model)
                 )
                 return panel
             },
-            quickLookPresenter: QuickLookService()
+            quickLookPresenter: quickLookPresenter
         )
     }
 }

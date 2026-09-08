@@ -590,7 +590,15 @@
   "Allow ClipboardHistory Browser Audio in System Settings > General > Login Items & Extensions.": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde ClipboardHistory Tarayıcı Sesi'ne izin verin.",
   "Browser audio service could not be registered.": "Tarayıcı ses servisi kaydedilemedi.",
   "Browser audio service is missing from the application bundle.": "Tarayıcı ses servisi uygulama paketinde bulunamadı.",
-  "Browser audio service returned an unknown status.": "Tarayıcı ses servisi bilinmeyen bir durum döndürdü."
-  ,"Browser audio service connection was interrupted. Retrying…": "Tarayıcı ses servisi bağlantısı kesildi. Yeniden deneniyor…"
-  ,"Browser audio service rejected the application connection.": "Tarayıcı ses servisi uygulama bağlantısını reddetti."
+  "Browser audio service returned an unknown status.": "Tarayıcı ses servisi bilinmeyen bir durum döndürdü.",
+  "Browser audio service connection was interrupted. Retrying…": "Tarayıcı ses servisi bağlantısı kesildi. Yeniden deneniyor…",
+  "Browser audio service rejected the application connection.": "Tarayıcı ses servisi uygulama bağlantısını reddetti.",
+  "Cancelled capture cleanup needs to be retried.": "İptal edilen kaydın temizliği yeniden denenmeli.",
+  "Charts and Sensors": "Grafikler ve Sensörler",
+  "Close Search": "Aramayı Kapat",
+  "History recovery is required. Recovery files were preserved. Restart the application to retry recovery.": "Geçmişin kurtarılması gerekiyor. Kurtarma dosyaları korundu. Kurtarmayı yeniden denemek için uygulamayı yeniden başlatın.",
+  "Import failed and some created files could not be removed. Retry storage cleanup before importing again.": "İçe aktarma başarısız oldu ve oluşturulan bazı dosyalar kaldırılamadı. Yeniden içe aktarmadan önce depolama temizliğini tekrar deneyin.",
+  "Open in Window": "Pencerede Aç",
+  "Search History": "Geçmişte Ara",
+  "Unsaved Changes": "Kaydedilmemiş Değişiklikler"
 }

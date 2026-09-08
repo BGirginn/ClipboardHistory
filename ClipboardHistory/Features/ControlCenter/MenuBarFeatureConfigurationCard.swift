@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuBarFeatureConfigurationCard: View {
-    let model: ControlCenterModel
+    @ObservedObject var model: ControlCenterModel
     let descriptor: FeatureDescriptor
 
     var body: some View {

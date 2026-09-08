@@ -33,7 +33,7 @@ trap cleanup_transient_build_data EXIT
 cd "$repository_root"
 xcodebuild -quiet \
   -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -scheme ClipboardHistoryTests \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$evidence_root/UnitDerivedData" \
@@ -47,7 +47,7 @@ xcodebuild -quiet \
 # ad-hoc signature without an Apple account or provisioning profile.
 xcodebuild -quiet \
   -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -scheme ClipboardHistoryTests \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$evidence_root/UIDerivedData" \

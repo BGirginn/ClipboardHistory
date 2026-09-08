@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SystemMonitorView: View {
     @ObservedObject var controller: SystemMetricsController
+    @State private var showsDetails = false
     let close: () -> Void
     let openSettings: () -> Void
 
@@ -22,14 +23,20 @@ struct SystemMonitorView: View {
             Divider()
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    SystemMetricsOverviewGrid(controller: controller)
+                    SystemMetricsSummaryView(controller: controller)
                     if let errorMessage = controller.errorMessage {
                         Label(errorMessage, systemImage: "thermometer.medium.slash")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    SystemMonitorDetailsView(controller: controller)
+                    DisclosureGroup("Charts and Sensors", isExpanded: $showsDetails) {
+                        if showsDetails {
+                            SystemMetricsOverviewGrid(controller: controller)
+                            SystemMonitorDetailsView(controller: controller)
+                        }
+                    }
+                    .accessibilityIdentifier("systemMonitor.details")
                 }
                 .padding(AppDesign.horizontalPadding)
             }

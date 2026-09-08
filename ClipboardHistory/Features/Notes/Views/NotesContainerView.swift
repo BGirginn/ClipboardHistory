@@ -30,7 +30,7 @@ struct NotesContainerView: View {
         }
         .id(controller.screen)
         .transition(.opacity)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.12), value: controller.screen)
+        .animation(AppMotion.transition(reduceMotion: reduceMotion), value: controller.screen)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 }

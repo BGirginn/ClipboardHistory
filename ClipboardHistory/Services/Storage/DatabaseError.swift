@@ -9,6 +9,7 @@ enum DatabaseError: LocalizedError, Sendable {
     case encryptionUnavailable
     case unsafeFilename
     case closed
+    case recoveryRequired
 
     var errorDescription: String? {
         switch self {
@@ -20,6 +21,7 @@ enum DatabaseError: LocalizedError, Sendable {
         case .encryptionUnavailable: String(localized: "Encrypted storage is unavailable.")
         case .unsafeFilename: String(localized: "A managed asset filename is unsafe.")
         case .closed: String(localized: "The history database is closed.")
+        case .recoveryRequired: String(localized: "History recovery is required. Recovery files were preserved. Restart the application to retry recovery.")
         }
     }
 }
