@@ -383,7 +383,7 @@ final class AudioMixerController: ObservableObject {
             Task { @MainActor in
                 self?.extensionMessage = error?.localizedDescription
                     ?? String(
-                        localized: "Enable ClipboardHistory Safari Audio, then allow access only on sites you want to control."
+                        localized: "Enable CoreDeck Safari Audio, then allow access only on sites you want to control."
                     )
             }
         }

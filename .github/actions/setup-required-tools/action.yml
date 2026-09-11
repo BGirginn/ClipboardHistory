@@ -1,5 +1,5 @@
 name: Setup required tools
-description: Install command-line tools used by ClipboardHistory build and quality scripts
+description: Install command-line tools used by CoreDeck build and quality scripts
 runs:
   using: composite
   steps:

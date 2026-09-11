@@ -1,8 +1,8 @@
-# ClipboardHistory — Codex Repository Guidance
+# CoreDeck — Codex Repository Guidance
 
 ## Purpose
 
-ClipboardHistory is a native Apple-silicon macOS utility hub. It combines a modular Control Center with independently pinnable menu-bar tools, including Clipboard History, Notes, Input Tools, System Monitor, and Audio Mixer.
+CoreDeck is a native Apple-silicon macOS utility hub. It combines a modular Control Center with independently pinnable menu-bar tools, including Clipboard History, Notes, Input Tools, System Monitor, and Audio Mixer.
 
 Treat privacy, data integrity, battery usage, and native macOS behavior as product requirements, not optional cleanup work.
 

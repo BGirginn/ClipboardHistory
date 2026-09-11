@@ -74,7 +74,7 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         )
         XCTAssertEqual(context.viewModel.archiveStatusMessage, "Export completed.")
         XCTAssertTrue(FileManager.default.fileExists(atPath: archive.path))
-        XCTAssertEqual(context.panels.lastSuggestedName, "ClipboardHistory.clipboardarchive")
+        XCTAssertEqual(context.panels.lastSuggestedName, "CoreDeck.clipboardarchive")
 
         context.viewModel.items = []
         context.panels.openSources = [archive]
@@ -92,7 +92,7 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         XCTAssertTrue(context.viewModel.archiveStatusMessage?.contains("Export failed") == true)
         XCTAssertEqual(
             context.panels.lastSuggestedName,
-            "ClipboardHistory-Encrypted.clipboardarchive"
+            "CoreDeck-Encrypted.clipboardarchive"
         )
 
         let invalid = context.directory.appending(path: "invalid.data")

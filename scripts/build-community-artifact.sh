@@ -15,7 +15,7 @@ if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxd
 fi
 mkdir -p "$output_directory"
 
-derived_data=$(mktemp -d /private/tmp/clipboardhistory-community-build.XXXXXX)
+derived_data=$(mktemp -d /private/tmp/coredeck-community-build.XXXXXX)
 trap 'rm -rf "$derived_data"' EXIT
 
 cd "$repository_root"
@@ -28,5 +28,5 @@ xcodebuild -quiet \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$identity" build
 
-source_app="$derived_data/Build/Products/CommunityRelease/ClipboardHistory.app"
+source_app="$derived_data/Build/Products/CommunityRelease/CoreDeck.app"
 "$repository_root/scripts/package-community-artifact.sh" "$source_app" "$output_directory"

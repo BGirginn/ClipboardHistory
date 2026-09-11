@@ -182,8 +182,8 @@ extension MenuBarController {
         configureStatusItem(
             .controlCenter,
             symbol: activeStates.isEmpty ? "square.grid.2x2" : "square.grid.2x2.fill",
-            description: String(localized: "ClipboardHistory Control Center"),
-            tooltip: String(localized: "ClipboardHistory Control Center") + stateSuffix
+            description: String(localized: "CoreDeck"),
+            tooltip: String(localized: "CoreDeck") + stateSuffix
         )
         configureStatusItem(
             .feature(.clipboard),

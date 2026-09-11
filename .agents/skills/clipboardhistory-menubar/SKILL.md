@@ -1,6 +1,6 @@
 ---
 name: clipboardhistory-menubar
-description: Design, implement, or review ClipboardHistory Control Center and menu-bar behavior, NSStatusItem lifecycle, independent feature pinning, combined system metrics, topbar customization, popover anchoring, notch/space behavior, and future external menu-bar management. Trigger for AppKit menu-bar or Control Center placement changes.
+description: Design, implement, or review CoreDeck Control Center and menu-bar behavior, NSStatusItem lifecycle, independent feature pinning, combined system metrics, topbar customization, popover anchoring, notch/space behavior, and future external menu-bar management. Trigger for AppKit menu-bar or Control Center placement changes.
 ---
 
 # Menu Bar and Control Center Workflow
@@ -52,7 +52,7 @@ Design overflow mitigation:
 
 Treat management of other apps' or macOS system items as a separate subsystem from this app's own status items.
 
-Do not assume a public API exists to literally reparent arbitrary external status items into the ClipboardHistory popover.
+Do not assume a public API exists to literally reparent arbitrary external status items into the CoreDeck popover.
 
 For each external item capability classify support:
 - discoverable,
@@ -62,7 +62,7 @@ For each external item capability classify support:
 - observable,
 - unsupported/fragile.
 
-Require graceful degradation across macOS versions and avoid making core ClipboardHistory features depend on private/fragile behavior.
+Require graceful degradation across macOS versions and avoid making CoreDeck features depend on private/fragile behavior.
 
 ## Testing
 

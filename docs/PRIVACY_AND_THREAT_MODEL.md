@@ -6,7 +6,7 @@ Clipboard text, rich payloads, images, PDFs, note titles and bodies, user-visibl
 
 ## Visible metadata
 
-Clipboard content and metadata, including file paths and bookmarks, are stored locally without encryption. Note UUIDs and timestamps are visible in SQLite, while note titles and bodies are not plaintext. ClipboardHistory does not claim that Clipboard history is protected from another process with equivalent access to the logged-in user's files.
+Clipboard content and metadata, including file paths and bookmarks, are stored locally without encryption. Note UUIDs and timestamps are visible in SQLite, while note titles and bodies are not plaintext. CoreDeck does not claim that Clipboard History is protected from another process with equivalent access to the logged-in user's files.
 
 ## Inputs and boundaries
 
@@ -30,4 +30,4 @@ The community beta is not Apple-trusted or notarized. Documentation may explain 
 
 ## Non-goals
 
-ClipboardHistory cannot prevent another local process with suitable privileges from reading the live system clipboard, defeat a compromised OS account, guarantee physical erasure on APFS/SSD media, restore deleted source files, or make heuristic secret detection infallible.
+CoreDeck cannot prevent another local process with suitable privileges from reading the live system clipboard, defeat a compromised OS account, guarantee physical erasure on APFS/SSD media, restore deleted source files, or make heuristic secret detection infallible.

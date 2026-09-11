@@ -96,7 +96,7 @@ struct BrowserExtensionInstaller {
         }
         let manifest: [String: Any] = [
             "name": Self.nativeHostName,
-            "description": "ClipboardHistory browser audio bridge",
+            "description": "CoreDeck browser audio bridge",
             "path": helperURL.path,
             "type": "stdio",
             "allowed_origins": ["chrome-extension://\(Self.extensionID)/"]

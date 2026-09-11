@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="../ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="ClipboardHistory uygulama ikonu">
+  <img src="../ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck uygulama ikonu">
 </p>
 
-<h1 align="center">ClipboardHistory</h1>
+<h1 align="center">CoreDeck</h1>
 
 <p align="center">
   macOS menü çubuğu için özel ve yerel bir araç merkezi.
@@ -12,11 +12,11 @@
   <a href="../README.md">English</a>
 </p>
 
-ClipboardHistory; Pano, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mikseri özelliklerini Mac'inizde yerel tutan modüler bir menü çubuğu araç merkezidir. Swift 6, SwiftUI ve AppKit ile yazılmıştır; telemetri, hesap sistemi, bulut servisi veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
+CoreDeck; Pano Geçmişi, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mikseri özelliklerini Mac'inizde yerel tutan modüler bir menü çubuğu araç merkezidir. Swift 6, SwiftUI ve AppKit ile yazılmıştır; telemetri, hesap sistemi, bulut servisi veya üçüncü taraf çalışma zamanı bağımlılığı kullanmaz.
 
 ## Güncel durum
 
-- Güncel Community beta: [`v1.0.0-beta.5`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) (`1.0.0`, build `10005`)
+- Güncel Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) (`1.0.0`, build `10006`)
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
 - İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
@@ -33,7 +33,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask kullanılmadan önce `/Applications/ClipboardHistory.app` elle kurulmuşsa ClipboardHistory'yi kapatıp mevcut uygulama paketini önce `/Applications` dışına taşıyın. Pano geçmişi Application Support altında ayrı saklandığı için bu geçişte silinmez.
+Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. `brew upgrade --cask clipboardhistory`, Homebrew tarafından yönetilen eski `ClipboardHistory.app` paketini `CoreDeck.app` ile değiştirir. `/Applications/ClipboardHistory.app` elle kurulmuşsa eski uygulamayı kapatıp CoreDeck kurulumundan önce `/Applications` dışına taşıyın. Pano geçmişi Application Support altında ayrı saklandığı için bu geçişte silinmez.
 
 Daha sonra güncellemek veya kaldırmak için:
 
@@ -45,9 +45,9 @@ brew uninstall --cask clipboardhistory
 
 Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap clipboardhistory` komutu bu yerel kullanıcı verilerini de siler.
 
-Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, ClipboardHistory üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
+Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, CoreDeck üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-ZIP, DMG ve paketlenmemiş Chromium eklentisi ZIP dosyaları [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) sayfasından da indirilebilir.
+ZIP, DMG ve paketlenmemiş Chromium eklentisi ZIP dosyaları [GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) sayfasından da indirilebilir.
 
 ## Özellikler
 
@@ -70,7 +70,7 @@ ZIP, DMG ve paketlenmemiş Chromium eklentisi ZIP dosyaları [GitHub Release](ht
 
 ## Gizlilik modeli
 
-ClipboardHistory yalnızca `NSPasteboard` üzerinden sunulan pano değişikliklerini okur. Masaüstünü veya başka klasörleri izlemez ve pano içeriğini ağ üzerinden göndermez. Ses örnekleri, sistem metriği geçmişi, sekme başlıkları, URL'ler ve sekme kimlikleri kalıcı olarak saklanmaz.
+CoreDeck yalnızca `NSPasteboard` üzerinden sunulan pano değişikliklerini okur. Masaüstünü veya başka klasörleri izlemez ve pano içeriğini ağ üzerinden göndermez. Ses örnekleri, sistem metriği geçmişi, sekme başlıkları, URL'ler ve sekme kimlikleri kalıcı olarak saklanmaz.
 
 Pano geçmişi yerel SQLite veritabanında şifrelenmeden saklanır. Not başlıkları ve gövdeleri macOS login Keychain'deki ayrı bir AES-GCM anahtarıyla korunur. Hassas pano öğelerine erişim Touch ID veya Mac oturum parolası gerektirebilir.
 
@@ -87,8 +87,8 @@ Gereksinimler:
 Depoyu klonlayıp yerel self-signed Community kimliğini oluşturun. Bunun için ücretli Apple Developer hesabı gerekmez:
 
 ```sh
-git clone https://github.com/BGirginn/ClipboardHistory.git
-cd ClipboardHistory
+git clone https://github.com/BGirginn/CoreDeck.git
+cd CoreDeck
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -107,14 +107,14 @@ xcodebuild \
   CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
   build
 
-open .build/LocalRelease/Build/Products/CommunityRelease/ClipboardHistory.app
+open .build/LocalRelease/Build/Products/CommunityRelease/CoreDeck.app
 ```
 
 Sertifikanın private key'i kullanıcının login Keychain'inde kalır ve repoya kesinlikle eklenmemelidir.
 
 ## Kullanım
 
-ClipboardHistory varsayılan olarak yalnız menü çubuğunda çalışır. **Menü Çubuğunu Özelleştir** ekranından her modülü Kontrol Merkezi'ne, ayrı bir menü çubuğu ikonuna, ikisine birden veya gizli duruma alabilirsiniz. Ana Kontrol Merkezi ikonunu gizlemek uygulamayı Dock üzerinden erişilebilir moda geçirir; Finder'dan açmak veya Dock ikonuna tıklamak aynı arayüzü standart, yeniden boyutlandırılabilir bir pencerede gösterir. Ana ikonu yeniden etkinleştirmek uygulamayı yalnız menü çubuğu moduna döndürür. İkon yerleşiminden bağımsız olarak `Command-Shift-V` Panoyu doğrudan açar. Bundle içindeki yardımcı uygulama sayesinde girişte başlatma pencere açmadan sessiz kalır.
+CoreDeck varsayılan olarak yalnız menü çubuğunda çalışır. **Menü Çubuğunu Özelleştir** ekranından her modülü Kontrol Merkezi'ne, ayrı bir menü çubuğu ikonuna, ikisine birden veya gizli duruma alabilirsiniz. Ana Kontrol Merkezi ikonunu gizlemek uygulamayı Dock üzerinden erişilebilir moda geçirir; Finder'dan açmak veya Dock ikonuna tıklamak aynı arayüzü standart, yeniden boyutlandırılabilir bir pencerede gösterir. Ana ikonu yeniden etkinleştirmek uygulamayı yalnız menü çubuğu moduna döndürür. İkon yerleşiminden bağımsız olarak `Command-Shift-V` Pano Geçmişi'ni doğrudan açar. Bundle içindeki yardımcı uygulama sayesinde girişte başlatma pencere açmadan sessiz kalır.
 
 Pano geçmişi ve yönetilen dosyalar şu konumda saklanır:
 
@@ -150,8 +150,8 @@ Proje belgeleri:
 
 ## Dağıtım
 
-`v1.0.0-beta.5`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, Chromium eklenti ZIP'i, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
+`v1.0.0-beta.6`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, Chromium eklenti ZIP'i, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
 
 ## Lisans
 
-ClipboardHistory [MIT Lisansı](../LICENSE) ile sunulur.
+CoreDeck [MIT Lisansı](../LICENSE) ile sunulur.

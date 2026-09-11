@@ -1,0 +1,22 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSAudioCaptureUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CoreDeck uses system audio access only to apply the volume levels you choose for individual applications. Audio is never recorded or stored."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CoreDeck, yalnızca tek tek uygulamalar için seçtiğiniz ses düzeylerini uygulamak amacıyla sistem sesi erişimini kullanır. Ses hiçbir zaman kaydedilmez veya depolanmaz."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -1,6 +1,6 @@
-# Community beta distribution
+# CoreDeck Community beta distribution
 
-`v1.0.0-beta.5` is a public Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
+`v1.0.0-beta.6` is a public CoreDeck Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
 
 ## Stable signing identity
 
@@ -18,20 +18,20 @@ Changing the signing identity changes the designated requirement and can strand 
 Build from the exact clean release commit:
 
 ```sh
-scripts/build-community-artifact.sh /private/tmp/ClipboardHistory-1.0.0-beta.5
+scripts/build-community-artifact.sh /private/tmp/CoreDeck-1.0.0-beta.6
 ```
 
 The script requires `syft` and produces:
 
-- `ClipboardHistory-1.0.0-beta.5-arm64.zip`
-- `ClipboardHistory-1.0.0-beta.5-arm64.dmg`
-- `ClipboardHistory-1.0.0-beta.5-arm64.spdx.json`
-- `ClipboardHistory-Chromium-Audio-1.0.0-beta.5.zip`
+- `CoreDeck-1.0.0-beta.6-arm64.zip`
+- `CoreDeck-1.0.0-beta.6-arm64.dmg`
+- `CoreDeck-1.0.0-beta.6-arm64.spdx.json`
+- `CoreDeck-Chromium-Audio-1.0.0-beta.6.zip`
 - `SHA256SUMS`
 - `designated-requirement.txt`
 - `signing-certificate-sha256.txt`
 
-It verifies the code signature and designated requirement, an empty main-app entitlement set, the Safari bridge entitlement, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10005`, app/extension ZIP integrity, checksums, and SPDX metadata.
+It verifies `CoreDeck.app` and its `CoreDeck` executable, the unchanged `com.brgirgin.ClipboardHistory` bundle identifier, the code signature and designated requirement, an empty main-app entitlement set, the Safari bridge entitlement, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10006`, embedded helper/extension/XPC presence, app/extension ZIP integrity, checksums, and SPDX metadata.
 
 The Community beta retains normal quarantine behavior. If Gatekeeper blocks first launch, document Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway. Never remove quarantine, run `xattr`, or suppress the warning in the Cask.
 
@@ -49,17 +49,17 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6 requires explicit trust for this third-party tap. A manually installed `/Applications/ClipboardHistory.app` must be quit and moved aside before the first Cask install; Homebrew intentionally refuses to overwrite an unmanaged application bundle. This does not remove the separately stored clipboard database or preferences.
+Homebrew 6 requires explicit trust for this third-party tap. Upgrading the managed `clipboardhistory` Cask removes its old `/Applications/ClipboardHistory.app` artifact and installs only `/Applications/CoreDeck.app`. A manually installed `/Applications/ClipboardHistory.app` must be quit and moved aside before installing CoreDeck; Homebrew intentionally refuses to overwrite or remove an unmanaged application bundle. This does not remove the separately stored clipboard database or preferences.
 
 `Casks/clipboardhistory.rb` uses the GitHub Release ZIP and its exact SHA-256 with:
 
 ```ruby
 depends_on arch: :arm64
 depends_on macos: :sonoma
-app "ClipboardHistory.app"
+app "CoreDeck.app"
 ```
 
-Normal uninstall preserves Application Support and preferences. The optional `--zap` path removes them only when the user explicitly asks for complete deletion.
+The Cask token remains `clipboardhistory` for this transition release, while `name` is `CoreDeck` and the release URL points to `BGirginn/CoreDeck`. Normal uninstall preserves the existing `ClipboardHistory` Application Support directory, bundle-ID preferences, and service registrations. The optional `--zap` path removes them only when the user explicitly asks for complete deletion.
 
 For every Cask update, run style/audit, fetch the public URL, install into an isolated app directory, verify the running artifact metadata/signature/architecture, and perform normal uninstall. The ZIP fetched by Homebrew must match the checksum published in the GitHub Release.
 

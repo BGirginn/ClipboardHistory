@@ -138,6 +138,8 @@ safe_remove() {
 
 is_known_temporary_artifact() {
   case ${1:t} in
+    coredeck-community-build.*|\
+    coredeck-community-stage.*|\
     clipboardhistory-arm64-builds.*|\
     clipboardhistory-community-build.*|\
     clipboardhistory-community-stage.*|\
@@ -176,7 +178,7 @@ is_known_temporary_artifact() {
 is_temporary_xcode_derived_data() {
   local item=$1
   case ${item:t} in
-    ClipboardHistory*|clipboardhistory*) ;;
+    ClipboardHistory*|CoreDeck*|clipboardhistory*|coredeck*) ;;
     *) return 1 ;;
   esac
 
@@ -263,7 +265,10 @@ fi
 
 derived_data_candidates=()
 if [[ -d "$derived_data_root" ]]; then
-  derived_data_candidates=("$derived_data_root"/ClipboardHistory-*(N))
+  derived_data_candidates=(
+    "$derived_data_root"/ClipboardHistory-*(N)
+    "$derived_data_root"/CoreDeck-*(N)
+  )
 fi
 
 if [[ "$mode" == "--clean" ]]; then

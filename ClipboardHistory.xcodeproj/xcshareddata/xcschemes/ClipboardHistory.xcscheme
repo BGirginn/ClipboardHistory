@@ -9,13 +9,13 @@
          <ExecutionAction
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
-               title = "Prune stale ClipboardHistory build artifacts"
+               title = "Prune stale CoreDeck build artifacts"
                scriptText = "&quot;$SRCROOT/scripts/cleanup-build-artifacts.sh&quot; --auto">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "A50000000000000000000001"
-                     BuildableName = "ClipboardHistory.app"
+                     BuildableName = "CoreDeck.app"
                      BlueprintName = "ClipboardHistory"
                      ReferencedContainer = "container:ClipboardHistory.xcodeproj">
                   </BuildableReference>
@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A50000000000000000000001"
-               BuildableName = "ClipboardHistory.app"
+               BuildableName = "CoreDeck.app"
                BlueprintName = "ClipboardHistory"
                ReferencedContainer = "container:ClipboardHistory.xcodeproj">
             </BuildableReference>
@@ -71,13 +71,13 @@
          <ExecutionAction
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
-               title = "Prune stale ClipboardHistory build artifacts"
+               title = "Prune stale CoreDeck build artifacts"
                scriptText = "&quot;$SRCROOT/scripts/cleanup-build-artifacts.sh&quot; --auto">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "A50000000000000000000001"
-                     BuildableName = "ClipboardHistory.app"
+                     BuildableName = "CoreDeck.app"
                      BlueprintName = "ClipboardHistory"
                      ReferencedContainer = "container:ClipboardHistory.xcodeproj">
                   </BuildableReference>
@@ -126,7 +126,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A50000000000000000000001"
-            BuildableName = "ClipboardHistory.app"
+            BuildableName = "CoreDeck.app"
             BlueprintName = "ClipboardHistory"
             ReferencedContainer = "container:ClipboardHistory.xcodeproj">
          </BuildableReference>
@@ -142,7 +142,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A50000000000000000000001"
-            BuildableName = "ClipboardHistory.app"
+            BuildableName = "CoreDeck.app"
             BlueprintName = "ClipboardHistory"
             ReferencedContainer = "container:ClipboardHistory.xcodeproj">
          </BuildableReference>

@@ -1,9 +1,9 @@
 ---
 name: clipboardhistory-change-safety
-description: Implement or review ClipboardHistory code changes while preserving repository architecture, tests, privacy, data integrity, and macOS behavior. Use for general feature work, refactors, or bug fixes that cross multiple modules. Do not use instead of a more specific storage/security, performance, menu-bar, audio, or release skill when one clearly applies.
+description: Implement or review CoreDeck code changes while preserving repository architecture, tests, privacy, data integrity, and macOS behavior. Use for general feature work, refactors, or bug fixes that cross multiple modules. Do not use instead of a more specific storage/security, performance, menu-bar, audio, or release skill when one clearly applies.
 ---
 
-# ClipboardHistory Change Safety
+# CoreDeck Change Safety
 
 1. Read the root `AGENTS.md`.
 2. Inspect `git status` before edits.

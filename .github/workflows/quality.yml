@@ -39,7 +39,7 @@ jobs:
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
       - name: Verify Release architecture
         run: |
-          executable=/private/tmp/ClipboardHistoryRelease/Build/Products/Release/ClipboardHistory.app/Contents/MacOS/ClipboardHistory
+          executable=/private/tmp/ClipboardHistoryRelease/Build/Products/Release/CoreDeck.app/Contents/MacOS/CoreDeck
           test "$(lipo -archs "$executable")" = arm64
           file "$executable" | grep -q 'Mach-O 64-bit executable arm64'
 

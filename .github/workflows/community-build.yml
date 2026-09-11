@@ -16,14 +16,14 @@ jobs:
         run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
             -configuration CommunityRelease -destination 'generic/platform=macOS' \
-            -derivedDataPath /private/tmp/ClipboardHistoryCommunityBuild \
+            -derivedDataPath /private/tmp/CoreDeckCommunityBuild \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
           ditto -c -k --keepParent \
-            /private/tmp/ClipboardHistoryCommunityBuild/Build/Products/CommunityRelease/ClipboardHistory.app \
-            /private/tmp/ClipboardHistory-CommunityRelease-unsigned.zip
+            /private/tmp/CoreDeckCommunityBuild/Build/Products/CommunityRelease/CoreDeck.app \
+            /private/tmp/CoreDeck-CommunityRelease-unsigned.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ClipboardHistory-CommunityRelease-unsigned
-          path: /private/tmp/ClipboardHistory-CommunityRelease-unsigned.zip
+          name: CoreDeck-CommunityRelease-unsigned
+          path: /private/tmp/CoreDeck-CommunityRelease-unsigned.zip
           if-no-files-found: error

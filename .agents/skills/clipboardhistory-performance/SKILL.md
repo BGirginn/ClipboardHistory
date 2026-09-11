@@ -1,6 +1,6 @@
 ---
 name: clipboardhistory-performance
-description: Analyze or optimize ClipboardHistory CPU usage, battery impact, polling, timers, async loops, System Monitor sampling, sensor reads, redraw frequency, background module lifecycle, and resource ownership. Trigger for performance, wakeup, live metrics, battery, idle-work, or sampling changes.
+description: Analyze or optimize CoreDeck CPU usage, battery impact, polling, timers, async loops, System Monitor sampling, sensor reads, redraw frequency, background module lifecycle, and resource ownership. Trigger for performance, wakeup, live metrics, battery, idle-work, or sampling changes.
 ---
 
 # Performance and Battery Workflow

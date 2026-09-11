@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -ne 2 || ! -d "$1" ]]; then
-  print -u2 "usage: $0 /path/to/ClipboardHistory.app /empty/output/directory"
+  print -u2 "usage: $0 /path/to/CoreDeck.app /empty/output/directory"
   exit 64
 fi
 
@@ -10,8 +10,8 @@ repository_root=${0:A:h:h}
 source_app=${1:A}
 output_directory=${2:A}
 identity='ClipboardHistory Community Beta'
-release_version='1.0.0-beta.5'
-expected_build='10005'
+release_version='1.0.0-beta.6'
+expected_build='10006'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -25,9 +25,9 @@ if ! command -v syft >/dev/null; then
   exit 1
 fi
 
-staging=$(mktemp -d /private/tmp/clipboardhistory-community-stage.XXXXXX)
+staging=$(mktemp -d /private/tmp/coredeck-community-stage.XXXXXX)
 trap 'rm -rf "$staging"' EXIT
-artifact_app="$staging/ClipboardHistory.app"
+artifact_app="$staging/CoreDeck.app"
 ditto --noqtn "$source_app" "$artifact_app"
 
 helper_app="$artifact_app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
@@ -69,6 +69,11 @@ helper_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$hel
   print -u2 "artifact packaging: login helper identifier mismatch: $helper_identifier"
   exit 1
 }
+main_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$artifact_app/Contents/Info.plist")
+[[ "$main_identifier" == "com.brgirgin.ClipboardHistory" ]] || {
+  print -u2 "artifact packaging: main bundle identifier mismatch: $main_identifier"
+  exit 1
+}
 codesign -d --entitlements :- "$artifact_app" 2>/dev/null \
   | plutil -convert json -o - - \
   | jq -e 'length == 0' >/dev/null || {
@@ -76,7 +81,7 @@ codesign -d --entitlements :- "$artifact_app" 2>/dev/null \
     exit 1
   }
 
-architectures=$(lipo -archs "$artifact_app/Contents/MacOS/ClipboardHistory")
+architectures=$(lipo -archs "$artifact_app/Contents/MacOS/CoreDeck")
 [[ "$architectures" == "arm64" ]] || {
   print -u2 "artifact packaging: arm64-only verification failed: $architectures"
   exit 1
@@ -101,7 +106,7 @@ bridge_architectures=$(lipo -archs "$xpc_service/Contents/MacOS/ClipboardHistory
   print -u2 "artifact packaging: browser bridge arm64-only verification failed: $bridge_architectures"
   exit 1
 }
-minimum_os=$(otool -l "$artifact_app/Contents/MacOS/ClipboardHistory" \
+minimum_os=$(otool -l "$artifact_app/Contents/MacOS/CoreDeck" \
   | awk '$1 == "minos" { print $2; exit }')
 [[ "$minimum_os" == "14.2" ]] || {
   print -u2 "artifact packaging: minimum macOS mismatch: $minimum_os"
@@ -121,26 +126,26 @@ beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifac
   exit 1
 }
 
-zip="$output_directory/ClipboardHistory-$release_version-arm64.zip"
-dmg="$output_directory/ClipboardHistory-$release_version-arm64.dmg"
-spdx="$output_directory/ClipboardHistory-$release_version-arm64.spdx.json"
-chromium_zip="$output_directory/ClipboardHistory-Chromium-Audio-$release_version.zip"
+zip="$output_directory/CoreDeck-$release_version-arm64.zip"
+dmg="$output_directory/CoreDeck-$release_version-arm64.dmg"
+spdx="$output_directory/CoreDeck-$release_version-arm64.spdx.json"
+chromium_zip="$output_directory/CoreDeck-Chromium-Audio-$release_version.zip"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
-hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname "ClipboardHistory $release_version" "$dmg"
+hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname "CoreDeck $release_version" "$dmg"
 hdiutil verify "$dmg" >/dev/null
 unzip -tq "$zip" >/dev/null
 syft scan "dir:$artifact_app" \
-  --source-name ClipboardHistory \
+  --source-name CoreDeck \
   --source-version "$release_version" \
   -o "spdx-json=$spdx"
-jq -e '.spdxVersion == "SPDX-2.3" and .name == "ClipboardHistory"' "$spdx" >/dev/null
+jq -e '.spdxVersion == "SPDX-2.3" and .name == "CoreDeck"' "$spdx" >/dev/null
 (
   cd "$repository_root/ClipboardHistory/Resources/ChromiumAudioExtension"
   zip -X -q -r "$chromium_zip" . -x '.DS_Store'
 )
 unzip -tq "$chromium_zip" >/dev/null
 unzip -p "$chromium_zip" manifest.json \
-  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.5" and (.key | length > 0)' \
+  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.6" and (.key | length > 0)' \
   >/dev/null
 (
   cd "$output_directory"

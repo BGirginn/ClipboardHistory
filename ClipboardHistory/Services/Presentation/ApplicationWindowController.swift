@@ -126,7 +126,7 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
         if let applicationWindow { return applicationWindow }
 
         let window = makeWindow()
-        window.title = "ClipboardHistory"
+        window.title = "CoreDeck"
         window.isReleasedWhenClosed = false
         window.tabbingMode = .disallowed
         window.contentMinSize = NSSize(

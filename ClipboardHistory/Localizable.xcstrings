@@ -413,12 +413,12 @@
         }
       }
     },
-    "Allow ClipboardHistory Browser Audio in System Settings > General > Login Items & Extensions.": {
+    "Allow CoreDeck Browser Audio in System Settings > General > Login Items & Extensions.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde ClipboardHistory Tarayıcı Sesi'ne izin verin."
+            "value": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde CoreDeck Tarayıcı Sesi'ne izin verin."
           }
         }
       }
@@ -543,12 +543,12 @@
         }
       }
     },
-    "Audio is processed in memory only. ClipboardHistory never records, stores, analyzes, or logs audio samples.": {
+    "Audio is processed in memory only. CoreDeck never records, stores, analyzes, or logs audio samples.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ses yalnızca bellekte işlenir. ClipboardHistory ses örneklerini kaydetmez, depolamaz, analiz etmez veya günlüğe yazmaz."
+            "value": "Ses yalnızca bellekte işlenir. CoreDeck ses örneklerini kaydetmez, depolamaz, analiz etmez veya günlüğe yazmaz."
           }
         }
       }
@@ -1063,12 +1063,12 @@
         }
       }
     },
-    "ClipboardHistory Control Center": {
+    "CoreDeck": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ClipboardHistory Kontrol Merkezi"
+            "value": "CoreDeck"
           }
         }
       }
@@ -1683,22 +1683,22 @@
         }
       }
     },
-    "Enable ClipboardHistory Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.": {
+    "Enable CoreDeck Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ClipboardHistory Safari Audio eklentisini etkinleştirin ve site erişimi verin. Yalnız doğrudan denetlenebilen HTML ses veya video sekmeleri listelenir; DRM, Web Audio ve korumalı sayfalar dışlanır."
+            "value": "CoreDeck Safari Audio eklentisini etkinleştirin ve site erişimi verin. Yalnız doğrudan denetlenebilen HTML ses veya video sekmeleri listelenir; DRM, Web Audio ve korumalı sayfalar dışlanır."
           }
         }
       }
     },
-    "Enable ClipboardHistory Safari Audio, then allow access only on sites you want to control.": {
+    "Enable CoreDeck Safari Audio, then allow access only on sites you want to control.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ClipboardHistory Safari Audio eklentisini etkinleştirin, ardından yalnız denetlemek istediğiniz sitelere erişim verin."
+            "value": "CoreDeck Safari Audio eklentisini etkinleştirin, ardından yalnız denetlemek istediğiniz sitelere erişim verin."
           }
         }
       }
@@ -1999,12 +1999,12 @@
         }
       }
     },
-    "Hiding this icon keeps ClipboardHistory available in the Dock.": {
+    "Hiding this icon keeps CoreDeck available in the Dock.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bu ikonu gizlediğinizde ClipboardHistory Dock üzerinden kullanılabilir kalır."
+            "value": "Bu ikonu gizlediğinizde CoreDeck Dock üzerinden kullanılabilir kalır."
           }
         }
       }
@@ -3631,12 +3631,12 @@
         }
       }
     },
-    "Quit ClipboardHistory": {
+    "Quit CoreDeck": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ClipboardHistory'den Çık"
+            "value": "CoreDeck'ten Çık"
           }
         }
       }
@@ -3751,18 +3751,18 @@
         }
       }
     },
-    "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.": {
+    "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen CoreDeck to finish.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish."
+            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen CoreDeck to finish."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$arg pano öğesi ve %2$arg not kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere Clipboard History'yi kapatıp yeniden açın."
+            "value": "%1$arg pano öğesi ve %2$arg not kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere CoreDeck'i kapatıp yeniden açın."
           }
         }
       }
@@ -3777,22 +3777,22 @@
         }
       }
     },
-    "Recovery failed and the previous database was restored: %arg. Quit and reopen Clipboard History.": {
+    "Recovery failed and the previous database was restored: %arg. Quit and reopen CoreDeck.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kurtarma başarısız oldu ve önceki veritabanı geri yüklendi: %arg. Clipboard History uygulamasından çıkıp yeniden açın."
+            "value": "Kurtarma başarısız oldu ve önceki veritabanı geri yüklendi: %arg. CoreDeck uygulamasından çıkıp yeniden açın."
           }
         }
       }
     },
-    "Recovery failed before replacing the previous database: %arg. Quit and reopen Clipboard History.": {
+    "Recovery failed before replacing the previous database: %arg. Quit and reopen CoreDeck.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kurtarma önceki veritabanı değiştirilmeden başarısız oldu: %arg. Clipboard History uygulamasından çıkıp yeniden açın."
+            "value": "Kurtarma önceki veritabanı değiştirilmeden başarısız oldu: %arg. CoreDeck uygulamasından çıkıp yeniden açın."
           }
         }
       }
@@ -5033,12 +5033,12 @@
         }
       }
     },
-    "The selected file is not a valid Clipboard History archive.": {
+    "The selected file is not a valid CoreDeck archive.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seçilen dosya geçerli bir Clipboard History arşivi değil."
+            "value": "Seçilen dosya geçerli bir CoreDeck arşivi değil."
           }
         }
       }
@@ -5093,12 +5093,12 @@
         }
       }
     },
-    "This Clipboard History archive version is unsupported.": {
+    "This CoreDeck archive version is unsupported.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bu Clipboard History arşiv sürümü desteklenmiyor."
+            "value": "Bu CoreDeck arşiv sürümü desteklenmiyor."
           }
         }
       }
@@ -5453,12 +5453,12 @@
         }
       }
     },
-    "Your menu-bar tools in one place": {
+    "Your local Mac control center": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menü çubuğu araçlarınız tek yerde"
+            "value": "Mac’iniz için yerel kontrol merkezi"
           }
         }
       }

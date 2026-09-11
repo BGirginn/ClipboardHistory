@@ -11,7 +11,7 @@ enum BrowserAudioBridgeServiceRegistrationResult: Equatable {
             nil
         case .requiresApproval:
             String(
-                localized: "Allow ClipboardHistory Browser Audio in System Settings > General > Login Items & Extensions."
+                localized: "Allow CoreDeck Browser Audio in System Settings > General > Login Items & Extensions."
             )
         case let .failed(message):
             message

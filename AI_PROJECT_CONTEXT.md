@@ -1,10 +1,10 @@
-# AI Project Context — ClipboardHistory
+# AI Project Context — CoreDeck
 
 This file is a compact architecture map for coding agents. It is descriptive, not a replacement for reading the affected source.
 
 ## Product model
 
-ClipboardHistory is not only a clipboard manager. It is a macOS utility hub with:
+CoreDeck is not only a clipboard manager. It is a macOS utility hub with:
 
 - a central Control Center,
 - independently pinnable menu-bar tools,

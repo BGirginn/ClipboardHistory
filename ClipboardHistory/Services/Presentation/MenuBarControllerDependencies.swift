@@ -75,7 +75,7 @@ struct MenuBarControllerDependencies {
                     backing: .buffered,
                     defer: false
                 )
-                panel.title = "Clipboard History"
+                panel.title = "CoreDeck"
                 panel.isReleasedWhenClosed = false
                 panel.level = .floating
                 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]

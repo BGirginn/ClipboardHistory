@@ -24,7 +24,7 @@ for configuration in Debug Release CommunityRelease; do
     exit 1
   fi
 
-  app="$derived_data/Build/Products/$configuration/ClipboardHistory.app"
+  app="$derived_data/Build/Products/$configuration/CoreDeck.app"
   helper="$app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
   xpc_service="$app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
   safari_extension="$app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
@@ -42,7 +42,7 @@ for configuration in Debug Release CommunityRelease; do
     exit 1
   }
   for executable in \
-      "$app/Contents/MacOS/ClipboardHistory" \
+      "$app/Contents/MacOS/CoreDeck" \
       "$helper/Contents/MacOS/ClipboardHistoryLoginItem" \
       "$xpc_service/Contents/MacOS/ClipboardHistoryBrowserAudioBridge" \
       "$safari_extension/Contents/MacOS/ClipboardHistorySafariExtension"; do

@@ -68,7 +68,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             deviceUID: outputUID,
             stream: 0
         )
-        tapDescription.name = "ClipboardHistory Audio Mixer"
+        tapDescription.name = "CoreDeck Audio Mixer"
         tapDescription.isPrivate = true
         tapDescription.isExclusive = false
         tapDescription.muteBehavior = .mutedWhenTapped
@@ -79,7 +79,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
 
         let aggregateUID = "com.brgirgin.ClipboardHistory.AudioMixer.\(UUID().uuidString)"
         let aggregateDescription: [String: Any] = [
-            kAudioAggregateDeviceNameKey: "ClipboardHistory Audio Mixer",
+            kAudioAggregateDeviceNameKey: "CoreDeck Audio Mixer",
             kAudioAggregateDeviceUIDKey: aggregateUID,
             kAudioAggregateDeviceSubDeviceListKey: [[kAudioSubDeviceUIDKey: outputUID]],
             kAudioAggregateDeviceMainSubDeviceKey: outputUID,

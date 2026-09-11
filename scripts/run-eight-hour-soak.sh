@@ -2,14 +2,14 @@
 set -euo pipefail
 
 if [[ $# -ne 3 ]]; then
-  print -u2 "usage: $0 /path/to/ClipboardHistory.app /path/to/history.sqlite3 /empty/evidence-directory"
+  print -u2 "usage: $0 /path/to/CoreDeck.app /path/to/history.sqlite3 /empty/evidence-directory"
   exit 64
 fi
 
 app=${1:A}
 database=${2:A}
 evidence=${3:A}
-executable="$app/Contents/MacOS/ClipboardHistory"
+executable="$app/Contents/MacOS/CoreDeck"
 [[ -x "$executable" ]] || { print -u2 "soak gate: executable is missing"; exit 1; }
 [[ ! -e "$evidence" || -z "$(find "$evidence" -mindepth 1 -maxdepth 1 -print -quit)" ]] || {
   print -u2 "soak gate: evidence directory must be empty"

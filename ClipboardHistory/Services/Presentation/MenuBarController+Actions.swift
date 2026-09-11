@@ -141,7 +141,7 @@ extension MenuBarController {
         menu.addItem(settingsItem)
         menu.addItem(.separator())
         menu.addItem(makeMenuItem(
-            title: String(localized: "Quit ClipboardHistory"),
+            title: String(localized: "Quit CoreDeck"),
             action: #selector(quitApplication),
             keyEquivalent: "q",
             systemImage: "power"

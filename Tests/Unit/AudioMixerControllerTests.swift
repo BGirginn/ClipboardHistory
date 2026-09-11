@@ -662,7 +662,7 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.openSafariExtensionSettings()
         await Task.yield()
         XCTAssertEqual(openedSafariIdentifier, "com.brgirgin.ClipboardHistory.SafariExtension")
-        XCTAssertTrue(controller.extensionMessage?.contains("Enable ClipboardHistory Safari Audio") == true)
+        XCTAssertTrue(controller.extensionMessage?.contains("Enable CoreDeck Safari Audio") == true)
         controller.stop()
 
         let failingController = AudioMixerController(

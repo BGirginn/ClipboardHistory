@@ -46,7 +46,7 @@ struct MenuBarConfigurationContent: View {
                 } header: {
                     Text("Control Center")
                 } footer: {
-                    Text("Hiding this icon keeps ClipboardHistory available in the Dock.")
+                    Text("Hiding this icon keeps CoreDeck available in the Dock.")
                 }
             }
 

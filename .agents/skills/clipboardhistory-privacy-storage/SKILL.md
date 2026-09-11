@@ -1,6 +1,6 @@
 ---
 name: clipboardhistory-privacy-storage
-description: Review or change ClipboardHistory storage, SQLite, assets, deletion, Clear History, encryption, Keychain, sensitive-content handling, migrations, recovery, import/export, archives, Quick Look temp data, and persistent privacy guarantees. Trigger for any data-integrity or privacy-sensitive persistence change.
+description: Review or change CoreDeck storage, SQLite, assets, deletion, Clear History, encryption, Keychain, sensitive-content handling, migrations, recovery, import/export, archives, Quick Look temp data, and persistent privacy guarantees. Trigger for any data-integrity or privacy-sensitive persistence change.
 ---
 
 # Privacy and Storage Safety Workflow

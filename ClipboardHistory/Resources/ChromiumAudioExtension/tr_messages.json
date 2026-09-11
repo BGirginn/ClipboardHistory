@@ -1,7 +1,7 @@
 {
-  "extensionName": { "message": "ClipboardHistory Ses Mikseri" },
-  "extensionDescription": { "message": "Açıkça seçtiğiniz tarayıcı sekmelerini ClipboardHistory ses mikserine ekler." },
-  "actionTitle": { "message": "Sekmeyi ClipboardHistory Mikserine Ekle" },
+  "extensionName": { "message": "CoreDeck Audio Mixer" },
+  "extensionDescription": { "message": "Açıkça seçtiğiniz tarayıcı sekmelerini CoreDeck ses mikserine ekler." },
+  "actionTitle": { "message": "Sekmeyi CoreDeck Mikserine Ekle" },
   "addButton": { "message": "Bu Sekmeyi Miksere Ekle" },
   "noActiveTab": { "message": "Kullanılabilir etkin sekme yok." },
   "privateTab": { "message": "Gizli sekmeler miksere eklenmez." },

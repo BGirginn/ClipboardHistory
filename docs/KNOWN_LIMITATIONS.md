@@ -1,6 +1,6 @@
 # Known limitations
 
-- `v1.0.0-beta.5` is a Community prerelease, not a production or notarized release.
+- `v1.0.0-beta.6` is a CoreDeck Community prerelease, not a production or notarized release.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
 - Current candidate unit and UI tests ran locally on macOS 27 beta arm64. Earlier macOS 26.5 evidence is historical; the complete macOS 14/15/26 external OS matrix has not been recorded for this release.
 - Encrypted Notes and one-time migration of legacy encrypted Clipboard records depend on login-Keychain access and the stable signing identity. Current open Clipboard storage does not require Keychain access.

@@ -44,10 +44,10 @@ struct ControlCenterView: View {
     private var controlCenterToolbar: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Control Center")
+                Text("CoreDeck")
                     .font(.title3)
                     .bold()
-                Text("Your menu-bar tools in one place")
+                Text("Your local Mac control center")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

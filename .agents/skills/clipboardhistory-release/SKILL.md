@@ -1,6 +1,6 @@
 ---
 name: clipboardhistory-release
-description: Validate ClipboardHistory build, tests, static quality, sanitizers, architecture, performance, signing, community artifact, release evidence, and release documentation. Trigger for release readiness, beta/stable gates, packaging, signing, CI changes, or claims that a commit is ready to ship.
+description: Validate CoreDeck build, tests, static quality, sanitizers, architecture, performance, signing, community artifact, release evidence, and release documentation. Trigger for release readiness, beta/stable gates, packaging, signing, CI changes, or claims that a commit is ready to ship.
 ---
 
 # Release Validation Workflow

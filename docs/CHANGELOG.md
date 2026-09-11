@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows semantic versioning
 
 ## Unreleased
 
+## 1.0.0-beta.6 - 2026-09-11
+
+- Rebranded the user-facing application as CoreDeck while keeping Clipboard History as the clipboard module name.
+- Changed the main product bundle and executable to `CoreDeck.app` and `CoreDeck`, retaining the existing Xcode project, scheme, Swift module, bundle identifiers, service identities, storage paths, defaults, Keychain service, and Community signing identity for upgrade compatibility.
+- Updated English and Turkish application, permission, accessibility, Control Center, menu, Safari, and Chromium extension branding.
+- Updated Community artifact names, packaging checks, and documentation for `v1.0.0-beta.6` build `10006`; the transition Homebrew command remains `brew install --cask clipboardhistory`.
+- Changed new archive suggestions to `CoreDeck.clipboardarchive` and `CoreDeck-Encrypted.clipboardarchive` without changing the archive format or legacy import support.
+
 ## 1.0.0-beta.5 - 2026-09-03
 
 - Made popover, detachable-panel, and application-window sampling visibility-aware with source-owned demand records, so one surface cannot disable another and hidden UI surfaces do not keep polling.

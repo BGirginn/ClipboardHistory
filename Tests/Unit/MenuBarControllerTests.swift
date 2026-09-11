@@ -15,7 +15,7 @@ final class MenuBarControllerTests: XCTestCase {
         let panel = dependencies.makePanel(context.appModel)
 
         XCTAssertNotNil(statusItem.button)
-        XCTAssertEqual(panel.title, "Clipboard History")
+        XCTAssertEqual(panel.title, "CoreDeck")
         XCTAssertEqual(panel.contentMinSize, NSSize(width: 340, height: 420))
         XCTAssertNotNil(panel.contentViewController)
         dependencies.quickLookPresenter.close()
@@ -78,7 +78,7 @@ final class MenuBarControllerTests: XCTestCase {
         context.viewModel.privateModeDidChange?(false)
         XCTAssertEqual(
             statusItem.button?.toolTip,
-            "ClipboardHistory Control Center — right-click for options"
+            "CoreDeck — right-click for options"
         )
         controller.closePopover()
         XCTAssertFalse(controller.isPopoverShown)
@@ -245,7 +245,7 @@ final class MenuBarControllerTests: XCTestCase {
                 "Customize Menu Bar",
                 "Open Settings",
                 "",
-                "Quit ClipboardHistory"
+                "Quit CoreDeck"
             ]
         )
         XCTAssertTrue(presentedStatusMenu?.items.compactMap(\.image).isEmpty == false)
@@ -373,7 +373,7 @@ final class MenuBarControllerTests: XCTestCase {
                 "Customize Menu Bar",
                 "Open Settings",
                 "",
-                "Quit ClipboardHistory"
+                "Quit CoreDeck"
             ]
         )
 

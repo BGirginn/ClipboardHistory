@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="ClipboardHistory app icon">
+  <img src="ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck app icon">
 </p>
 
-<h1 align="center">ClipboardHistory</h1>
+<h1 align="center">CoreDeck</h1>
 
 <p align="center">
   A private, native utility hub for the macOS menu bar.
@@ -12,11 +12,11 @@
   <a href="docs/README_TR.md">Türkçe</a>
 </p>
 
-ClipboardHistory is a modular menu-bar utility hub whose Clipboard, Notes, Input Tools, System Monitor, and Audio Mixer features stay local to your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no telemetry, account system, cloud service, or third-party runtime dependency.
+CoreDeck is a modular menu-bar utility hub whose Clipboard History, Notes, Input Tools, System Monitor, and Audio Mixer features stay local to your Mac. It is written in Swift 6 with SwiftUI and AppKit and has no telemetry, account system, cloud service, or third-party runtime dependency.
 
 ## Current status
 
-- Current Community beta: [`v1.0.0-beta.5`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5) (`1.0.0`, build `10005`)
+- Current Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) (`1.0.0`, build `10006`)
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
 - The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
@@ -33,7 +33,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6 requires explicit trust for third-party taps. If `/Applications/ClipboardHistory.app` was installed manually before using the Cask, quit ClipboardHistory and move that existing app bundle out of `/Applications` first. Clipboard history is stored separately under Application Support and is not removed by this migration.
+Homebrew 6 requires explicit trust for third-party taps. `brew upgrade --cask clipboardhistory` replaces the old managed `ClipboardHistory.app` with `CoreDeck.app`. If `/Applications/ClipboardHistory.app` was installed manually, quit the old app and move it out of `/Applications` before installing CoreDeck. Clipboard history is stored separately under Application Support and is not removed by this migration.
 
 To update or uninstall later:
 
@@ -45,9 +45,9 @@ brew uninstall --cask clipboardhistory
 
 Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap clipboardhistory` also deletes that local user data.
 
-The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
+The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click CoreDeck, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from the [GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.5).
+The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from the [GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6).
 
 ## Features
 
@@ -70,7 +70,7 @@ The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from th
 
 ## Privacy model
 
-ClipboardHistory reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network. Audio samples, system-metric history, tab titles, URLs, and tab identifiers are never persisted.
+CoreDeck reads only clipboard changes exposed through `NSPasteboard`. It does not watch the Desktop or other folders and does not send clipboard content over the network. Audio samples, system-metric history, tab titles, URLs, and tab identifiers are never persisted.
 
 Clipboard history is stored locally in SQLite without encryption. Note titles and bodies use a separate AES-GCM key in the macOS login Keychain. Sensitive clipboard-item access can require Touch ID or the Mac login password.
 
@@ -87,8 +87,8 @@ Requirements:
 Clone the repository and create the local self-signed Community identity. This does not require a paid Apple Developer account:
 
 ```sh
-git clone https://github.com/BGirginn/ClipboardHistory.git
-cd ClipboardHistory
+git clone https://github.com/BGirginn/CoreDeck.git
+cd CoreDeck
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -107,14 +107,14 @@ xcodebuild \
   CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
   build
 
-open .build/LocalRelease/Build/Products/CommunityRelease/ClipboardHistory.app
+open .build/LocalRelease/Build/Products/CommunityRelease/CoreDeck.app
 ```
 
 The certificate private key remains in the user's login Keychain and must never be committed.
 
 ## Usage
 
-ClipboardHistory defaults to a menu-bar-only application. Use **Customize Menu Bar** to place each module in Control Center, on its own menu-bar icon, in both places, or hide it. Hiding the main Control Center icon switches the app to a Dock-accessible mode: opening it from Finder or clicking its Dock icon presents the same interface in a standard resizable window. Re-enabling the main icon returns it to menu-bar-only mode. Press `Command-Shift-V` to open Clipboard directly regardless of icon placement. Login launch stays silent through the bundled helper.
+CoreDeck defaults to a menu-bar-only application. Use **Customize Menu Bar** to place each module in Control Center, on its own menu-bar icon, in both places, or hide it. Hiding the main Control Center icon switches the app to a Dock-accessible mode: opening it from Finder or clicking its Dock icon presents the same interface in a standard resizable window. Re-enabling the main icon returns it to menu-bar-only mode. Press `Command-Shift-V` to open Clipboard History directly regardless of icon placement. Login launch stays silent through the bundled helper.
 
 Clipboard history and managed assets are stored under:
 
@@ -150,8 +150,8 @@ Project documentation:
 
 ## Distribution
 
-`v1.0.0-beta.5` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, Chromium extension ZIP, designated requirement, and signing-certificate fingerprint are attached to the release.
+`v1.0.0-beta.6` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, Chromium extension ZIP, designated requirement, and signing-certificate fingerprint are attached to the release.
 
 ## License
 
-ClipboardHistory is available under the [MIT License](LICENSE).
+CoreDeck is available under the [MIT License](LICENSE).

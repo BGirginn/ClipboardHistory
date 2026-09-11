@@ -1,6 +1,6 @@
 ---
 name: clipboardhistory-audio-mixer
-description: Review or modify ClipboardHistory Audio Mixer, CoreAudio process discovery/control, process pipelines, browser audio bridge, Chromium/Safari integration, native messaging, gain/mute behavior, and audio runtime boundaries. Trigger for Audio Mixer or browser audio changes.
+description: Review or modify CoreDeck Audio Mixer, CoreAudio process discovery/control, process pipelines, browser audio bridge, Chromium/Safari integration, native messaging, gain/mute behavior, and audio runtime boundaries. Trigger for Audio Mixer or browser audio changes.
 ---
 
 # Audio Mixer Safety Workflow

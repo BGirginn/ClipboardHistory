@@ -30,8 +30,8 @@ extension ClipboardHistoryViewModel {
     ) async {
         guard let destination = await archivePanelSelector.saveDestination(
             suggestedName: mode == .encrypted
-                ? "ClipboardHistory-Encrypted.clipboardarchive"
-                : "ClipboardHistory.clipboardarchive",
+                ? "CoreDeck-Encrypted.clipboardarchive"
+                : "CoreDeck.clipboardarchive",
             allowedTypes: [.data]
         ) else { return }
         do {
@@ -92,17 +92,17 @@ extension ClipboardHistoryViewModel {
                 to: StorageService.defaultBaseDirectory()
             )
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) clipboard items and \(result.importedNoteCount) notes. The previous database was preserved for rollback. Quit and reopen Clipboard History to finish.")
+            archiveStatusMessage = String(localized: "Recovered \(result.importedItemCount) clipboard items and \(result.importedNoteCount) notes. The previous database was preserved for rollback. Quit and reopen CoreDeck to finish.")
         } catch let recoveryError as StorageRecoveryError {
             isStorageAvailable = false
             if recoveryError.previousDatabaseRestored {
-                archiveStatusMessage = String(localized: "Recovery failed and the previous database was restored: \(recoveryError.localizedDescription). Quit and reopen Clipboard History.")
+                archiveStatusMessage = String(localized: "Recovery failed and the previous database was restored: \(recoveryError.localizedDescription). Quit and reopen CoreDeck.")
             } else {
                 archiveStatusMessage = String(localized: "Recovery failed and rollback could not be verified: \(recoveryError.localizedDescription). Do not relaunch until the rollback backup is inspected.")
             }
         } catch {
             isStorageAvailable = false
-            archiveStatusMessage = String(localized: "Recovery failed before replacing the previous database: \(error.localizedDescription). Quit and reopen Clipboard History.")
+            archiveStatusMessage = String(localized: "Recovery failed before replacing the previous database: \(error.localizedDescription). Quit and reopen CoreDeck.")
         }
     }
 

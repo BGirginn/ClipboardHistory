@@ -1,6 +1,6 @@
 # Contributing
 
-ClipboardHistory is a local-only macOS application. Contributions must not add telemetry, analytics, remote APIs, cloud synchronization, AI services, account systems, or background network access.
+CoreDeck is a local-only macOS application. Contributions must not add telemetry, analytics, remote APIs, cloud synchronization, AI services, account systems, or background network access.
 
 Before opening a pull request:
 

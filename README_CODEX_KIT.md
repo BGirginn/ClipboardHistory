@@ -1,4 +1,4 @@
-# ClipboardHistory Codex Kit
+# CoreDeck Codex Kit
 
 Copy the contents of this kit into the repository root.
 

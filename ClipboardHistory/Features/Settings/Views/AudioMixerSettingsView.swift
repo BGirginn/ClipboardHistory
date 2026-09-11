@@ -19,7 +19,7 @@ struct AudioMixerSettingsView: View {
                     LabeledContent("Permission") {
                         Text(permissionText)
                     }
-                    Text("Audio is processed in memory only. ClipboardHistory never records, stores, analyzes, or logs audio samples.")
+                    Text("Audio is processed in memory only. CoreDeck never records, stores, analyzes, or logs audio samples.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -43,7 +43,7 @@ struct AudioMixerSettingsView: View {
                         systemImage: "safari",
                         action: controller.openSafariExtensionSettings
                     )
-                    Text("Enable ClipboardHistory Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.")
+                    Text("Enable CoreDeck Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
