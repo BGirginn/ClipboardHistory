@@ -372,7 +372,7 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(controller.applications[0].controlState, .failed("Audio pipeline failed"))
     }
 
-    func testTabGainActivationAndBrowserMasterEffectiveVolume() async {
+    func testTabGainActivationAndBrowserMasterEffectiveVolume() async throws {
         let engine = ProcessAudioControllerStub()
         let bridge = BrowserAudioBridgeStub()
         let controller = makeController(engine: engine, bridge: bridge)
@@ -391,10 +391,13 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.activate(tab)
         controller.previewBrowserVolume(120, tab: tab)
         controller.previewBrowserVolume(30, tab: tab)
-        try? await Task.sleep(for: .milliseconds(60))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+        while bridge.volumes.count < 2 && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
 
-        XCTAssertEqual(bridge.volumes.last?.0, "safari:4")
-        XCTAssertEqual(bridge.volumes.last?.1, 30)
+        XCTAssertEqual(bridge.volumes.map { $0.0 }, ["safari:4", "safari:4"])
+        XCTAssertEqual(bridge.volumes.map { $0.1 }, [25, 30])
         XCTAssertEqual(bridge.activatedIDs, ["safari:4"])
         XCTAssertEqual(controller.effectiveVolume(for: tab), 20)
         for browser in ["Edge", "Arc", "Chromium", "Unknown"] {

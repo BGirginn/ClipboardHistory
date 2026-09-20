@@ -16,11 +16,12 @@ CoreDeck; Pano Geçmişi, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mi
 
 ## Güncel durum
 
-- Güncel Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) (`1.0.0`, build `10006`)
+- Son yayımlanan Community beta: [`v1.0.0-beta.4`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4); ClipboardHistory adıyla dağıtılıyor
+- `main` kaynağı CoreDeck adını ve beta.6 build `10006` değerini kullanıyor; bu yapı yayımlanmadı
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
-- İmzalı ZIP, DMG, checksum, SPDX SBOM ve imza kanıtları GitHub prerelease'e eklenmiştir
-- Homebrew Cask [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) üzerinden yayımlanmıştır
+- Yayımlanmış paketler ve imza kanıtları beta.4 GitHub prerelease'ine aittir
+- [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask'i şu anda beta.4 kurar
 - Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
 
 ## Kurulum
@@ -33,7 +34,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. `brew upgrade --cask clipboardhistory`, Homebrew tarafından yönetilen eski `ClipboardHistory.app` paketini `CoreDeck.app` ile değiştirir. `/Applications/ClipboardHistory.app` elle kurulmuşsa eski uygulamayı kapatıp CoreDeck kurulumundan önce `/Applications` dışına taşıyın. Pano geçmişi Application Support altında ayrı saklandığı için bu geçişte silinmez.
+Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Yayımlanan Cask şu anda `ClipboardHistory.app` kurar. Gelecekteki CoreDeck Cask güncellemesinde yönetilen yükseltme ve mevcut Application Support verisi ayrıca doğrulanmalıdır. Elle kurulmuş bir uygulama veya kullanıcı verisi yükseltme sırasında kendiliğinden silinmez.
 
 Daha sonra güncellemek veya kaldırmak için:
 
@@ -45,9 +46,9 @@ brew uninstall --cask clipboardhistory
 
 Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap clipboardhistory` komutu bu yerel kullanıcı verilerini de siler.
 
-Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, CoreDeck üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
+Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, kurulu uygulama üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-ZIP, DMG ve paketlenmemiş Chromium eklentisi ZIP dosyaları [GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) sayfasından da indirilebilir.
+Yayımlanmış paketler [beta.4 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4) sayfasından indirilebilir.
 
 ## Özellikler
 
@@ -87,8 +88,8 @@ Gereksinimler:
 Depoyu klonlayıp yerel self-signed Community kimliğini oluşturun. Bunun için ücretli Apple Developer hesabı gerekmez:
 
 ```sh
-git clone https://github.com/BGirginn/CoreDeck.git
-cd CoreDeck
+git clone https://github.com/BGirginn/ClipboardHistory.git
+cd ClipboardHistory
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -150,7 +151,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-`v1.0.0-beta.6`, public GitHub prerelease ve `BGirginn/homebrew-tap` Cask'i üzerinden dağıtılır. İndirilen uygulama yalnız arm64'tür, self-signed'dır ve notarize edilmemiştir. Release checksum'ları, SPDX SBOM, Chromium eklenti ZIP'i, designated requirement ve imza sertifikası parmak izi release'e eklenmiştir.
+Son yayımlanan sürüm `v1.0.0-beta.4`'tür. CoreDeck beta.6 yalnız kaynak durumudur. Sonraki yayın için doğrulanmış paket, eşleşen checksum ve Cask ile ayrı yayın talimatı gerekir.
 
 ## Lisans
 

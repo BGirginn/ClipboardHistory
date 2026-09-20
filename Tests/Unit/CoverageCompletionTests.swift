@@ -436,14 +436,25 @@ final class CoverageCompletionTests: XCTestCase {
     }
 
     private func makePNG(width: Int, height: Int) throws -> Data {
-        let image = NSImage(size: NSSize(width: width, height: height))
-        image.lockFocus()
+        let representation = try XCTUnwrap(NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: width * 2,
+            pixelsHigh: height * 2,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ))
+        let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: representation))
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        NSGraphicsContext.current = context
         NSColor.systemBlue.setFill()
-        NSRect(x: 0, y: 0, width: width, height: height).fill()
-        image.unlockFocus()
-        let tiff = try XCTUnwrap(image.tiffRepresentation)
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(data: tiff))
-        return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+        NSRect(x: 0, y: 0, width: width * 2, height: height * 2).fill()
+        return try XCTUnwrap(representation.representation(using: .png, properties: [:]))
     }
 }
 

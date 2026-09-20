@@ -6,6 +6,7 @@ struct MenuBarControllerDependencies {
     let makeStatusItem: () -> NSStatusItem
     let removeStatusItem: (NSStatusItem) -> Void
     let makePopover: () -> NSPopover
+    let makeDrawerPopover: () -> NSPopover
     let makePanel: (AppModel) -> NSPanel
     let quickLookPresenter: any QuickLookPresenting
     let currentEvent: () -> NSEvent?
@@ -16,6 +17,7 @@ struct MenuBarControllerDependencies {
         makeStatusItem: @escaping () -> NSStatusItem,
         removeStatusItem: @escaping (NSStatusItem) -> Void = NSStatusBar.system.removeStatusItem,
         makePopover: @escaping () -> NSPopover,
+        makeDrawerPopover: @escaping () -> NSPopover = { NSPopover() },
         makePanel: @escaping (AppModel) -> NSPanel,
         quickLookPresenter: any QuickLookPresenting,
         currentEvent: @escaping () -> NSEvent? = { NSApplication.shared.currentEvent },
@@ -31,6 +33,7 @@ struct MenuBarControllerDependencies {
         self.makeStatusItem = makeStatusItem
         self.removeStatusItem = removeStatusItem
         self.makePopover = makePopover
+        self.makeDrawerPopover = makeDrawerPopover
         self.makePanel = makePanel
         self.quickLookPresenter = quickLookPresenter
         self.currentEvent = currentEvent

@@ -16,11 +16,12 @@ CoreDeck is a modular menu-bar utility hub whose Clipboard History, Notes, Input
 
 ## Current status
 
-- Current Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6) (`1.0.0`, build `10006`)
+- Latest Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.6), distributed as CoreDeck
+- The `main` source and published beta use build `10006`
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
-- The signed ZIP, DMG, checksum, SPDX SBOM, and signing evidence are published with the GitHub prerelease
-- The Homebrew Cask is published from [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap)
+- Release checksums, SBOM, signing evidence, ZIP, and DMG are attached to the beta.6 GitHub prerelease
+- The [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask installs beta.6
 - The Community build is self-signed and is not Apple-notarized
 
 ## Install
@@ -33,7 +34,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6 requires explicit trust for third-party taps. `brew upgrade --cask clipboardhistory` replaces the old managed `ClipboardHistory.app` with `CoreDeck.app`. If `/Applications/ClipboardHistory.app` was installed manually, quit the old app and move it out of `/Applications` before installing CoreDeck. Clipboard history is stored separately under Application Support and is not removed by this migration.
+Homebrew 6 requires explicit trust for third-party taps. The Cask installs `CoreDeck.app` while preserving the existing ClipboardHistory Application Support and preference identities. Move aside a manually installed old application before using the Cask; do not remove its user data.
 
 To update or uninstall later:
 
@@ -45,9 +46,9 @@ brew uninstall --cask clipboardhistory
 
 Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap clipboardhistory` also deletes that local user data.
 
-The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click CoreDeck, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
+The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click the installed application, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from the [GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.6).
+The packages can also be downloaded from the [beta.6 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.6).
 
 ## Features
 
@@ -60,6 +61,8 @@ The ZIP, DMG, and unpacked Chromium extension ZIP can also be downloaded from th
 - System, Light, and Dark appearance options
 - Private Mode, temporary recording pause, and app exclusions
 - A unified Control Center plus optional independent menu-bar icons for each module, with configurable left-click actions and right-click safety menus
+- A compact Quick Center with recent Clipboard actions, a shared Quick Note draft, and a drawer for CoreDeck's own menu-bar modules
+- One reusable sidebar Settings window that remembers the last selected section
 - Live CPU/core, RAM/pressure, CPU/SoC die temperature, network, and per-device disk activity with configurable combined or independent menu-bar metrics
 - Per-application 0–100 audio gain on macOS 14.2+, plus authorized Chromium tab capture and directly controllable Safari HTML-media tabs
 - Local secret detection and temporary handling for sensitive clipboard items
@@ -87,8 +90,8 @@ Requirements:
 Clone the repository and create the local self-signed Community identity. This does not require a paid Apple Developer account:
 
 ```sh
-git clone https://github.com/BGirginn/CoreDeck.git
-cd CoreDeck
+git clone https://github.com/BGirginn/ClipboardHistory.git
+cd ClipboardHistory
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -150,7 +153,7 @@ Project documentation:
 
 ## Distribution
 
-`v1.0.0-beta.6` is distributed as a public GitHub prerelease and through the `BGirginn/homebrew-tap` Cask. The downloadable application is arm64-only, self-signed, and not notarized. Release checksums, the SPDX SBOM, Chromium extension ZIP, designated requirement, and signing-certificate fingerprint are attached to the release.
+The latest published version is `v1.0.0-beta.6`. Its GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
 
 ## License
 

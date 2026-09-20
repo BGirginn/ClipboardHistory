@@ -25,7 +25,13 @@ final class ControlCenterModel: ObservableObject {
     var standaloneFeatures: [FeatureDescriptor] {
         registry.descriptors.filter {
             $0.id != .systemMonitor
-                && configuration(for: $0.id).placement.menuBarVisibility != .hidden
+                && configuration(for: $0.id).placement.showsInTopBar
+        }
+    }
+
+    var drawerFeatures: [FeatureDescriptor] {
+        registry.descriptors.filter {
+            configuration(for: $0.id).placement.showsInDrawer
         }
     }
 
@@ -60,6 +66,12 @@ final class ControlCenterModel: ObservableObject {
         apply(updated)
     }
 
+    func setDrawerItemVisible(_ isVisible: Bool) {
+        var updated = configuration
+        updated.showsDrawerItem = isVisible
+        apply(updated)
+    }
+
     func setShownInControlCenter(_ isShown: Bool, for id: UtilityFeatureID) {
         updateFeature(id) { $0.placement.showsInControlCenter = isShown }
     }
@@ -71,6 +83,7 @@ final class ControlCenterModel: ObservableObject {
         }
         updateFeature(id) {
             $0.placement.menuBarVisibility = isVisible ? .always : .hidden
+            if isVisible { $0.placement.showsInDrawer = false }
         }
     }
 
@@ -81,15 +94,37 @@ final class ControlCenterModel: ObservableObject {
         }
         guard registry.descriptor(for: id)?
             .supportedMenuBarVisibilityPolicies.contains(policy) == true else { return }
-        updateFeature(id) { $0.placement.menuBarVisibility = policy }
+        updateFeature(id) {
+            $0.placement.menuBarVisibility = policy
+            if policy != .hidden {
+                $0.placement.showsInDrawer = false
+            }
+        }
+    }
+
+    func setShownInDrawer(_ isShown: Bool, for id: UtilityFeatureID) {
+        updateFeature(id) {
+            $0.placement.showsInDrawer = isShown
+        }
+    }
+
+    func restoreFeatureToMenuBar(_ id: UtilityFeatureID) {
+        if id == .systemMonitor {
+            setSystemMetricsInMenuBarVisible(true)
+        } else {
+            let policy = configuration(for: id).placement.menuBarVisibility
+            setMenuBarVisibility(policy == .hidden ? .always : policy, for: id)
+        }
     }
 
     func applyPreset(_ preset: MenuBarPreset) {
         guard preset != .custom else { return }
         var updated = configuration
         updated.showsControlCenterItem = true
+        updated.showsDrawerItem = false
         for index in updated.features.indices {
             let id = updated.features[index].id
+            updated.features[index].placement.showsInDrawer = false
             updated.features[index].placement.menuBarVisibility = switch (preset, id) {
             case (.balanced, .clipboard), (.balanced, .keyboardCleaning),
                  (.balanced, .scrollReverse), (.balanced, .audioMixer): .whenActive
@@ -128,6 +163,9 @@ final class ControlCenterModel: ObservableObject {
         }
         updated.metricGroup.isVisible = isVisible
         setSystemMonitorPlacement(isVisible, in: &updated)
+        if isVisible, let index = updated.features.firstIndex(where: { $0.id == .systemMonitor }) {
+            updated.features[index].placement.showsInDrawer = false
+        }
         apply(updated)
     }
 
@@ -222,14 +260,16 @@ final class ControlCenterModel: ObservableObject {
 
     private static func isMinimal(_ configuration: MenuBarConfiguration) -> Bool {
         configuration.showsControlCenterItem
+            && !configuration.showsDrawerItem
             && !configuration.metricGroup.isVisible
             && configuration.features.allSatisfy {
-                $0.placement.menuBarVisibility == .hidden
+                $0.placement.menuBarVisibility == .hidden && !$0.placement.showsInDrawer
             }
     }
 
     private static func isBalanced(_ configuration: MenuBarConfiguration) -> Bool {
         guard configuration.showsControlCenterItem,
+              !configuration.showsDrawerItem,
               configuration.metricGroup.isVisible,
               configuration.metricGroup.showsSeparateItems,
               configuration.metricGroup.metrics == MenuBarConfiguration.defaultMenuBarMetrics,
@@ -241,7 +281,7 @@ final class ControlCenterModel: ObservableObject {
             case .systemMonitor: .always
             case .notes: .hidden
             }
-            return feature.placement.menuBarVisibility == expected
+            return feature.placement.menuBarVisibility == expected && !feature.placement.showsInDrawer
         }
     }
 

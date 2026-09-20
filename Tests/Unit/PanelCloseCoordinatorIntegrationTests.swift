@@ -39,7 +39,7 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         harness.stop()
     }
 
-    func testMenuNotificationsDeliverDeferredCloseAfterTrackingEnds() async {
+    func testMenuNotificationsDeliverDeferredCloseAfterTrackingEnds() async throws {
         let harness = Harness()
         harness.start()
         harness.notificationCenter.post(name: NSMenu.didBeginTrackingNotification, object: NSMenu())
@@ -51,7 +51,10 @@ final class PanelCloseCoordinatorIntegrationTests: XCTestCase {
         XCTAssertTrue(harness.isPanelShown)
         harness.notificationCenter.post(name: NSMenu.didEndTrackingNotification, object: NSMenu())
         XCTAssertTrue(harness.isPanelShown)
-        try? await Task.sleep(for: .milliseconds(75))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+        while harness.isPanelShown && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
 
         XCTAssertFalse(harness.isPanelShown)
         XCTAssertEqual(harness.closeCount, 1)

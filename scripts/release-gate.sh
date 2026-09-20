@@ -8,10 +8,12 @@ fi
 
 repository_root=${0:A:h:h}
 cd "$repository_root"
+python3 scripts/verify-evidence-source.py "$1"
 scripts/verify-static-quality.sh
 scripts/verify-release-security.sh
 scripts/verify-coverage.sh "$1"
 scripts/verify-arm64-builds.sh
+scripts/verify-analyzer.sh
 scripts/verify-sanitizers.sh
 scripts/verify-performance.sh
 scripts/run-critical-mutations.sh

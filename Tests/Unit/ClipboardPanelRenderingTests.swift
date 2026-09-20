@@ -7,6 +7,53 @@ import XCTest
 
 @MainActor
 final class ClipboardPanelRenderingTests: XCTestCase {
+    func testLegacyControlCenterCardsRemainRenderableForConfigurationTransitions() async throws {
+        let context = makeContext()
+        do {
+            let registry = FeatureRegistry.live
+            try render(
+                ClipboardControlCenterCard(
+                    descriptor: try XCTUnwrap(registry.descriptor(for: .clipboard)),
+                    controller: context.viewModel,
+                    action: {}
+                ),
+                named: "control-center-clipboard-card",
+                colorScheme: .light
+            )
+            try render(
+                NotesControlCenterCard(
+                    descriptor: try XCTUnwrap(registry.descriptor(for: .notes)),
+                    controller: context.appModel.notes,
+                    action: {}
+                ),
+                named: "control-center-notes-card",
+                colorScheme: .dark
+            )
+            try render(
+                SystemMonitorControlCenterCard(
+                    descriptor: try XCTUnwrap(registry.descriptor(for: .systemMonitor)),
+                    controller: context.appModel.systemMetrics,
+                    action: {}
+                ),
+                named: "control-center-system-card",
+                colorScheme: .light
+            )
+            try render(
+                AudioMixerControlCenterCard(
+                    descriptor: try XCTUnwrap(registry.descriptor(for: .audioMixer)),
+                    controller: context.appModel.audioMixer,
+                    action: {}
+                ),
+                named: "control-center-audio-card",
+                colorScheme: .dark
+            )
+        } catch {
+            await cleanup(context)
+            throw error
+        }
+        await cleanup(context)
+    }
+
     func testSystemMonitorRendersVerifiedSensorsAndPhysicalDevices() async throws {
         let suite = "SystemMonitorRendering-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
@@ -31,6 +78,12 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             SystemMonitorDetailsView(controller: controller),
             named: "system-monitor-device-details",
             colorScheme: .light,
+            width: 380
+        )
+        try render(
+            SystemMetricsOverviewGrid(controller: controller),
+            named: "system-monitor-overview-grid",
+            colorScheme: .dark,
             width: 380
         )
         let menuBarModel = ControlCenterModel(
@@ -86,6 +139,33 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 colorScheme: .dark,
                 locale: Locale(identifier: "tr"),
                 width: 380
+            )
+            try render(
+                DrawerView(
+                    model: context.appModel.controlCenter,
+                    openFeature: { _ in },
+                    restoreFeature: { _ in },
+                    customize: {}
+                ),
+                named: "drawer-empty",
+                colorScheme: .light,
+                width: 380,
+                height: 132
+            )
+            context.appModel.controlCenter.setShownInDrawer(true, for: .notes)
+            context.appModel.controlCenter.setShownInDrawer(true, for: .clipboard)
+            try render(
+                DrawerView(
+                    model: context.appModel.controlCenter,
+                    openFeature: { _ in },
+                    restoreFeature: { _ in },
+                    customize: {}
+                ),
+                named: "drawer-populated-dark-tr",
+                colorScheme: .dark,
+                locale: Locale(identifier: "tr"),
+                width: 380,
+                height: 132
             )
             context.appModel.controlCenter.applyPreset(.balanced)
             context.appModel.showMenuBarCustomization()
@@ -895,9 +975,19 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()
 
-        let representation = try XCTUnwrap(
-            hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds)
-        )
+        let representation = try XCTUnwrap(NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int((width * 2).rounded()),
+            pixelsHigh: Int((height * 2).rounded()),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ))
+        representation.size = hostingView.bounds.size
         hostingView.cacheDisplay(in: hostingView.bounds, to: representation)
         XCTAssertEqual(representation.pixelsWide, Int((width * 2).rounded()), accuracy: 2)
         XCTAssertEqual(representation.pixelsHigh, Int((height * 2).rounded()), accuracy: 2)

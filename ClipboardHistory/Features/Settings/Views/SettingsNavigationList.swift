@@ -4,29 +4,15 @@ struct SettingsNavigationList: View {
     @Binding var selection: AppSettingsSubsection?
 
     var body: some View {
-        List {
+        List(selection: $selection) {
             ForEach(AppSettingsSection.allCases) { section in
                 Section {
-                    ForEach(section.subsections.filter { $0 != .appStartup }) { subsection in
-                        Button {
-                            selection = subsection
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: subsection.systemImage)
-                                    .frame(width: 20)
-                                    .foregroundStyle(.tint)
-                                Text(subsection.title)
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .contentShape(.rect)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier(
-                            "settings.subsection.\(subsection.rawValue)"
-                        )
+                    ForEach(section.subsections) { subsection in
+                        Label(subsection.title, systemImage: subsection.systemImage)
+                            .tag(subsection)
+                            .accessibilityIdentifier(
+                                "settings.subsection.\(subsection.rawValue)"
+                            )
                     }
                 } header: {
                     Text(section.title)
@@ -35,6 +21,7 @@ struct SettingsNavigationList: View {
             }
         }
         .listStyle(.sidebar)
+        .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 260)
         .accessibilityIdentifier("settings.navigationList")
     }
 }

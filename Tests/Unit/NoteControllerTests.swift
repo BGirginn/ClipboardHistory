@@ -5,6 +5,22 @@ import XCTest
 
 @MainActor
 final class NoteControllerTests: XCTestCase {
+    func testQuickCenterUsesTheExistingDraftSessionAndPreservesContent() {
+        let context = makeContext()
+        context.controller.openQuickEditor()
+        context.controller.draftTitle = "Shared title"
+        context.controller.draftBody = "Shared body"
+        let session = context.controller.draftSessionID
+
+        context.controller.showList()
+        context.controller.prepareQuickDraft()
+
+        XCTAssertEqual(context.controller.screen, .editor)
+        XCTAssertEqual(context.controller.draftSessionID, session)
+        XCTAssertEqual(context.controller.draftTitle, "Shared title")
+        XCTAssertEqual(context.controller.draftBody, "Shared body")
+    }
+
     func testBlankNewDraftIsNotPersisted() async throws {
         let context = makeContext()
         context.controller.openQuickEditor()

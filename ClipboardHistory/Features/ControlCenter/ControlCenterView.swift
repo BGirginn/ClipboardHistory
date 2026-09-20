@@ -18,7 +18,7 @@ struct ControlCenterView: View {
             Divider()
 
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 12)], spacing: 12) {
+                LazyVStack(spacing: AppDesign.sectionSpacing) {
                     if controlCenter.controlCenterFeatures.isEmpty {
                         ContentUnavailableView(
                             "No Modules in Control Center",
@@ -26,7 +26,19 @@ struct ControlCenterView: View {
                             description: Text("Use Customize Menu Bar to add modules here.")
                         )
                     } else {
-                        ForEach(controlCenter.controlCenterFeatures) { descriptor in
+                        if controlCenter.controlCenterFeatures.contains(where: { $0.id == .clipboard }) {
+                            QuickCenterClipboardSection(
+                                controller: clipboard,
+                                openClipboard: { showFeature(.clipboard) }
+                            )
+                        }
+                        if controlCenter.controlCenterFeatures.contains(where: { $0.id == .notes }) {
+                            QuickCenterNoteSection(
+                                controller: notes,
+                                openNotes: { showFeature(.notes) }
+                            )
+                        }
+                        ForEach(moduleFeatures) { descriptor in
                             featureCard(for: descriptor)
                         }
                     }
@@ -39,6 +51,10 @@ struct ControlCenterView: View {
                 await notes.loadIfNeeded()
             }
         }
+    }
+
+    private var moduleFeatures: [FeatureDescriptor] {
+        controlCenter.controlCenterFeatures.filter { ![.clipboard, .notes].contains($0.id) }
     }
 
     private var controlCenterToolbar: some View {

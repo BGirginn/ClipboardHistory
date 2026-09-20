@@ -8,12 +8,15 @@ struct MenuBarFeatureConfigurationCard: View {
         Section {
             Toggle("Show in Control Center", isOn: controlCenterBinding)
                 .accessibilityIdentifier("customize.\(descriptor.id.rawValue).center")
+            Toggle("Show in Drawer", isOn: drawerBinding)
+                .accessibilityIdentifier("customize.\(descriptor.id.rawValue).drawer")
             if descriptor.id != .systemMonitor {
                 Picker("Menu Bar", selection: visibilityBinding) {
                     ForEach(descriptor.supportedMenuBarVisibilityPolicies) { policy in
                         Text(policy.title).tag(policy)
                     }
                 }
+                .disabled(model.configuration(for: descriptor.id).placement.showsInDrawer)
                 .accessibilityIdentifier("customize.\(descriptor.id.rawValue).standalone")
             }
             if descriptor.id == .keyboardCleaning {
@@ -47,6 +50,13 @@ struct MenuBarFeatureConfigurationCard: View {
         Binding(
             get: { model.configuration(for: descriptor.id).placement.menuBarVisibility },
             set: { model.setMenuBarVisibility($0, for: descriptor.id) }
+        )
+    }
+
+    private var drawerBinding: Binding<Bool> {
+        Binding(
+            get: { model.configuration(for: descriptor.id).placement.showsInDrawer },
+            set: { model.setShownInDrawer($0, for: descriptor.id) }
         )
     }
 

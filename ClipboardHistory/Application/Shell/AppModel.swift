@@ -8,6 +8,8 @@ final class AppModel: ObservableObject {
     var uiTestRoot: URL?
     #endif
     var requestOpenWindow: (@MainActor @Sendable () -> Void)?
+    var requestOpenSettings: (@MainActor @Sendable (AppSettingsSection?) -> Void)?
+    var requestCloseSettings: (@MainActor @Sendable () -> Void)?
     private var navigationGeneration: UInt = 0
     let router: AppRouter
     let clipboard: ClipboardHistoryViewModel
@@ -145,10 +147,18 @@ final class AppModel: ObservableObject {
     }
 
     func openSettings(section: AppSettingsSection? = nil) {
+        if let requestOpenSettings {
+            requestOpenSettings(section)
+            return
+        }
         router.openSettings(section: section)
     }
 
     func closeSettings() {
+        if let requestCloseSettings {
+            requestCloseSettings()
+            return
+        }
         router.closeSettings()
     }
 
@@ -180,7 +190,7 @@ final class AppModel: ObservableObject {
             case .menuBarCustomization:
                 router.showMenuBarCustomization()
             case .settings:
-                router.openSettings(section: settingsSection)
+                openSettings(section: settingsSection)
             case .notes:
                 router.showNotes()
             }

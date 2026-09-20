@@ -34,4 +34,10 @@ fi
 
 jq -e '.strings | all(.[]; .localizations.tr.stringUnit.state == "translated" and (.localizations.tr.stringUnit.value | length > 0))' "$catalog" >/dev/null
 xcrun xcstringstool compile --output-directory "$temporary_directory/compiled" "$catalog"
+info_plist_catalog="ClipboardHistory/InfoPlist.xcstrings"
+jq -e '
+  .strings.NSAudioCaptureUsageDescription.localizations
+  | all(.en, .tr; .stringUnit.state == "translated" and (.stringUnit.value | length > 0))
+' "$info_plist_catalog" >/dev/null
+xcrun xcstringstool compile --output-directory "$temporary_directory/compiled-info-plist" "$info_plist_catalog"
 print "localization gate: English source and Turkish translations are complete"

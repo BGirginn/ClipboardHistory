@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SystemMonitorView: View {
     @ObservedObject var controller: SystemMetricsController
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsDetails = false
     let close: () -> Void
     let openSettings: () -> Void
@@ -30,13 +31,32 @@ struct SystemMonitorView: View {
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    DisclosureGroup("Charts and Sensors", isExpanded: $showsDetails) {
-                        if showsDetails {
-                            SystemMetricsOverviewGrid(controller: controller)
-                            SystemMonitorDetailsView(controller: controller)
+                    Button {
+                        if reduceMotion {
+                            showsDetails.toggle()
+                        } else {
+                            withAnimation {
+                                showsDetails.toggle()
+                            }
                         }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.right")
+                                .rotationEffect(.degrees(showsDetails ? 90 : 0))
+                            Text("Charts and Sensors")
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .accessibilityIdentifier("systemMonitor.details")
+                    .accessibilityValue(
+                        showsDetails ? String(localized: "Expanded") : String(localized: "Collapsed")
+                    )
+                    if showsDetails {
+                        SystemMetricsOverviewGrid(controller: controller)
+                        SystemMonitorDetailsView(controller: controller)
+                    }
                 }
                 .padding(AppDesign.horizontalPadding)
             }

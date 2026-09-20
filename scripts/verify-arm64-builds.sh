@@ -2,18 +2,24 @@
 set -euo pipefail
 
 repository_root=${0:A:h:h}
-derived_data=$(mktemp -d /private/tmp/clipboardhistory-arm64-builds.XXXXXX)
-trap 'rm -rf "$derived_data"' EXIT
+evidence_parent=${COREDECK_EVIDENCE_ROOT:-/private/tmp/coredeck-release-evidence}
+mkdir -p "$evidence_parent"
+evidence=$(mktemp -d "$evidence_parent/arm64-builds.XXXXXX")
+derived_data="$evidence/DerivedData"
+trap 'rm -rf -- "$derived_data"' EXIT
 
 cd "$repository_root"
+python3 scripts/write-evidence-metadata.py "$evidence/Environment.json" arm64-configurations
+print "arm64 gate: evidence=$evidence"
 for configuration in Debug Release CommunityRelease; do
-  log="$derived_data/$configuration.log"
+  log="$evidence/$configuration.log"
   if ! xcodebuild -quiet \
       -project ClipboardHistory.xcodeproj \
       -scheme ClipboardHistory \
       -configuration "$configuration" \
       -destination 'generic/platform=macOS' \
       -derivedDataPath "$derived_data" \
+      -resultBundlePath "$evidence/$configuration.xcresult" \
       ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build \
       >"$log" 2>&1; then
     sed -n '1,200p' "$log" >&2

@@ -117,6 +117,18 @@ final class NoteController: ObservableObject {
         }
     }
 
+    func prepareQuickDraft() {
+        if hasPendingChanges || saveState == .failed {
+            screen = .editor
+        } else if screen != .editor || isPersistedDraft {
+            configureNewDraft()
+            screen = .editor
+        }
+        Task { [weak self] in
+            await self?.loadIfNeeded()
+        }
+    }
+
     func requestNewNote() {
         Task { [weak self] in
             guard let self else { return }

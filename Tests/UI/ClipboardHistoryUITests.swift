@@ -18,6 +18,36 @@ final class ClipboardHistoryUITests: XCTestCase {
         application.typeKey(.escape, modifierFlags: [])
     }
 
+    func testOwnStatusItemMovesIntoDrawerAndRestoresToMenuBar() {
+        let application = launchApplication()
+        defer { terminate(application) }
+
+        application.descendants(matching: .any)["controlCenter.customize"].click()
+        let drawerToggle = application.descendants(matching: .any)["customize.notes.drawer"]
+        XCTAssertTrue(drawerToggle.waitForExistence(timeout: 2))
+        let customizationForm = application.descendants(matching: .any)["customize.form"]
+        scrollToControl(drawerToggle, in: customizationForm)
+        drawerToggle.click()
+
+        let drawerStatusItem = application.descendants(matching: .statusItem)["menuBar.drawer"]
+        XCTAssertTrue(drawerStatusItem.waitForExistence(timeout: 2))
+        drawerStatusItem.click()
+
+        XCTAssertTrue(
+            application.descendants(matching: .any)["drawer.content"]
+                .waitForExistence(timeout: 2)
+        )
+        XCTAssertTrue(
+            application.descendants(matching: .any)["drawer.feature.notes"].exists
+        )
+        application.descendants(matching: .any)["drawer.restore.notes"].click()
+
+        XCTAssertTrue(
+            application.descendants(matching: .statusItem)["menuBar.feature.notes"]
+                .waitForExistence(timeout: 2)
+        )
+    }
+
     func testSearchIsRemovedAndSettingsRemainAccessible() {
         let application = launchApplication()
         defer { terminate(application) }
@@ -336,8 +366,9 @@ final class ClipboardHistoryUITests: XCTestCase {
         application.descendants(matching: .any)["notes.new"].click()
         let body = application.descendants(matching: .any)["notes.editor.body"]
         XCTAssertTrue(body.waitForExistence(timeout: 2))
-        application.typeText("First note body")
-        application.typeKey("s", modifierFlags: .command)
+        body.click()
+        body.typeText("First note body")
+        body.typeKey("s", modifierFlags: .command)
         XCTAssertTrue(application.staticTexts["Saved"].waitForExistence(timeout: 2))
         application.buttons["Back to Notes"].click()
 
@@ -348,9 +379,9 @@ final class ClipboardHistoryUITests: XCTestCase {
         rows.firstMatch.click()
         XCTAssertTrue(body.waitForExistence(timeout: 2))
         body.click()
-        application.typeKey("a", modifierFlags: .command)
-        application.typeText("Updated note body")
-        application.typeKey("s", modifierFlags: .command)
+        body.typeKey("a", modifierFlags: .command)
+        body.typeText("Updated note body")
+        body.typeKey("s", modifierFlags: .command)
         XCTAssertTrue(application.staticTexts["Saved"].waitForExistence(timeout: 2))
         application.buttons["Back to Notes"].click()
         let updatedRow = NSPredicate(format: "label CONTAINS[c] 'Updated note body'")
@@ -404,7 +435,7 @@ final class ClipboardHistoryUITests: XCTestCase {
 
         let centerItem = application.descendants(matching: .any)["customize.controlCenterItem"]
         XCTAssertTrue(centerItem.waitForExistence(timeout: 2))
-        scrollToControl(centerItem, in: customizationForm, deltaY: -160)
+        scrollToControl(centerItem, in: customizationForm, deltaY: 160)
         centerItem.click()
         let controlCenterStatus = application.descendants(matching: .statusItem)["menuBar.controlCenter"]
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: controlCenterStatus)
@@ -435,18 +466,43 @@ final class ClipboardHistoryUITests: XCTestCase {
         XCTAssertTrue(application.descendants(matching: .any)["Audio Actions"].exists)
     }
 
+    func testSystemMonitorChartsAndDetailsAreReachable() {
+        let application = launchApplication()
+        defer { terminate(application) }
+
+        application.descendants(matching: .any)["controlCenter.systemMonitor"].click()
+        let details = application.buttons["systemMonitor.details"]
+        XCTAssertTrue(details.waitForExistence(timeout: 2))
+        details.click()
+        XCTAssertEqual(details.value as? String, "Expanded")
+
+        let scrollView = application.scrollViews.firstMatch
+        scrollView.scroll(byDeltaX: 0, deltaY: 400)
+        XCTAssertTrue(
+            application.descendants(matching: .any)["systemMonitor.disk"]
+                .waitForExistence(timeout: 2)
+        )
+        XCTAssertTrue(
+            application.descendants(matching: .any)["Memory Breakdown"].exists
+        )
+    }
+
     private func scrollToControl(
         _ control: XCUIElement,
         in container: XCUIElement,
-        deltaY: CGFloat = 160
+        deltaY: CGFloat = -160
     ) {
-        for _ in 0..<8 {
-            if control.isHittable && container.frame.insetBy(dx: 0, dy: 4).contains(control.frame) {
-                return
+        // Wheel direction varies with the host's scrolling preferences. Search
+        // both directions without changing global mouse/trackpad settings.
+        for direction in [deltaY, -deltaY] {
+            for _ in 0..<12 {
+                if control.isHittable && container.frame.insetBy(dx: 0, dy: 4).contains(control.frame) {
+                    return
+                }
+                container.scroll(byDeltaX: 0, deltaY: direction)
             }
-            container.scroll(byDeltaX: 0, deltaY: deltaY)
         }
-        XCTFail("Control is not fully visible: \(control.identifier)")
+        XCTFail("Control is not fully visible: \(control.identifier), frame=\(control.frame), container=\(container.frame)")
     }
 
     private func launchApplication(language: String? = nil) -> XCUIApplication {
@@ -543,12 +599,7 @@ final class ClipboardHistoryUITests: XCTestCase {
         )
         let button = application.descendants(matching: .any)[identifier]
         XCTAssertTrue(button.waitForExistence(timeout: 2), "Missing settings button: \(identifier)")
-        var remainingScrolls = 12
-        while !button.isHittable && remainingScrolls > 0 {
-            navigation.scroll(byDeltaX: 0, deltaY: 160)
-            remainingScrolls -= 1
-        }
-        XCTAssertTrue(button.isHittable, "Settings button is not reachable: \(identifier)")
+        scrollToControl(button, in: navigation)
         button.click()
         XCTAssertTrue(
             application.descendants(matching: .any)[expectedHeading]

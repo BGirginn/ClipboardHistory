@@ -29,7 +29,6 @@ final class MenuBarControllerTests: XCTestCase {
     func testControllerCallbacksModesCloseAndStopWithoutAnimatingAppKitWindows() async throws {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         let popover = NSPopover()
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 560),
@@ -39,7 +38,7 @@ final class MenuBarControllerTests: XCTestCase {
         )
         let quickLook = MenuQuickLookSpy()
         let dependencies = MenuBarControllerDependencies(
-            makeStatusItem: { statusItem },
+            makeStatusItem: { NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength) },
             makePopover: { popover },
             makePanel: { _ in panel },
             quickLookPresenter: quickLook
@@ -49,6 +48,7 @@ final class MenuBarControllerTests: XCTestCase {
             dependencies: dependencies,
             panelEventMonitor: MenuPanelEventMonitorStub()
         )
+        let statusItem = try XCTUnwrap(controller.statusItems[.controlCenter])
         XCTAssertTrue(popover.animates)
         XCTAssertNotNil(popover.contentViewController)
         panel.animationBehavior = .none
@@ -140,6 +140,7 @@ final class MenuBarControllerTests: XCTestCase {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
         context.appModel.controlCenter.setControlCenterItemVisible(false)
+        context.appModel.controlCenter.setDrawerItemVisible(false)
         let windowPresenter = MenuApplicationWindowPresenterSpy()
         let controller = MenuBarController(
             appModel: context.appModel,
@@ -167,11 +168,78 @@ final class MenuBarControllerTests: XCTestCase {
         await cleanup(context)
     }
 
+    func testDrawerOwnsMovedFeatureAndExcludesQuickCenterPresentation() async throws {
+        let context = makeContext()
+        context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
+        let popover = MenuPopoverStub()
+        let drawerPopover = MenuPopoverStub()
+        let controller = MenuBarController(
+            appModel: context.appModel,
+            dependencies: MenuBarControllerDependencies(
+                makeStatusItem: {
+                    NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+                },
+                removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
+                makePopover: { popover },
+                makeDrawerPopover: { drawerPopover },
+                makePanel: { _ in MenuPanelStub() },
+                quickLookPresenter: MenuQuickLookSpy(),
+                currentEvent: { nil }
+            ),
+            panelEventMonitor: MenuPanelEventMonitorStub()
+        )
+
+        XCTAssertNotNil(controller.statusItems[.drawer])
+        XCTAssertNotNil(controller.statusItems[.feature(.notes)])
+        let drawerContent = try XCTUnwrap(drawerPopover.contentViewController)
+        context.settings.appearance = .dark
+        XCTAssertEqual(drawerPopover.appearance?.name, .darkAqua)
+
+        context.appModel.controlCenter.setShownInDrawer(true, for: .notes)
+
+        XCTAssertNil(controller.statusItems[.feature(.notes)])
+        try XCTUnwrap(controller.statusItems[.drawer]?.button).performClick(nil)
+        await settleMenuAction()
+        XCTAssertTrue(drawerPopover.isShown)
+        XCTAssertFalse(popover.isShown)
+        XCTAssertTrue(drawerPopover.contentViewController === drawerContent)
+
+        try XCTUnwrap(controller.statusItems[.controlCenter]?.button).performClick(nil)
+        await settleMenuAction()
+        XCTAssertFalse(drawerPopover.isShown)
+        XCTAssertTrue(popover.isShown)
+
+        context.appModel.controlCenter.setShownInDrawer(false, for: .notes)
+        XCTAssertNotNil(controller.statusItems[.feature(.notes)])
+
+        context.appModel.controlCenter.setMetricGroupVisible(true)
+        context.appModel.controlCenter.setMetricsAsSeparateItems(false)
+        XCTAssertNotNil(controller.statusItems[.metricGroup])
+        context.appModel.controlCenter.setShownInDrawer(true, for: .systemMonitor)
+        XCTAssertNil(controller.statusItems[.metricGroup])
+        context.appModel.controlCenter.restoreFeatureToMenuBar(.systemMonitor)
+        XCTAssertNotNil(controller.statusItems[.metricGroup])
+
+        for _ in 0..<100 {
+            controller.toggleDrawer()
+            await settleMenuAction()
+            XCTAssertTrue(drawerPopover.isShown)
+            XCTAssertTrue(drawerPopover.contentViewController === drawerContent)
+            controller.toggleDrawer()
+            XCTAssertFalse(drawerPopover.isShown)
+        }
+        context.appModel.controlCenter.setDrawerItemVisible(false)
+        XCTAssertNil(controller.statusItems[.drawer])
+
+        controller.stop()
+        await cleanup(context)
+    }
+
     func testPopoverDetachableStatusActionShortcutAndPublisherCallbacks() async throws {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
         await context.viewModel.insert(.text(value: "shortcut", hash: "shortcut"))
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         let popover = MenuPopoverStub()
         let panel = MenuPanelStub()
         let anchor = NSView(frame: NSRect(x: 0, y: 0, width: 1, height: 1))
@@ -181,7 +249,7 @@ final class MenuBarControllerTests: XCTestCase {
         var presentedStatusMenu: NSMenu?
         var terminationCount = 0
         let dependencies = MenuBarControllerDependencies(
-            makeStatusItem: { statusItem },
+            makeStatusItem: { NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength) },
             makePopover: { popover },
             makePanel: { _ in panel },
             quickLookPresenter: MenuQuickLookSpy(),
@@ -197,6 +265,7 @@ final class MenuBarControllerTests: XCTestCase {
             popoverAnchor: { anchor }
         )
 
+        let statusItem = try XCTUnwrap(controller.statusItems[.controlCenter])
         context.settings.globalShortcutPresetID = GlobalShortcut.presets[1].id
         context.settings.globalShortcutEnabled = true
         XCTAssertGreaterThanOrEqual(shortcutBackend.installCount, 1)
@@ -220,8 +289,11 @@ final class MenuBarControllerTests: XCTestCase {
         shortcutBackend.fire(UInt32(kEventHotKeyReleased))
         controller.closePopover()
 
+        let centerPresented = expectation(description: "Control Center presentation")
+        popover.didShow = { centerPresented.fulfill() }
         statusItem.button?.performClick(nil)
-        await Task.yield()
+        await fulfillment(of: [centerPresented], timeout: 2)
+        popover.didShow = nil
         XCTAssertTrue(popover.isShown, "Control Center status item should show the popover")
         XCTAssertTrue(popover.positioningView === anchor)
         XCTAssertEqual(popover.recordedPositioningRect, anchor.bounds)
@@ -295,6 +367,7 @@ final class MenuBarControllerTests: XCTestCase {
     func testConfigurationAddsAndRemovesStandaloneStatusItemsWithoutRestart() async {
         let context = makeContext()
         context.settings.globalShortcutEnabled = false
+        context.appModel.controlCenter.setDrawerItemVisible(false)
         var createdItems: [NSStatusItem] = []
         var removedItems: [NSStatusItem] = []
         var currentEvent: NSEvent?
@@ -1084,6 +1157,7 @@ private final class MenuBrowserAudioBridgeStub: BrowserAudioBridging {
 private final class MenuPopoverStub: NSPopover {
     private var presented = false
     var presentationFailuresRemaining = 0
+    var didShow: (() -> Void)?
     private(set) var showCallCount = 0
     private(set) var recordedPositioningRect: NSRect?
     private(set) weak var positioningView: NSView?
@@ -1106,6 +1180,7 @@ private final class MenuPopoverStub: NSPopover {
         }
         presented = true
         delegate?.popoverWillShow?(Notification(name: NSPopover.willShowNotification, object: self))
+        didShow?()
     }
 
     override func performClose(_ sender: Any?) {

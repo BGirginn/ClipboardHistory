@@ -52,28 +52,38 @@ final class PerformanceBenchmarkTests: XCTestCase {
         var loadMilliseconds: [Double] = []
         var filterMilliseconds: [Double] = []
         var panelMilliseconds: [Double] = []
-        let repetitionCount = 20
+        let warmupCount = 5
+        let repetitionCount = 100
 
-        for iteration in 0..<repetitionCount {
+        for iteration in 0..<(warmupCount + repetitionCount) {
+            let shouldMeasure = iteration >= warmupCount
             let writeStart = clock.now
             await storage.saveHistory(items)
-            writeMilliseconds.append(milliseconds(writeStart.duration(to: clock.now)))
+            if shouldMeasure {
+                writeMilliseconds.append(milliseconds(writeStart.duration(to: clock.now)))
+            }
 
             let readStart = clock.now
             let loaded = await storage.loadHistory()
-            readMilliseconds.append(milliseconds(readStart.duration(to: clock.now)))
+            if shouldMeasure {
+                readMilliseconds.append(milliseconds(readStart.duration(to: clock.now)))
+            }
             XCTAssertEqual(loaded.count, itemCount)
 
             let loadStart = clock.now
             await viewModel.loadHistory()
-            loadMilliseconds.append(milliseconds(loadStart.duration(to: clock.now)))
+            if shouldMeasure {
+                loadMilliseconds.append(milliseconds(loadStart.duration(to: clock.now)))
+            }
 
             let filterStart = clock.now
             viewModel.searchText = iteration.isMultiple(of: 2)
                 ? "clipboard 4999"
                 : "clipboard 2500"
             _ = viewModel.recentItems.count
-            filterMilliseconds.append(milliseconds(filterStart.duration(to: clock.now)))
+            if shouldMeasure {
+                filterMilliseconds.append(milliseconds(filterStart.duration(to: clock.now)))
+            }
             viewModel.searchText = ""
 
             let panelStart = clock.now
@@ -82,7 +92,9 @@ final class PerformanceBenchmarkTests: XCTestCase {
             )
             hostingView.frame = NSRect(x: 0, y: 0, width: 380, height: 500)
             hostingView.layoutSubtreeIfNeeded()
-            panelMilliseconds.append(milliseconds(panelStart.duration(to: clock.now)))
+            if shouldMeasure {
+                panelMilliseconds.append(milliseconds(panelStart.duration(to: clock.now)))
+            }
             XCTAssertEqual(hostingView.fittingSize.width, 380, accuracy: 1)
         }
 
@@ -92,19 +104,15 @@ final class PerformanceBenchmarkTests: XCTestCase {
         let filterP95 = p95(filterMilliseconds)
         let panelP95 = p95(panelMilliseconds)
         XCTAssertEqual(viewModel.items.count, itemCount)
-        #if DEBUG
-        // Coverage and debug instrumentation are intentionally not the release
-        // performance gate. Keep this run useful for large-data regressions while
-        // the optimized Release run below retains the published p95 limits.
-        let instrumentationAllowance = 2.0
-        #else
-        let instrumentationAllowance = 1.0
+        XCTAssertEqual(writeMilliseconds.count, repetitionCount)
+        #if !DEBUG
+        // The published latency budget is measured only in optimized Release.
+        XCTAssertLessThanOrEqual(writeP95, 100)
+        XCTAssertLessThanOrEqual(readP95, 50)
+        XCTAssertLessThanOrEqual(loadP95, 100)
+        XCTAssertLessThanOrEqual(filterP95, 50)
+        XCTAssertLessThanOrEqual(panelP95, 50)
         #endif
-        XCTAssertLessThanOrEqual(writeP95, 100 * instrumentationAllowance)
-        XCTAssertLessThanOrEqual(readP95, 50 * instrumentationAllowance)
-        XCTAssertLessThanOrEqual(loadP95, 100 * instrumentationAllowance)
-        XCTAssertLessThanOrEqual(filterP95, 50 * instrumentationAllowance)
-        XCTAssertLessThanOrEqual(panelP95, 50 * instrumentationAllowance)
         AppLog.performance.notice(
             "benchmark items=5000 repetitions=\(repetitionCount) writeP95Ms=\(writeP95) readP95Ms=\(readP95) viewModelLoadP95Ms=\(loadP95) filterP95Ms=\(filterP95) panelP95Ms=\(panelP95)"
         )

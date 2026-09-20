@@ -125,15 +125,35 @@ final class HistoryPresentationTests: XCTestCase {
 
     func testUserEnabledCloseAfterCopyingUsesQuarterSecondDelay() async throws {
         settings.closePanelAfterCopying = true
+        let clock = PausedPanelCloseClock()
+        viewModel.prepareForShutdown()
+        viewModel = ClipboardHistoryViewModel(
+            storage: storage,
+            monitor: ClipboardMonitor(pasteboard: pasteboard),
+            restorePasteboard: pasteboard,
+            settings: settings,
+            sleepClock: clock,
+            startsAutomatically: false
+        )
         await insert("close after copy")
         let item = try XCTUnwrap(viewModel.items.first)
         var closeCount = 0
-        viewModel.requestClosePanel = { closeCount += 1 }
+        let didClose = expectation(description: "panel closes after the scheduled delay")
+        viewModel.requestClosePanel = {
+            closeCount += 1
+            didClose.fulfill()
+        }
 
         await viewModel.restoreAndWait(item)
+        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
+        while await clock.requestedDuration() == nil && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let requestedDuration = await clock.requestedDuration()
+        XCTAssertEqual(requestedDuration, .milliseconds(250))
         XCTAssertEqual(closeCount, 0)
-        try await Task.sleep(for: .milliseconds(300))
-
+        await clock.release()
+        await fulfillment(of: [didClose], timeout: 2)
         XCTAssertEqual(closeCount, 1)
     }
 
@@ -166,5 +186,26 @@ final class HistoryPresentationTests: XCTestCase {
             bitsPerPixel: 32
         ))
         return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+    }
+}
+
+private actor PausedPanelCloseClock: SleepClock {
+    private var duration: Duration?
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    func sleep(for duration: Duration) async throws {
+        self.duration = duration
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+        }
+    }
+
+    func requestedDuration() -> Duration? {
+        duration
+    }
+
+    func release() {
+        continuation?.resume()
+        continuation = nil
     }
 }

@@ -85,4 +85,17 @@ summary=$(xcrun xcresulttool get test-results summary --path "$result_bundle")
 result=$(jq -r '.result' <<<"$summary")
 passed_tests=$(jq -r '.passedTests' <<<"$summary")
 [[ "$result" == "Passed" ]]
+if ! jq -e '
+  (.passedTests | type == "number") and .passedTests > 0
+  and .failedTests == 0 and .skippedTests == 0
+  and .expectedFailures == 0 and .totalTestCount == .passedTests
+' <<<"$summary" >/dev/null; then
+  print -u2 "development tests: selector produced no tests, incomplete results, or skipped/failed tests: $selector"
+  exit 1
+fi
+if [[ "$selector" == "ClipboardHistoryTests" ]]; then
+  python3 scripts/verify-test-inventory.py Unit "$result_bundle"
+elif [[ "$selector" == "ClipboardHistoryUITests" ]]; then
+  python3 scripts/verify-test-inventory.py UI "$result_bundle"
+fi
 print "development tests: selector=$selector passed=$passed_tests cache=$development_root"

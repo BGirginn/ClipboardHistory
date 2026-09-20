@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import XCTest
 @testable import ClipboardHistoryTestHost
@@ -190,14 +191,19 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
         )
         let item = try XCTUnwrap(viewModel.items.first)
 
+        let deletionCommitted = expectation(description: "Persistent deletion updates history")
+        let observation = viewModel.$items.dropFirst().first(where: { $0.isEmpty }).sink { _ in
+            deletionCommitted.fulfill()
+        }
         viewModel.delete(item)
 
         XCTAssertEqual(pasteboard.string(forType: .string), text)
-        for _ in 0..<20 where !viewModel.items.isEmpty {
-            await Task.yield()
-        }
+        await fulfillment(of: [deletionCommitted], timeout: 2)
+        observation.cancel()
         XCTAssertTrue(viewModel.items.isEmpty)
         XCTAssertNil(pasteboard.string(forType: .string))
+        let persisted = await storage.loadHistory()
+        XCTAssertTrue(persisted.isEmpty)
     }
 
     func testDuplicateDeliveryUpdatesPasteboardIdentity() async throws {

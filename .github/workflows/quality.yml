@@ -13,8 +13,22 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-static-quality.sh
+      - run: scripts/verify-release-security.sh
+      - run: node --test Tests/Browser/BrowserAudioMessagingTests.cjs
+      - run: python3 -m unittest discover -s Tests/Scripts -p 'test_*.py'
+      - run: zsh Tests/Scripts/test_verify_coverage.sh
+      - run: zsh Tests/Scripts/test_coverage_failure_artifacts.sh
+      - run: zsh Tests/Scripts/test_merge_xcode_coverage.sh
+      - run: zsh Tests/Scripts/test_performance_metrics.sh
+      - run: zsh Tests/Scripts/test_development_test_summary.sh
+      - run: zsh Tests/Scripts/test_arm64_failure_artifacts.sh
+      - run: zsh Tests/Scripts/test_analyzer_gate.sh
+      - run: zsh Tests/Scripts/test_mutation_failure_artifacts.sh
+      - run: zsh Tests/Scripts/test_drawer_movement_journal.sh
 
   build-and-test:
     strategy:
@@ -30,7 +44,16 @@ jobs:
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath /private/tmp/ClipboardHistoryCI \
+            -resultBundlePath /private/tmp/ClipboardHistoryCI-Unit.xcresult \
             CODE_SIGNING_ALLOWED=NO -only-testing:ClipboardHistoryTests test
+      - run: python3 scripts/verify-test-inventory.py Unit /private/tmp/ClipboardHistoryCI-Unit.xcresult
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unit-${{ matrix.runner }}-${{ github.sha }}
+          path: /private/tmp/ClipboardHistoryCI-Unit.xcresult
+          retention-days: 14
+          if-no-files-found: error
       - name: Release build
         run: |
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
@@ -45,30 +68,51 @@ jobs:
 
   coverage:
     runs-on: macos-26
+    env:
+      CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS: 1
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - name: Produce coverage result
         run: scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
+      - name: Verify required coverage artifacts
+        run: |
+          for artifact in Unit.xcresult UI.xcresult UnitSummary.json UISummary.json Combined.xccovreport Combined.xccovarchive Unit.log UI.log; do
+            test -e "/private/tmp/ClipboardHistoryCoverage/$artifact" || exit 1
+          done
+          test -s /private/tmp/ClipboardHistoryCoverage/Environment.json
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: coverage-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
           path: |
             /private/tmp/ClipboardHistoryCoverage/Unit.xcresult
             /private/tmp/ClipboardHistoryCoverage/UI.xcresult
+            /private/tmp/ClipboardHistoryCoverage/UnitSummary.json
+            /private/tmp/ClipboardHistoryCoverage/UISummary.json
+            /private/tmp/ClipboardHistoryCoverage/*SummaryExport.log
+            /private/tmp/ClipboardHistoryCoverage/*Summary.json.partial
             /private/tmp/ClipboardHistoryCoverage/Combined.xccovreport
+            /private/tmp/ClipboardHistoryCoverage/Combined.xccovarchive
+            /private/tmp/ClipboardHistoryCoverage/Environment.json
+            /private/tmp/ClipboardHistoryCoverage/Unit.log
+            /private/tmp/ClipboardHistoryCoverage/UI.log
 
   analyze:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
-      - run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
-            -configuration Debug -destination 'platform=macOS,arch=arm64' \
-            -derivedDataPath /private/tmp/ClipboardHistoryAnalyze \
-            CODE_SIGNING_ALLOWED=NO analyze
+      - run: scripts/verify-analyzer.sh
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: analyzer-${{ github.sha }}
+          path: /private/tmp/coredeck-release-evidence/analyzer.*
+          retention-days: 14
+          if-no-files-found: error
 
   arm64-configurations:
     runs-on: macos-26
@@ -76,6 +120,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-arm64-builds.sh
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: arm64-configurations-${{ github.sha }}
+          path: /private/tmp/coredeck-release-evidence/arm64-builds.*
+          retention-days: 14
+          if-no-files-found: error
 
   sanitizers:
     runs-on: macos-26
@@ -83,6 +134,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-sanitizers.sh
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sanitizers-${{ github.sha }}
+          path: /private/tmp/coredeck-release-evidence/sanitizers.*
+          retention-days: 14
+          if-no-files-found: error
 
   performance:
     runs-on: macos-26
@@ -90,6 +148,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-performance.sh
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: performance-${{ github.sha }}
+          path: /private/tmp/coredeck-release-evidence/performance.*
+          retention-days: 14
+          if-no-files-found: error
 
   mutations:
     runs-on: macos-26
@@ -97,6 +162,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/run-critical-mutations.sh
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mutations-${{ github.sha }}
+          path: /private/tmp/coredeck-release-evidence/mutations.*
+          retention-days: 14
+          if-no-files-found: error
 
   signed-ui:
     if: ${{ vars.SIGNED_UI_RUNNER_ENABLED == 'true' }}
@@ -106,8 +178,22 @@ jobs:
       - uses: ./.github/actions/setup-required-tools
       - run: scripts/verify-community-signing.sh
       - run: |
+          evidence=$(mktemp -d /private/tmp/coredeck-signed-ui.XXXXXX)
+          echo "SIGNED_UI_EVIDENCE=$evidence" >> "$GITHUB_ENV"
+          python3 scripts/write-evidence-metadata.py "$evidence/Environment.json" signed-ui
           xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath /private/tmp/ClipboardHistorySignedUI \
+            -resultBundlePath "$evidence/UI.xcresult" \
+            -test-timeouts-enabled YES -default-test-execution-time-allowance 180 \
+            -maximum-test-execution-time-allowance 300 \
             CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
-            -only-testing:ClipboardHistoryUITests test
+            -only-testing:ClipboardHistoryUITests test > "$evidence/UI.log" 2>&1
+          python3 scripts/verify-test-inventory.py UI "$evidence/UI.xcresult"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-ui-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ env.SIGNED_UI_EVIDENCE }}
+          retention-days: 14
+          if-no-files-found: error

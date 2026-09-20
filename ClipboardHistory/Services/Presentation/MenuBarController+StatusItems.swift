@@ -10,9 +10,11 @@ extension MenuBarController {
         let configuration = configuration ?? appModel.controlCenter.configuration
         var desired: [MenuBarItemID] = []
         if configuration.showsControlCenterItem { desired.append(.controlCenter) }
+        if configuration.showsDrawerItem { desired.append(.drawer) }
         desired.append(contentsOf: configuration.features
             .filter {
-                $0.id != .systemMonitor && shouldShowFeatureStatusItem(
+                $0.id != .systemMonitor && !$0.placement.showsInDrawer
+                    && shouldShowFeatureStatusItem(
                     $0,
                     keyboardCleaningActive: keyboardCleaningActive,
                     scrollReversalActive: scrollReversalActive
@@ -34,6 +36,9 @@ extension MenuBarController {
 
         let desiredSet = Set(desired)
         for itemID in Array(statusItems.keys) where !desiredSet.contains(itemID) {
+            if itemID == .drawer, drawerPopover.isShown {
+                drawerPopover.performClose(nil)
+            }
             if let item = statusItems.removeValue(forKey: itemID) {
                 dependencies.removeStatusItem(item)
             }
@@ -72,7 +77,8 @@ extension MenuBarController {
     ) {
         let configuration = appModel.controlCenter.configuration
         let conditionalFeatures = configuration.features.filter {
-            $0.id != .systemMonitor && $0.placement.menuBarVisibility == .whenActive
+            $0.id != .systemMonitor && !$0.placement.showsInDrawer
+                && $0.placement.menuBarVisibility == .whenActive
         }
         let needsRebuild = conditionalFeatures.contains { feature in
             let isPresent = statusItems[.feature(feature.id)] != nil
@@ -184,6 +190,12 @@ extension MenuBarController {
             symbol: activeStates.isEmpty ? "square.grid.2x2" : "square.grid.2x2.fill",
             description: String(localized: "CoreDeck"),
             tooltip: String(localized: "CoreDeck") + stateSuffix
+        )
+        configureStatusItem(
+            .drawer,
+            symbol: "rectangle.bottomhalf.inset.filled",
+            description: String(localized: "Drawer"),
+            tooltip: String(localized: "CoreDeck Drawer")
         )
         configureStatusItem(
             .feature(.clipboard),

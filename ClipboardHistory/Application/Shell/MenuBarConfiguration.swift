@@ -1,20 +1,21 @@
 import Foundation
 
 struct MenuBarConfiguration: Codable, Equatable {
-    static let currentVersion = 6
+    static let currentVersion = 7
     static let defaultMenuBarMetrics: [MenuBarMetricID] = [.cpu, .memory, .temperature]
 
     var version: Int
     var showsControlCenterItem: Bool
+    var showsDrawerItem: Bool
     var features: [UtilityFeatureConfiguration]
     var metricGroup: MenuBarDisplayGroup
     var metricFormats: MetricFormatPreferences
 
     var showsSystemMetricsInMenuBar: Bool {
-        metricGroup.isVisible
-            || features.contains {
+        !features.contains { $0.id == .systemMonitor && $0.placement.showsInDrawer }
+            && (metricGroup.isVisible || features.contains {
                 $0.id == .systemMonitor && $0.placement.showsStandaloneItem
-            }
+            })
     }
 
     var visibleMenuBarMetrics: [MenuBarMetricID] {
@@ -25,6 +26,7 @@ struct MenuBarConfiguration: Codable, Equatable {
         MenuBarConfiguration(
             version: currentVersion,
             showsControlCenterItem: true,
+            showsDrawerItem: true,
             features: registry.descriptors.map { descriptor in
                 UtilityFeatureConfiguration(
                     id: descriptor.id,
@@ -43,6 +45,7 @@ struct MenuBarConfiguration: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case version
         case showsControlCenterItem
+        case showsDrawerItem
         case features
         case metricGroup
         case metricFormats
@@ -51,12 +54,14 @@ struct MenuBarConfiguration: Codable, Equatable {
     init(
         version: Int,
         showsControlCenterItem: Bool,
+        showsDrawerItem: Bool = false,
         features: [UtilityFeatureConfiguration],
         metricGroup: MenuBarDisplayGroup = .defaults,
         metricFormats: MetricFormatPreferences = .defaults
     ) {
         self.version = version
         self.showsControlCenterItem = showsControlCenterItem
+        self.showsDrawerItem = showsDrawerItem
         self.features = features
         self.metricGroup = metricGroup
         self.metricFormats = metricFormats
@@ -66,6 +71,7 @@ struct MenuBarConfiguration: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
         showsControlCenterItem = try container.decode(Bool.self, forKey: .showsControlCenterItem)
+        showsDrawerItem = try container.decodeIfPresent(Bool.self, forKey: .showsDrawerItem) ?? false
         features = try container.decode([UtilityFeatureConfiguration].self, forKey: .features)
         metricGroup = try container.decodeIfPresent(MenuBarDisplayGroup.self, forKey: .metricGroup) ?? .defaults
         metricFormats = try container.decodeIfPresent(

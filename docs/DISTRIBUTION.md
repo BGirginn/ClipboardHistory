@@ -1,6 +1,6 @@
 # CoreDeck Community beta distribution
 
-`v1.0.0-beta.6` is a public CoreDeck Community prerelease for Apple silicon Macs running macOS 14.2 or later. Distribution is complete only when the GitHub artifacts and matching Homebrew Cask are both available. Community artifacts are self-signed, are not Apple-notarized, and must not be described as production or Developer ID releases.
+The `main` source and current GitHub prerelease are CoreDeck beta.6 build `10006`. The Homebrew Cask downloads the same release ZIP. Community artifacts are self-signed, are not Apple-notarized, and must not be described as Developer ID releases.
 
 ## Stable signing identity
 
@@ -15,7 +15,7 @@ Changing the signing identity changes the designated requirement and can strand 
 
 ## Release artifacts
 
-Build from the exact clean release commit:
+The following command reproduces the beta.6 Community artifacts from its exact clean release commit:
 
 ```sh
 scripts/build-community-artifact.sh /private/tmp/CoreDeck-1.0.0-beta.6
@@ -37,11 +37,11 @@ The Community beta retains normal quarantine behavior. If Gatekeeper blocks firs
 
 ## GitHub Release
 
-The tag and prerelease are published from the same clean commit. Release assets include the ZIP, DMG, checksum manifest, SPDX SBOM, designated requirement, and public signing-certificate fingerprint. The release notes link the known validation gaps rather than claiming notarization or unsupported OS evidence.
+The tag and prerelease use the same clean commit. Release assets include the ZIP, DMG, checksum manifest, SPDX SBOM, designated requirement, and public signing-certificate fingerprint. The release notes identify validation gaps without claiming notarization or unsupported OS evidence.
 
 ## Homebrew Cask
 
-The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`:
+The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. Its Cask installs beta.6 CoreDeck:
 
 ```sh
 brew tap BGirginn/tap
@@ -49,7 +49,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6 requires explicit trust for this third-party tap. Upgrading the managed `clipboardhistory` Cask removes its old `/Applications/ClipboardHistory.app` artifact and installs only `/Applications/CoreDeck.app`. A manually installed `/Applications/ClipboardHistory.app` must be quit and moved aside before installing CoreDeck; Homebrew intentionally refuses to overwrite or remove an unmanaged application bundle. This does not remove the separately stored clipboard database or preferences.
+Homebrew 6 requires explicit trust for this third-party tap. The `clipboardhistory` Cask token is retained for upgrades. Handle a manually installed `/Applications/ClipboardHistory.app` separately and preserve the existing clipboard database and preferences.
 
 `Casks/clipboardhistory.rb` uses the GitHub Release ZIP and its exact SHA-256 with:
 
@@ -59,7 +59,7 @@ depends_on macos: :sonoma
 app "CoreDeck.app"
 ```
 
-The Cask token remains `clipboardhistory` for this transition release, while `name` is `CoreDeck` and the release URL points to `BGirginn/CoreDeck`. Normal uninstall preserves the existing `ClipboardHistory` Application Support directory, bundle-ID preferences, and service registrations. The optional `--zap` path removes them only when the user explicitly asks for complete deletion.
+The Cask keeps the token `clipboardhistory` and uses `CoreDeck` as the displayed name. The source repository remains `BGirginn/ClipboardHistory`. Normal uninstall preserves the existing `ClipboardHistory` Application Support directory and preferences. The optional `--zap` path removes them only when the user explicitly asks for complete deletion.
 
 For every Cask update, run style/audit, fetch the public URL, install into an isolated app directory, verify the running artifact metadata/signature/architecture, and perform normal uninstall. The ZIP fetched by Homebrew must match the checksum published in the GitHub Release.
 

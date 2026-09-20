@@ -1,8 +1,9 @@
 # Known limitations
 
-- `v1.0.0-beta.6` is a CoreDeck Community prerelease, not a production or notarized release.
+- `v1.0.0-beta.6` is the latest Community prerelease and the first package published under the CoreDeck product name.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
-- Current candidate unit and UI tests ran locally on macOS 27 beta arm64. Earlier macOS 26.5 evidence is historical; the complete macOS 14/15/26 external OS matrix has not been recorded for this release.
+- Local test results are recorded by source revision in [release readiness](RELEASE_READINESS_PLAN_TR.md). The complete macOS 14.2/15/26 physical matrix remains open and is not claimed by beta.6.
+- The drawer manages CoreDeck's own module icons, including System Monitor access. External system and third-party icon management is not enabled in beta.6. Experimental Command-drag swaps demonstrate ordering only; occupied-space reclamation, exact native target activation, supported-OS recovery and permission/conflict acceptance remain unproven.
 - Encrypted Notes and one-time migration of legacy encrypted Clipboard records depend on login-Keychain access and the stable signing identity. Current open Clipboard storage does not require Keychain access.
 - Direct paste, Keyboard Cleaning Mode, and Scroll Reverse require Accessibility permission; ordinary capture, copy, restore, notes, and Paste As do not.
 - Keyboard Cleaning Mode intentionally leaves mouse input available and stays active until the user stops it. Sleep, session resignation, event-tap failure, and application termination release the keyboard; Secure Input or system policy can prevent the event tap from starting.

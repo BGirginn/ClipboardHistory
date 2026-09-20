@@ -14,7 +14,11 @@ final class PanelCloseCoordinatorTests: XCTestCase {
 
     func testOutsideInteractionDefersUntilMenuTrackingEnds() async {
         var closeCount = 0
-        let coordinator = makeCoordinator { closeCount += 1 }
+        let didClose = expectation(description: "panel closes after menu tracking")
+        let coordinator = makeCoordinator {
+            closeCount += 1
+            didClose.fulfill()
+        }
         coordinator.menuTrackingDidBegin()
 
         coordinator.requestCloseForOutsideInteraction()
@@ -23,7 +27,7 @@ final class PanelCloseCoordinatorTests: XCTestCase {
 
         coordinator.menuTrackingDidEnd()
         XCTAssertEqual(closeCount, 0)
-        try? await Task.sleep(for: .milliseconds(75))
+        await fulfillment(of: [didClose], timeout: 2)
         XCTAssertEqual(closeCount, 1)
     }
 
@@ -55,7 +59,11 @@ final class PanelCloseCoordinatorTests: XCTestCase {
 
     func testNestedMenuTrackingClosesOnlyAfterOutermostMenuEnds() async {
         var closeCount = 0
-        let coordinator = makeCoordinator { closeCount += 1 }
+        let didClose = expectation(description: "panel closes after the outermost menu")
+        let coordinator = makeCoordinator {
+            closeCount += 1
+            didClose.fulfill()
+        }
         coordinator.menuTrackingDidBegin()
         coordinator.menuTrackingDidBegin()
         coordinator.requestCloseForOutsideInteraction()
@@ -64,7 +72,7 @@ final class PanelCloseCoordinatorTests: XCTestCase {
         XCTAssertEqual(closeCount, 0)
         coordinator.menuTrackingDidEnd()
         XCTAssertEqual(closeCount, 0)
-        try? await Task.sleep(for: .milliseconds(75))
+        await fulfillment(of: [didClose], timeout: 2)
         XCTAssertEqual(closeCount, 1)
     }
 

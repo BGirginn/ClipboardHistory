@@ -57,7 +57,8 @@ struct MenuBarConfigurationStore {
         var metricGroup = requiresExplicitTopBarOptIn
             ? MenuBarDisplayGroup.defaults
             : configuration.metricGroup
-        if (4..<MenuBarConfiguration.currentVersion).contains(configuration.version),
+        // Only versions 4 and 5 predate the explicit combined/separate preference.
+        if (4..<6).contains(configuration.version),
            metricGroup.isVisible {
             metricGroup.showsSeparateItems = true
         }
@@ -80,6 +81,9 @@ struct MenuBarConfigurationStore {
             showsControlCenterItem: requiresExplicitTopBarOptIn
                 ? true
                 : configuration.showsControlCenterItem,
+            showsDrawerItem: configuration.version < 7
+                ? true
+                : configuration.showsDrawerItem,
             features: features,
             metricGroup: metricGroup,
             metricFormats: configuration.metricFormats

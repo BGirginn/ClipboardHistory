@@ -30,14 +30,16 @@ struct AppSettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            AppSettingsHeaderView(
-                selectedSubsection: $selectedSubsection,
-                close: close
-            )
-            .fixedSize(horizontal: false, vertical: true)
-            Divider()
-            Group {
+        NavigationSplitView {
+            SettingsNavigationList(selection: $selectedSubsection)
+        } detail: {
+            VStack(spacing: 0) {
+                AppSettingsHeaderView(
+                    selectedSubsection: $selectedSubsection,
+                    close: close
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                Divider()
                 if let selectedSubsection {
                     AppSettingsContentView(
                         selectedSection: selectedSubsection.section,
@@ -46,19 +48,23 @@ struct AppSettingsView: View {
                     )
                     .id("settings.content.\(selectedSubsection.rawValue)")
                 } else {
-                    SettingsNavigationList(selection: $selectedSubsection)
+                    ContentUnavailableView(
+                        "Settings",
+                        systemImage: "gearshape",
+                        description: Text("Choose a section from the sidebar.")
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+            .background(Color(nsColor: .windowBackgroundColor))
             .transition(.opacity)
         }
+        .navigationSplitViewStyle(.balanced)
         .animation(
             AppMotion.transition(reduceMotion: reduceMotion),
             value: selectedSubsection
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
         .onChange(of: initialSection) { _, section in
             selectedSubsection = Self.resolveSubsection(
                 initialSubsection,

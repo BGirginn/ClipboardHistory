@@ -22,6 +22,7 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
     private let terminationReply: TerminationReply
     private var appModel: AppModel?
     private var applicationWindowPresenter: (any ApplicationWindowPresenting)?
+    private var settingsWindowPresenter: (any SettingsWindowPresenting)?
     private var menuBarController: MenuBarController?
     private var menuBarConfigurationCancellable: AnyCancellable?
     private var terminationTask: Task<Void, Never>?
@@ -165,8 +166,10 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         menuBarConfigurationCancellable?.cancel()
         menuBarConfigurationCancellable = nil
         menuBarController?.stop()
+        settingsWindowPresenter?.stop()
         applicationWindowPresenter?.stop()
         menuBarController = nil
+        settingsWindowPresenter = nil
         applicationWindowPresenter = nil
         appModel = nil
     }
@@ -179,6 +182,14 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
         applicationWindowPresenter = windowPresenter
         let menuBarController = menuBarControllerFactory(appModel, windowPresenter)
         self.menuBarController = menuBarController
+        let settingsWindowPresenter = SettingsWindowController(appModel: appModel)
+        self.settingsWindowPresenter = settingsWindowPresenter
+        appModel.requestOpenSettings = { [weak self] section in
+            self?.settingsWindowPresenter?.show(section: section)
+        }
+        appModel.requestCloseSettings = { [weak self] in
+            self?.settingsWindowPresenter?.close()
+        }
         menuBarConfigurationCancellable = appModel.controlCenter.$configuration
             .map(\.showsControlCenterItem)
             .removeDuplicates()

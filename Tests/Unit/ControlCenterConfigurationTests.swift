@@ -8,6 +8,8 @@ final class ControlCenterConfigurationTests: XCTestCase {
         let context = makeContext()
 
         XCTAssertTrue(context.model.configuration.showsControlCenterItem)
+        XCTAssertTrue(context.model.configuration.showsDrawerItem)
+        XCTAssertTrue(context.model.drawerFeatures.isEmpty)
         XCTAssertEqual(
             context.model.controlCenterFeatures.map(\.id),
             UtilityFeatureID.allCases.filter { $0 != .audioMixer }
@@ -95,7 +97,8 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 6)
+        XCTAssertEqual(migrated.version, MenuBarConfiguration.currentVersion)
+        XCTAssertTrue(migrated.showsDrawerItem)
         XCTAssertTrue(migrated.showsControlCenterItem)
         let notes = try XCTUnwrap(migrated.features.first { $0.id == .notes })
         XCTAssertFalse(notes.placement.showsInControlCenter)
@@ -132,7 +135,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 6)
+        XCTAssertEqual(migrated.version, MenuBarConfiguration.currentVersion)
         XCTAssertTrue(
             migrated.features.allSatisfy { !$0.placement.showsStandaloneItem }
         )
@@ -317,7 +320,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 6)
+        XCTAssertEqual(migrated.version, MenuBarConfiguration.currentVersion)
         XCTAssertEqual(
             migrated.features.first { $0.id == .clipboard }?.placement.menuBarVisibility,
             .always
@@ -349,7 +352,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
             store: MenuBarConfigurationStore(defaults: context.defaults)
         ).configuration
 
-        XCTAssertEqual(migrated.version, 6)
+        XCTAssertEqual(migrated.version, MenuBarConfiguration.currentVersion)
         XCTAssertTrue(migrated.metricGroup.showsSeparateItems)
         XCTAssertEqual(migrated.metricGroup.metrics, [.memory, .temperature, .cpu])
         XCTAssertEqual(migrated.metricGroup.style, .compact)
@@ -363,6 +366,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         context.model.applyPreset(.balanced)
 
         XCTAssertEqual(context.model.selectedPreset, .balanced)
+        XCTAssertFalse(context.model.configuration.showsDrawerItem)
         XCTAssertTrue(context.model.configuration.metricGroup.isVisible)
         XCTAssertTrue(context.model.configuration.metricGroup.showsSeparateItems)
         XCTAssertEqual(context.model.configuration.metricGroup.density, .standard)
@@ -382,6 +386,7 @@ final class ControlCenterConfigurationTests: XCTestCase {
         context.model.applyPreset(.minimal)
 
         XCTAssertEqual(context.model.selectedPreset, .minimal)
+        XCTAssertFalse(context.model.configuration.showsDrawerItem)
         XCTAssertFalse(context.model.configuration.metricGroup.isVisible)
         XCTAssertTrue(context.model.configuration.features.allSatisfy {
             $0.placement.menuBarVisibility == .hidden
@@ -397,6 +402,108 @@ final class ControlCenterConfigurationTests: XCTestCase {
             context.model.configuration(for: .notes).placement.menuBarVisibility,
             .hidden
         )
+    }
+
+    func testDrawerMovePersistsAndRestorePreservesTopBarPreference() {
+        let context = makeContext()
+        context.model.setStandaloneItemVisible(true, for: .notes)
+
+        context.model.setShownInDrawer(true, for: .notes)
+
+        XCTAssertEqual(context.model.drawerFeatures.map(\.id), [.notes])
+        XCTAssertFalse(context.model.standaloneFeatures.contains { $0.id == .notes })
+        XCTAssertEqual(
+            context.model.configuration(for: .notes).placement.menuBarVisibility,
+            .always
+        )
+
+        let reloaded = ControlCenterModel(
+            store: MenuBarConfigurationStore(defaults: context.defaults)
+        )
+        XCTAssertEqual(reloaded.drawerFeatures.map(\.id), [.notes])
+
+        reloaded.setShownInDrawer(false, for: .notes)
+
+        XCTAssertTrue(reloaded.drawerFeatures.isEmpty)
+        XCTAssertTrue(reloaded.standaloneFeatures.contains { $0.id == .notes })
+    }
+
+    func testDrawerRoundTripPreservesHiddenPreferenceUntilExplicitRestore() {
+        let context = makeContext()
+
+        context.model.setShownInDrawer(true, for: .clipboard)
+
+        XCTAssertTrue(
+            context.model.configuration(for: .clipboard).placement.showsInDrawer
+        )
+        XCTAssertEqual(
+            context.model.configuration(for: .clipboard).placement.menuBarVisibility,
+            .hidden
+        )
+        XCTAssertEqual(context.model.selectedPreset, .custom)
+        context.model.setShownInDrawer(false, for: .clipboard)
+        XCTAssertFalse(context.model.configuration(for: .clipboard).placement.showsInTopBar)
+        context.model.setShownInDrawer(true, for: .clipboard)
+        context.model.restoreFeatureToMenuBar(.clipboard)
+        XCTAssertTrue(context.model.configuration(for: .clipboard).placement.showsInTopBar)
+        XCTAssertFalse(context.model.configuration(for: .clipboard).placement.showsInDrawer)
+    }
+
+    func testDrawerPreservesConditionalVisibilityAcrossReloadAndRestore() {
+        let context = makeContext()
+        context.model.setMenuBarVisibility(.whenActive, for: .clipboard)
+        context.model.setShownInDrawer(true, for: .clipboard)
+        let reloaded = ControlCenterModel(store: MenuBarConfigurationStore(defaults: context.defaults))
+
+        reloaded.restoreFeatureToMenuBar(.clipboard)
+
+        XCTAssertEqual(reloaded.configuration(for: .clipboard).placement.menuBarVisibility, .whenActive)
+        XCTAssertFalse(reloaded.configuration(for: .clipboard).placement.showsInDrawer)
+    }
+
+    func testSystemMonitorDrawerRoundTripPreservesMetricConfiguration() {
+        let context = makeContext()
+        context.model.setMetricGroupVisible(true)
+        context.model.setMetricsAsSeparateItems(false)
+        context.model.moveMetric(.cpu, direction: 1)
+        let metrics = context.model.configuration.metricGroup
+
+        context.model.setShownInDrawer(true, for: .systemMonitor)
+        let reloaded = ControlCenterModel(store: MenuBarConfigurationStore(defaults: context.defaults))
+
+        XCTAssertFalse(reloaded.showsSystemMetricsInMenuBar)
+        XCTAssertEqual(reloaded.drawerFeatures.map(\.id), [.systemMonitor])
+        XCTAssertEqual(reloaded.configuration.metricGroup, metrics)
+        reloaded.restoreFeatureToMenuBar(.systemMonitor)
+        XCTAssertTrue(reloaded.showsSystemMetricsInMenuBar)
+        XCTAssertTrue(reloaded.drawerFeatures.isEmpty)
+        XCTAssertEqual(reloaded.configuration.metricGroup, metrics)
+    }
+
+    func testVersionSixUpgradePreservesCombinedMetrics() throws {
+        let context = makeContext()
+        var stored = MenuBarConfiguration.defaults()
+        stored.version = 6
+        stored.metricGroup.isVisible = true
+        stored.metricGroup.showsSeparateItems = false
+        stored.metricGroup.metrics = [.memory, .cpu]
+        context.defaults.set(try JSONEncoder().encode(stored), forKey: "menuBarConfiguration.v1")
+
+        let reloaded = ControlCenterModel(store: MenuBarConfigurationStore(defaults: context.defaults))
+
+        XCTAssertFalse(reloaded.configuration.metricGroup.showsSeparateItems)
+        XCTAssertEqual(reloaded.configuration.metricGroup.metrics, [.memory, .cpu])
+        XCTAssertEqual(reloaded.configuration.version, MenuBarConfiguration.currentVersion)
+    }
+
+    func testPinningDrawerFeatureMovesItBackToTopBar() {
+        let context = makeContext()
+        context.model.setShownInDrawer(true, for: .notes)
+
+        context.model.setStandaloneItemVisible(true, for: .notes)
+
+        XCTAssertFalse(context.model.configuration(for: .notes).placement.showsInDrawer)
+        XCTAssertTrue(context.model.standaloneFeatures.contains { $0.id == .notes })
     }
 
     private func makeContext() -> (model: ControlCenterModel, defaults: UserDefaults) {

@@ -11,6 +11,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     var metricStripViews: [MenuBarItemID: MenuBarMetricStripView] = [:]
     var activeAnchorID: MenuBarItemID = .controlCenter
     private let popover: NSPopover
+    let drawerPopover: NSPopover
     let dependencies: MenuBarControllerDependencies
     private let popoverAnchor: (() -> NSView?)?
     private let applicationWindowPresenter: (any ApplicationWindowPresenting)?
@@ -33,7 +34,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     private var panelClosingTask: Task<Void, Never>?
     private var popoverReanchorTask: Task<Void, Never>?
     private var panelCloseCoordinator: PanelCloseCoordinator?
-    private var isStopped = false
+    var isStopped = false
     private let popoverDemandSource = SamplingDemandSource()
     private let detachablePanelDemandSource = SamplingDemandSource()
     let presentationLog = OSLog(
@@ -47,7 +48,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         backend: shortcutBackend
     )
 
-    private var navigationGeneration: UInt = 0
+    var navigationGeneration: UInt = 0
 
     private var viewModel: ClipboardHistoryViewModel { appModel.clipboard }
 
@@ -67,6 +68,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         self.applicationWindowPresenter = applicationWindowPresenter
         self.popoverAnchor = popoverAnchor
         popover = dependencies.makePopover()
+        drawerPopover = dependencies.makeDrawerPopover()
         quickLookService = dependencies.quickLookPresenter
         super.init()
         appModel.requestOpenWindow = { [weak self] in
@@ -82,6 +84,10 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         popover.delegate = self
         popover.contentSize = NSSize(width: 380, height: 500)
         ensurePopoverContent()
+        drawerPopover.behavior = .transient
+        drawerPopover.animates = true
+        drawerPopover.contentSize = NSSize(width: 380, height: 132)
+        ensureDrawerContent()
         panelCloseCoordinator = PanelCloseCoordinator(
             eventMonitor: panelEventMonitor,
             isPanelShown: { [weak self] in self?.popover.isShown == true },
@@ -163,8 +169,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
                 Task { @MainActor [weak self] in
                     await Task.yield()
                     guard let self,
-                          appModel.router.activeFeature == .settings else { return }
-                    updateVisiblePresentationDemands()
+                          self.appModel.router.activeFeature == .settings else { return }
+                    self.updateVisiblePresentationDemands()
                 }
             }
         systemMetricsCancellable = appModel.systemMetrics.$snapshot
@@ -179,28 +185,12 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         popover.isShown || detachablePanel?.isVisible == true
     }
 
+    var isDrawerShown: Bool {
+        drawerPopover.isShown
+    }
+
     var shortcutRegistrationError: String? {
         shortcutMonitor.registrationError
-    }
-
-    func togglePopover() {
-        isPopoverShown ? closePopover() : showPopover()
-    }
-
-    func showPopover() {
-        showPopover(destination: .controlCenter, anchorID: .controlCenter)
-    }
-
-    func showControlCenter() {
-        showPopover(destination: .controlCenter, anchorID: .controlCenter)
-    }
-
-    func showActiveFeature() {
-        showPopover(
-            destination: appModel.router.activeFeature,
-            anchorID: activeAnchorID,
-            preparesDestination: false
-        )
     }
 
     func openFeature(
@@ -273,13 +263,14 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     @discardableResult
-    private func showPopover(
+    func showPopover(
         destination: AppFeature,
         anchorID: MenuBarItemID? = nil,
         preparesDestination: Bool = true,
         capturesPasteTargetApplication: Bool = true,
         settingsSection: AppSettingsSection? = nil
     ) -> Bool {
+        drawerPopover.performClose(nil)
         beginPresentationSignpost()
         if preparesDestination {
             prepare(destination: destination, settingsSection: settingsSection)
@@ -325,12 +316,13 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         }
     }
 
-    private func closePopoverNow() {
+    func closePopoverNow() {
         popoverReanchorTask?.cancel()
         popoverReanchorTask = nil
         shortcutMonitor.cancelHeldShortcut()
         quickLookService.close()
         popover.performClose(nil)
+        drawerPopover.performClose(nil)
         detachablePanel?.orderOut(nil)
         appModel.updatePresentationDemand(for: detachablePanelDemandSource, isVisible: false)
     }
@@ -358,6 +350,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         appModel.inputTools.prepareForShutdown()
         quickLookService.close()
         popover.close()
+        drawerPopover.close()
         detachablePanel?.close()
         appModel.updatePresentationDemand(for: popoverDemandSource, isVisible: false)
         appModel.updatePresentationDemand(for: detachablePanelDemandSource, isVisible: false)
@@ -461,6 +454,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     private func applyAppearance(_ appearance: AppAppearance) {
         let resolvedAppearance = appearance.nativeAppearance
         popover.appearance = resolvedAppearance
+        drawerPopover.appearance = resolvedAppearance
         detachablePanel?.appearance = resolvedAppearance
     }
 

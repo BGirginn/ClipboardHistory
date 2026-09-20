@@ -1103,6 +1103,16 @@
         }
       }
     },
+    "Collapsed": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daraltılmış"
+          }
+        }
+      }
+    },
     "Collection": {
       "localizations": {
         "tr": {
@@ -1805,6 +1815,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dışlanan paket kimlikleri"
+          }
+        }
+      }
+    },
+    "Expanded": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genişletilmiş"
           }
         }
       }
@@ -5492,6 +5512,124 @@
           }
         }
       }
+    },
+    "CoreDeck Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck Çekmecesi"
+          }
+        }
+      }
+    },
+    "Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece"
+          }
+        }
+      }
+    },
+    "Drawer is Empty": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece Boş"
+          }
+        }
+      }
+    },
+    "Move a CoreDeck menu-bar item here from Customize Menu Bar.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğunu Özelleştir bölümünden bir CoreDeck menü çubuğu öğesini buraya taşıyın."
+          }
+        }
+      }
+    },
+    "Restore to Menu Bar": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğuna Geri Yükle"
+          }
+        }
+      }
+    },
+    "Show Drawer Icon": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece Simgesini Göster"
+          }
+        }
+      }
+    },
+    "Show in Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmecede Göster"
+          }
+        }
+      }
+    },
+    "Another menu-bar change was detected. External management is paused.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Başka bir menü çubuğu değişikliği algılandı. Harici yönetim duraklatıldı." } } }
+    },
+    "Choose a section from the sidebar.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Kenar çubuğundan bir bölüm seçin." } } }
+    },
+    "Copy something to make it available here.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Burada kullanmak için bir içerik kopyalayın." } } }
+    },
+    "CoreDeck Settings": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "CoreDeck Ayarları" } } }
+    },
+    "Drawer recovery is required before external items can be managed.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Harici öğeler yönetilmeden önce çekmece kurtarması gerekiyor." } } }
+    },
+    "Files": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Dosyalar" } } }
+    },
+    "Image": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Görsel" } } }
+    },
+    "No Clipboard Items": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Pano Öğesi Yok" } } }
+    },
+    "Open Clipboard": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Panoyu Aç" } } }
+    },
+    "PDF": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "PDF" } } }
+    },
+    "Quick Note": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Hızlı Not" } } }
+    },
+    "Rich Text": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Zengin Metin" } } }
+    },
+    "Save": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Kaydet" } } }
+    },
+    "Sensitive content hidden": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Hassas içerik gizlendi" } } }
+    },
+    "The drawer operation was restored.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Çekmece işlemi geri yüklendi." } } }
+    },
+    "Your draft is shared with Notes.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Taslağınız Notlar ile paylaşılır." } } }
     }
   },
   "version": "1.3"

@@ -4,15 +4,26 @@ set -euo pipefail
 repository_root=${0:A:h:h}
 killed=0
 survived=0
+evidence_parent=${COREDECK_EVIDENCE_ROOT:-/private/tmp/coredeck-release-evidence}
+mkdir -p "$evidence_parent"
+evidence=$(mktemp -d "$evidence_parent/mutations.XXXXXX")
+active_work=""
+cleanup_work() {
+  [[ -z "$active_work" ]] || rm -rf -- "$active_work"
+}
+trap cleanup_work EXIT
+python3 "$repository_root/scripts/write-evidence-metadata.py" "$evidence/Environment.json" mutations
+print "mutation gate: evidence=$evidence"
 
 run_mutation() {
   local name=$1
   local selector=$2
   local mutation_root
-  mutation_root=$(mktemp -d "/private/tmp/clipboardhistory-mutation-${name}.XXXXXX")
-  local checkout="$mutation_root/repository"
+  mutation_root="$evidence/$name"
+  active_work=$(mktemp -d /private/tmp/coredeck-mutation-work.XXXXXX)
+  local checkout="$active_work/repository"
   local log="$mutation_root/test.log"
-  mkdir -p "$checkout"
+  mkdir -p "$checkout" "$mutation_root"
   rsync -a --exclude=.git --exclude=.build "$repository_root/" "$checkout/"
 
   case "$name" in
@@ -40,16 +51,17 @@ run_mutation() {
       "$repository_root/ClipboardHistory" \
       "$checkout/ClipboardHistory" >/dev/null; then
     print -u2 "mutation infrastructure failure: $name did not alter production source"
-    rm -rf "$mutation_root"
     exit 2
   fi
+  diff -ru "$repository_root/ClipboardHistory" "$checkout/ClipboardHistory" \
+    > "$mutation_root/Mutation.patch" || [[ $? == 1 ]]
 
   if xcodebuild -quiet \
       -project "$checkout/ClipboardHistory.xcodeproj" \
       -scheme ClipboardHistoryTests \
       -configuration Debug \
       -destination 'platform=macOS,arch=arm64' \
-      -derivedDataPath "$mutation_root/DerivedData" \
+      -derivedDataPath "$active_work/DerivedData" \
       -resultBundlePath "$mutation_root/Mutation.xcresult" \
       CODE_SIGNING_ALLOWED=NO \
       "-only-testing:$selector" test > "$log" 2>&1; then
@@ -59,17 +71,24 @@ run_mutation() {
     local summary
     summary=$(xcrun xcresulttool get test-results summary \
       --path "$mutation_root/Mutation.xcresult" 2>/dev/null) || summary='{}'
-    if jq -e '.result == "Failed" and .failedTests > 0' <<<"$summary" >/dev/null; then
+    print -r -- "$summary" > "$mutation_root/Summary.json"
+    if jq -e --arg selector "${selector#ClipboardHistoryTests/}" '
+        .result == "Failed" and .failedTests > 0 and .skippedTests == 0
+        and (.testFailures | length > 0)
+        and all(.testFailures[];
+          (.failureText | test("XCTAssert|XCTUnwrap|failed - "))
+          and (.testIdentifierString | startswith($selector)))
+      ' <<<"$summary" >/dev/null; then
       print "mutation killed: $name"
       (( killed += 1 ))
     else
       print -u2 "mutation infrastructure failure: $name"
       sed -n '1,120p' "$log" >&2
-      rm -rf "$mutation_root"
       exit 2
     fi
   fi
-  rm -rf "$mutation_root"
+  cleanup_work
+  active_work=""
 }
 
 run_mutation pasteboard_identity ClipboardHistoryTests/ClipboardMonitorTests

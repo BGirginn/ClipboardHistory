@@ -24,6 +24,8 @@ extension MenuBarController {
             } else {
                 openFeature(.controlCenter, anchorID: itemID)
             }
+        case .drawer:
+            toggleDrawer()
         case let .feature(id):
             let action: FeatureClickAction = id == .keyboardCleaning
                 ? .toggleKeyboardCleaning
@@ -90,7 +92,7 @@ extension MenuBarController {
     ) {
         let menu = NSMenu()
         switch itemID {
-        case .controlCenter:
+        case .controlCenter, .drawer:
             menu.addItem(makeMenuItem(
                 title: String(localized: "Customize Menu Bar"),
                 action: #selector(openMenuBarCustomization),
@@ -216,6 +218,8 @@ extension MenuBarController {
         switch itemID {
         case .controlCenter:
             .general
+        case .drawer:
+            .menuBar
         case let .feature(id):
             switch id {
             case .clipboard:

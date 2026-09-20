@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Foundation
 import XCTest
 
@@ -12,9 +13,6 @@ final class PasteStackTests: XCTestCase {
     @MainActor
     func testFIFOAndLIFOSequentialPasteRemoveOnlySuccessfullyUsedItem() async throws {
         let fixture = try makeFixture()
-        defer {
-            XCTAssertNoThrow(try FileManager.default.removeItem(at: fixture.directory))
-        }
         let viewModel = fixture.viewModel
         await viewModel.insert(.text(value: "first", hash: "first"))
         await viewModel.insert(.text(value: "second", hash: "second"))
@@ -44,15 +42,14 @@ final class PasteStackTests: XCTestCase {
     @MainActor
     func testPasteStackTimeoutUsesInjectedClock() async throws {
         let fixture = try makeFixture(clock: ImmediateSleepClock())
-        defer {
-            XCTAssertNoThrow(try FileManager.default.removeItem(at: fixture.directory))
-        }
         fixture.viewModel.settings.pasteStackTimeoutMinutes = 1
         await fixture.viewModel.insert(.text(value: "timeout", hash: "timeout"))
+        let expired = expectation(description: "Paste stack expires using the injected clock")
+        let observation = fixture.viewModel.$pasteStackItemIDs
+            .dropFirst().first(where: { $0.isEmpty }).sink { _ in expired.fulfill() }
         fixture.viewModel.addToPasteStack(try XCTUnwrap(fixture.viewModel.items.first))
-        for _ in 0..<10 where !fixture.viewModel.pasteStackItemIDs.isEmpty {
-            await Task.yield()
-        }
+        await fulfillment(of: [expired], timeout: 2)
+        observation.cancel()
         XCTAssertTrue(fixture.viewModel.pasteStackItemIDs.isEmpty)
     }
 
@@ -71,14 +68,25 @@ final class PasteStackTests: XCTestCase {
         )
         let pasteboard = NSPasteboard(name: .init("PasteStack-\(UUID().uuidString)"))
         let pasteService = StubActiveApplicationPasteService()
+        let suite = "PasteStackTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         let viewModel = ClipboardHistoryViewModel(
             storage: StorageService(baseDirectory: directory),
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
             pasteService: pasteService,
+            settings: AppSettings(defaults: defaults),
             sleepClock: clock,
             startsAutomatically: false
         )
+        addTeardownBlock { @MainActor in
+            let stopped = await viewModel.shutdown()
+            XCTAssertTrue(stopped, "Pending clipboard writes must finish before fixture removal")
+            UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+            if stopped {
+                try FileManager.default.removeItem(at: directory)
+            }
+        }
         return (viewModel, pasteboard, pasteService, directory)
     }
 }

@@ -43,6 +43,11 @@ struct MenuBarConfigurationContent: View {
                         isOn: controlCenterItemBinding
                     )
                     .accessibilityIdentifier("customize.controlCenterItem")
+                    Toggle(
+                        "Show Drawer Icon",
+                        isOn: drawerItemBinding
+                    )
+                    .accessibilityIdentifier("customize.drawerItem")
                 } header: {
                     Text("Control Center")
                 } footer: {
@@ -72,6 +77,13 @@ struct MenuBarConfigurationContent: View {
         Binding(
             get: { model.configuration.showsControlCenterItem },
             set: { model.setControlCenterItemVisible($0) }
+        )
+    }
+
+    private var drawerItemBinding: Binding<Bool> {
+        Binding(
+            get: { model.configuration.showsDrawerItem },
+            set: { model.setDrawerItemVisible($0) }
         )
     }
 }
