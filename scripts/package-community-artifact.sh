@@ -131,7 +131,13 @@ dmg="$output_directory/CoreDeck-$release_version-arm64.dmg"
 spdx="$output_directory/CoreDeck-$release_version-arm64.spdx.json"
 chromium_zip="$output_directory/CoreDeck-Chromium-Audio-$release_version.zip"
 ditto -c -k --sequesterRsrc --keepParent "$artifact_app" "$zip"
-hdiutil create -quiet -fs HFS+ -srcfolder "$artifact_app" -volname "CoreDeck $release_version" "$dmg"
+hdiutil create -quiet \
+  -format UDZO \
+  -fs 'Journaled HFS+' \
+  -nospotlight \
+  -srcfolder "$artifact_app" \
+  -volname "CoreDeck $release_version" \
+  "$dmg"
 hdiutil verify "$dmg" >/dev/null
 unzip -tq "$zip" >/dev/null
 syft scan "dir:$artifact_app" \
