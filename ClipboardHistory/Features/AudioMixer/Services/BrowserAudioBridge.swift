@@ -170,8 +170,8 @@ final class BrowserAudioBridge: BrowserAudioBridging {
         reconnectTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled, let self else { return }
-            reconnectTask = nil
-            connect()
+            self.reconnectTask = nil
+            self.connect()
         }
     }
 

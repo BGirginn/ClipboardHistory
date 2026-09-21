@@ -206,21 +206,21 @@ extension ClipboardHistoryViewModel {
         Task { [weak self] in
             guard let self else { return }
             for item in selection {
-                await cancelAndAwaitPendingWrite(for: item.id)
+                await self.cancelAndAwaitPendingWrite(for: item.id)
             }
             do {
-                let outcome = try await storage.deleteBatchThrowing(items: selection)
+                let outcome = try await self.storage.deleteBatchThrowing(items: selection)
                 guard outcome.persistentChangeCommitted else { return }
                 for item in selection {
-                    clearCurrentPasteboardIfNeeded(for: item)
-                    removeFromHistory(item)
-                    await thumbnailService.invalidate(itemID: item.id)
+                    self.clearCurrentPasteboardIfNeeded(for: item)
+                    self.removeFromHistory(item)
+                    await self.thumbnailService.invalidate(itemID: item.id)
                 }
                 if outcome.requiresCleanupRetry {
-                    cleanupMessage = String(localized: "The items were deleted, but residual file cleanup could not be completed. Cleanup will be retried.")
+                    self.cleanupMessage = String(localized: "The items were deleted, but residual file cleanup could not be completed. Cleanup will be retried.")
                 }
             } catch {
-                errorMessage = String(localized: "The clipboard items could not be deleted. Nothing was removed from history.")
+                self.errorMessage = String(localized: "The clipboard items could not be deleted. Nothing was removed from history.")
             }
         }
     }
@@ -239,7 +239,7 @@ extension ClipboardHistoryViewModel {
         Task { [weak self] in
             guard let self else { return }
             for item in targets {
-                await deleteAndWait(item)
+                await self.deleteAndWait(item)
             }
         }
     }
@@ -368,11 +368,11 @@ extension ClipboardHistoryViewModel {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await storage.upsertCollection(collection)
-                collections.append(collection)
-                refreshDisplayedItems()
+                try await self.storage.upsertCollection(collection)
+                self.collections.append(collection)
+                self.refreshDisplayedItems()
             } catch {
-                errorMessage = String(localized: "Collection could not be saved.")
+                self.errorMessage = String(localized: "Collection could not be saved.")
             }
         }
     }
@@ -381,17 +381,17 @@ extension ClipboardHistoryViewModel {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await storage.deleteCollection(id: collection.id)
-                collections.removeAll { $0.id == collection.id }
-                for index in items.indices where items[index].collectionID == collection.id {
-                    items[index].collectionID = nil
+                try await self.storage.deleteCollection(id: collection.id)
+                self.collections.removeAll { $0.id == collection.id }
+                for index in self.items.indices where self.items[index].collectionID == collection.id {
+                    self.items[index].collectionID = nil
                 }
-                if detailItem?.collectionID == collection.id {
-                    detailItem?.collectionID = nil
+                if self.detailItem?.collectionID == collection.id {
+                    self.detailItem?.collectionID = nil
                 }
-                refreshDisplayedItems()
+                self.refreshDisplayedItems()
             } catch {
-                errorMessage = String(localized: "Collection could not be deleted.")
+                self.errorMessage = String(localized: "Collection could not be deleted.")
             }
         }
     }

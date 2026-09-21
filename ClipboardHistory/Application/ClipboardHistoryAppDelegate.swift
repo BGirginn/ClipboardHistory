@@ -145,12 +145,12 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             if canTerminate {
-                menuBarController?.stop()
-                applicationWindowPresenter?.stop()
+                self.menuBarController?.stop()
+                self.applicationWindowPresenter?.stop()
                 if let sender { terminationReply(sender, true) }
             } else {
-                terminationTask = nil
-                showActiveInterface()
+                self.terminationTask = nil
+                self.showActiveInterface()
                 if let sender { terminationReply(sender, false) }
             }
         }

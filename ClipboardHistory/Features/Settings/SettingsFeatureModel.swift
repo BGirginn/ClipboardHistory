@@ -35,16 +35,16 @@ final class SettingsFeatureModel: ObservableObject {
         self.audioMixer = audioMixer
         clipboardState = ClipboardSettingsState(clipboard: clipboard)
         clipboardCancellable = clipboard.objectWillChange.sink { [weak self] in
-            guard let self, !clipboardRefreshScheduled else { return }
-            clipboardRefreshScheduled = true
+            guard let self, !self.clipboardRefreshScheduled else { return }
+            self.clipboardRefreshScheduled = true
             Task { @MainActor [weak self] in
                 await Task.yield()
                 guard let self else { return }
-                clipboardRefreshScheduled = false
-                let updatedState = ClipboardSettingsState(clipboard: clipboard)
-                guard updatedState != clipboardState else { return }
-                clipboardState = updatedState
-                objectWillChange.send()
+                self.clipboardRefreshScheduled = false
+                let updatedState = ClipboardSettingsState(clipboard: self.clipboard)
+                guard updatedState != self.clipboardState else { return }
+                self.clipboardState = updatedState
+                self.objectWillChange.send()
             }
         }
         settingsCancellable = settings.objectWillChange.sink { [weak self] in

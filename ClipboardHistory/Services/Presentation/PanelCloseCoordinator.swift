@@ -148,13 +148,13 @@ final class PanelCloseCoordinator {
                 return
             }
             guard let self else { return }
-            deferredCloseTask = nil
-            guard !menuCommandWasSelected, isPanelShown() else {
-                menuCommandWasSelected = false
+            self.deferredCloseTask = nil
+            guard !self.menuCommandWasSelected, self.isPanelShown() else {
+                self.menuCommandWasSelected = false
                 return
             }
-            menuCommandWasSelected = false
-            closePanel()
+            self.menuCommandWasSelected = false
+            self.closePanel()
         }
     }
 
@@ -201,9 +201,9 @@ final class PanelCloseCoordinator {
         isPanelContextMenuInteraction = true
         panelContextMenuGraceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled, let self, menuTrackingDepth == 0 else { return }
-            panelContextMenuGraceTask = nil
-            isPanelContextMenuInteraction = false
+            guard !Task.isCancelled, let self, self.menuTrackingDepth == 0 else { return }
+            self.panelContextMenuGraceTask = nil
+            self.isPanelContextMenuInteraction = false
         }
     }
 

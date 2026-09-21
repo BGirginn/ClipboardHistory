@@ -102,7 +102,7 @@ final class ProcessAudioPipeline: @unchecked Sendable {
             aggregateDeviceID
         ) { [weak self] inputData, outputData in
             guard let self else { return }
-            process(inputData: inputData, outputData: outputData)
+            self.process(inputData: inputData, outputData: outputData)
         }
         guard ioStatus == noErr, let createdIOProc else {
             throw ProcessAudioEngineError.ioProcedureCreationFailed(ioStatus)

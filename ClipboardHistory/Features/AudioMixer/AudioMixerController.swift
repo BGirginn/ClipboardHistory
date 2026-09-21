@@ -55,28 +55,28 @@ final class AudioMixerController: ObservableObject {
         self.browserBridge.tabsDidChange = { [weak self] tabs in
             guard let self else { return }
             let activeTabIDs = Set(tabs.map(\.id))
-            browserPreMuteGains = browserPreMuteGains.filter { activeTabIDs.contains($0.key) }
-            guard browserTabs != tabs else { return }
-            browserTabs = tabs
+            self.browserPreMuteGains = self.browserPreMuteGains.filter { activeTabIDs.contains($0.key) }
+            guard self.browserTabs != tabs else { return }
+            self.browserTabs = tabs
         }
         self.browserBridge.connectionMessageDidChange = { [weak self] message in
             self?.extensionMessage = message
         }
         self.engine.setFailureHandler { [weak self] bundleID, error in
             guard let self else { return }
-            permissionState = permissionState(for: error)
-            appliedProcessIDsByBundle.removeValue(forKey: bundleID)
-            updateActivePipelineDemand()
-            updateApplication(bundleID) {
+            self.permissionState = self.permissionState(for: error)
+            self.appliedProcessIDsByBundle.removeValue(forKey: bundleID)
+            self.updateActivePipelineDemand()
+            self.updateApplication(bundleID) {
                 $0.controlState = .failed(error.localizedDescription)
             }
         }
         self.browserBridge.start()
         let discoveryRelay = MainActorSignalRelay { [weak self] in
             guard let self,
-                  !demands.isEmpty || gains.values.contains(where: { $0 < 100 }) else { return }
+                  !self.demands.isEmpty || self.gains.values.contains(where: { $0 < 100 }) else { return }
             Task {
-                await refreshApplications()
+                await self.refreshApplications()
             }
         }
         self.discovery.startObservingChanges(discoveryRelay.callback())
@@ -142,7 +142,7 @@ final class AudioMixerController: ObservableObject {
         refreshTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
-                await refreshApplications()
+                await self.refreshApplications()
                 do {
                     try await Task.sleep(for: desiredInterval)
                 } catch {
@@ -227,9 +227,9 @@ final class AudioMixerController: ObservableObject {
                 return
             }
             guard let self,
-                  let pending = pendingVolumePreviews.removeValue(forKey: bundleID) else { return }
-            volumePreviewTasks.removeValue(forKey: bundleID)
-            applyVolume(pending.volume, for: pending.application, persists: false)
+                  let pending = self.pendingVolumePreviews.removeValue(forKey: bundleID) else { return }
+            self.volumePreviewTasks.removeValue(forKey: bundleID)
+            self.applyVolume(pending.volume, for: pending.application, persists: false)
         }
     }
 
@@ -302,9 +302,9 @@ final class AudioMixerController: ObservableObject {
         guard !outputApplications.isEmpty || !browserTabs.isEmpty else {
             Task { [weak self] in
                 guard let self else { return }
-                await refreshApplications()
-                guard !outputApplications.isEmpty || !browserTabs.isEmpty else { return }
-                toggleMuteAllLoadedOutputs()
+                await self.refreshApplications()
+                guard !self.outputApplications.isEmpty || !self.browserTabs.isEmpty else { return }
+                self.toggleMuteAllLoadedOutputs()
             }
             return
         }
@@ -343,8 +343,8 @@ final class AudioMixerController: ObservableObject {
         guard !applications.isEmpty else {
             Task { [weak self] in
                 guard let self else { return }
-                await refreshApplications()
-                resetLoadedApplications()
+                await self.refreshApplications()
+                self.resetLoadedApplications()
             }
             return
         }

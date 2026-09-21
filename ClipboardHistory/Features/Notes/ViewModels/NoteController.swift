@@ -88,10 +88,10 @@ final class NoteController: ObservableObject {
         let task = Task { [weak self] in
             guard let self else { return }
             do {
-                notes = try await storage.loadNotesThrowing().sorted { $0.updatedAt > $1.updatedAt }
-                hasLoaded = true
+                self.notes = try await self.storage.loadNotesThrowing().sorted { $0.updatedAt > $1.updatedAt }
+                self.hasLoaded = true
             } catch {
-                errorMessage = String(localized: "Notes could not be loaded: \(error.localizedDescription)")
+                self.errorMessage = String(localized: "Notes could not be loaded: \(error.localizedDescription)")
             }
         }
         loadingTask = task
@@ -132,10 +132,10 @@ final class NoteController: ObservableObject {
     func requestNewNote() {
         Task { [weak self] in
             guard let self else { return }
-            let outcome = await flushPendingSave()
+            let outcome = await self.flushPendingSave()
             guard outcome.allowsTransition else { return }
-            configureNewDraft()
-            screen = .editor
+            self.configureNewDraft()
+            self.screen = .editor
         }
     }
 
@@ -149,9 +149,9 @@ final class NoteController: ObservableObject {
     func requestShowList() {
         Task { [weak self] in
             guard let self else { return }
-            let outcome = await flushPendingSave()
+            let outcome = await self.flushPendingSave()
             guard outcome.allowsTransition else { return }
-            showList()
+            self.showList()
         }
     }
 
@@ -312,7 +312,7 @@ final class NoteController: ObservableObject {
         let task = Task<NoteFlushOutcome, Never> { [weak self] in
             _ = await previousSave?.value
             guard let self else { return NoteFlushOutcome.failed }
-            return await persist(snapshot)
+            return await self.persist(snapshot)
         }
         saveTail = task
         return task

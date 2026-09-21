@@ -46,8 +46,8 @@ extension ClipboardHistoryViewModel {
         }
         Task { [weak self] in
             guard let self,
-                  await authorizeSensitiveAccess(to: selectedItem) else { return }
-            requestPreview?(selectedItem)
+                  await self.authorizeSensitiveAccess(to: selectedItem) else { return }
+            self.requestPreview?(selectedItem)
         }
     }
 
@@ -88,12 +88,12 @@ extension ClipboardHistoryViewModel {
             do {
                 try await self?.sleepClock.sleep(for: .seconds(minutes * 60))
                 guard let self,
-                      isPrivateMode,
-                      privateModeUntil == expiration else { return }
-                isPrivateMode = false
-                privateModeUntil = nil
-                privateModeTask = nil
-                privateModeDidChange?(false)
+                      self.isPrivateMode,
+                      self.privateModeUntil == expiration else { return }
+                self.isPrivateMode = false
+                self.privateModeUntil = nil
+                self.privateModeTask = nil
+                self.privateModeDidChange?(false)
             } catch {
                 // A new privacy choice or app termination superseded this timer.
             }
@@ -114,10 +114,10 @@ extension ClipboardHistoryViewModel {
         pauseTask = Task { [weak self] in
             do {
                 try await self?.sleepClock.sleep(for: .seconds(minutes * 60))
-                guard let self, pauseUntil == expiration else { return }
-                pauseUntil = nil
-                pauseTask = nil
-                privateModeDidChange?(false)
+                guard let self, self.pauseUntil == expiration else { return }
+                self.pauseUntil = nil
+                self.pauseTask = nil
+                self.privateModeDidChange?(false)
             } catch {
                 // A newer pause or app termination superseded this timer.
             }
@@ -158,11 +158,11 @@ extension ClipboardHistoryViewModel {
         maintenanceTask?.cancel()
         maintenanceTask = Task { [weak self] in
             guard let self else { return }
-            await thumbnailService.setCacheLimit(megabytes: settings.thumbnailCacheMegabytes)
+            await self.thumbnailService.setCacheLimit(megabytes: self.settings.thumbnailCacheMegabytes)
             guard !Task.isCancelled else { return }
-            await enforceUnpinnedHistoryLimit()
+            await self.enforceUnpinnedHistoryLimit()
             guard !Task.isCancelled else { return }
-            await runRetentionCleanup()
+            await self.runRetentionCleanup()
         }
     }
 
@@ -259,8 +259,8 @@ extension ClipboardHistoryViewModel {
         }
         Task { [weak self] in
             guard let self,
-                  await authorizeSensitiveAccess(to: item) else { return }
-            revealAuthorized(item)
+                  await self.authorizeSensitiveAccess(to: item) else { return }
+            self.revealAuthorized(item)
         }
     }
 
@@ -282,8 +282,8 @@ extension ClipboardHistoryViewModel {
     func exportImage(_ item: ClipboardItem, asJPEG: Bool) {
         Task { [weak self] in
             guard let self,
-                  await authorizeSensitiveAccess(to: item) else { return }
-            await performImageExport(item, asJPEG: asJPEG)
+                  await self.authorizeSensitiveAccess(to: item) else { return }
+            await self.performImageExport(item, asJPEG: asJPEG)
         }
     }
 

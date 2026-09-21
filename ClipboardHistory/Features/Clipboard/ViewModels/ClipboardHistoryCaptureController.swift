@@ -14,14 +14,14 @@ extension ClipboardHistoryViewModel {
         settingsCancellable = settings.objectWillChange.sink { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                settingsChangeTask?.cancel()
-                settingsChangeTask = Task { @MainActor [weak self] in
+                self.settingsChangeTask?.cancel()
+                self.settingsChangeTask = Task { @MainActor [weak self] in
                     await Task.yield()
                     guard !Task.isCancelled,
                           let self,
-                          !isShuttingDown else { return }
-                    settingsDidChange()
-                    settingsChangeTask = nil
+                          !self.isShuttingDown else { return }
+                    self.settingsDidChange()
+                    self.settingsChangeTask = nil
                 }
             }
         }
@@ -253,13 +253,13 @@ extension ClipboardHistoryViewModel {
             do {
                 try await self?.sleepClock.sleep(for: .seconds(seconds))
                 guard let self, !Task.isCancelled else { return }
-                temporaryContent[item.id] = nil
-                pasteboardIdentityByItemID[item.id] = nil
-                pendingSensitiveItemIDs.removeAll { $0 == item.id }
-                items.removeAll { $0.id == item.id }
-                expirationTasks[item.id] = nil
-                refreshDisplayedItems()
-                presentNextSensitiveConfirmation()
+                self.temporaryContent[item.id] = nil
+                self.pasteboardIdentityByItemID[item.id] = nil
+                self.pendingSensitiveItemIDs.removeAll { $0 == item.id }
+                self.items.removeAll { $0.id == item.id }
+                self.expirationTasks[item.id] = nil
+                self.refreshDisplayedItems()
+                self.presentNextSensitiveConfirmation()
             } catch {
                 // Cancellation means the item was removed or the app is terminating.
             }

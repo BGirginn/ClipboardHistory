@@ -29,11 +29,11 @@ final class QuickLookService: NSObject, QuickLookPresenting,
     func show(item: ClipboardItem, storage: StorageService) {
         Task { [weak self] in
             guard let self else { return }
-            cleanupTemporaryFiles()
-            let urls = await materializePreviewURLs(for: item, storage: storage)
+            self.cleanupTemporaryFiles()
+            let urls = await self.materializePreviewURLs(for: item, storage: storage)
             guard !urls.isEmpty else { return }
-            previewURLs = urls
-            guard let panel = panelProvider() else { return }
+            self.previewURLs = urls
+            guard let panel = self.panelProvider() else { return }
             panel.present(dataSource: self, delegate: self)
         }
     }

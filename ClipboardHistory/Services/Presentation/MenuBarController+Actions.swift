@@ -32,17 +32,17 @@ extension MenuBarController {
                 : appModel.controlCenter.configuration(for: id).clickAction
             Task { [weak self] in
                 guard let self,
-                      await flushNoteIfNeeded(before: id, action: action),
-                      let destination = appModel.performStandaloneAction(for: id, action: action) else { return }
+                      await self.flushNoteIfNeeded(before: id, action: action),
+                      let destination = self.appModel.performStandaloneAction(for: id, action: action) else { return }
                 let preservesPreparedRoute = id == .notes
                     && action == .newNote
-                if isPopoverShown,
-                   activeAnchorID == itemID,
-                   appModel.router.activeFeature == destination,
+                if self.isPopoverShown,
+                   self.activeAnchorID == itemID,
+                   self.appModel.router.activeFeature == destination,
                    !preservesPreparedRoute {
-                    closePopover()
+                    self.closePopover()
                 } else {
-                    openFeature(
+                    self.openFeature(
                         destination,
                         anchorID: itemID,
                         preparesDestination: !preservesPreparedRoute
@@ -75,10 +75,10 @@ extension MenuBarController {
            appModel.notes.hasPendingChanges {
             Task { [weak self, weak button] in
                 guard let self, let button else { return }
-                let outcome = await appModel.notes.flushPendingSave()
+                let outcome = await self.appModel.notes.flushPendingSave()
                 guard outcome.allowsTransition else { return }
-                closePopover()
-                presentStatusMenu(for: itemID, from: button)
+                self.closePopover()
+                self.presentStatusMenu(for: itemID, from: button)
             }
             return
         }
@@ -200,12 +200,12 @@ extension MenuBarController {
             .supportedClickActions.first { $0 != .open } ?? .open
         Task { [weak self] in
             guard let self,
-                  await flushNoteIfNeeded(before: id, action: quickAction) else { return }
-            let destination = appModel.performStandaloneAction(for: id, action: quickAction)
+                  await self.flushNoteIfNeeded(before: id, action: quickAction) else { return }
+            let destination = self.appModel.performStandaloneAction(for: id, action: quickAction)
             if let destination {
                 let preservesPreparedRoute = id == .notes
                     && quickAction == .newNote
-                openFeature(
+                self.openFeature(
                     destination,
                     anchorID: .feature(id),
                     preparesDestination: !preservesPreparedRoute

@@ -173,10 +173,10 @@ extension ClipboardHistoryViewModel {
         pasteStackTimeoutTask = Task { [weak self] in
             do {
                 guard let self else { return }
-                try await sleepClock.sleep(for: .seconds(minutes * 60))
+                try await self.sleepClock.sleep(for: .seconds(minutes * 60))
                 guard !Task.isCancelled else { return }
-                pasteStackItemIDs.removeAll()
-                pasteStackTimeoutTask = nil
+                self.pasteStackItemIDs.removeAll()
+                self.pasteStackTimeoutTask = nil
             } catch {
                 // A stack change, reset, or app termination superseded this timeout.
             }

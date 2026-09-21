@@ -13,14 +13,14 @@ extension MenuBarController {
         let routeGeneration = appModel.router.navigationGeneration
         Task { [weak self] in
             guard let self else { return }
-            if isPopoverShown, appModel.router.activeFeature == .notes {
-                let outcome = await appModel.notes.flushPendingSave()
+            if self.isPopoverShown, self.appModel.router.activeFeature == .notes {
+                let outcome = await self.appModel.notes.flushPendingSave()
                 guard outcome.allowsTransition else { return }
             }
-            guard generation == navigationGeneration, !isStopped,
-                  routeGeneration == appModel.router.navigationGeneration else { return }
-            closePopoverNow()
-            showDrawerNow()
+            guard generation == self.navigationGeneration, !self.isStopped,
+                  routeGeneration == self.appModel.router.navigationGeneration else { return }
+            self.closePopoverNow()
+            self.showDrawerNow()
         }
     }
 
@@ -39,16 +39,16 @@ extension MenuBarController {
                 model: appModel.controlCenter,
                 openFeature: { [weak self] id in
                     guard let self else { return }
-                    drawerPopover.performClose(nil)
-                    openFeature(appModel.route(for: id), anchorID: .drawer)
+                    self.drawerPopover.performClose(nil)
+                    self.openFeature(self.appModel.route(for: id), anchorID: .drawer)
                 },
                 restoreFeature: { [weak self] id in
                     self?.appModel.controlCenter.restoreFeatureToMenuBar(id)
                 },
                 customize: { [weak self] in
                     guard let self else { return }
-                    drawerPopover.performClose(nil)
-                    openFeature(.menuBarCustomization, anchorID: .drawer)
+                    self.drawerPopover.performClose(nil)
+                    self.openFeature(.menuBarCustomization, anchorID: .drawer)
                 }
             )
         )

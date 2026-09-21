@@ -25,11 +25,11 @@ extension AudioMixerController {
                 return
             }
             guard let self,
-                  let pending = pendingBrowserVolumePreviews.removeValue(
+                  let pending = self.pendingBrowserVolumePreviews.removeValue(
                     forKey: tabID
                   ) else { return }
-            browserVolumePreviewTasks.removeValue(forKey: tabID)
-            browserBridge.setVolume(pending, tabID: tabID)
+            self.browserVolumePreviewTasks.removeValue(forKey: tabID)
+            self.browserBridge.setVolume(pending, tabID: tabID)
         }
     }
 

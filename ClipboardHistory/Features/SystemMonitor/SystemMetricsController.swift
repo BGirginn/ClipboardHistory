@@ -83,9 +83,9 @@ final class SystemMetricsController: ObservableObject {
         cancelInFlightSample()
         Task { [weak self] in
             guard let self else { return }
-            await provider.setNetworkInterfaceScope(scope)
-            guard networkInterfaceScope == scope else { return }
-            await sampleOnce()
+            await self.provider.setNetworkInterfaceScope(scope)
+            guard self.networkInterfaceScope == scope else { return }
+            await self.sampleOnce()
         }
     }
 
@@ -202,7 +202,7 @@ final class SystemMetricsController: ObservableObject {
         samplingTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
-                await sampleOnce()
+                await self.sampleOnce()
                 do {
                     try await Task.sleep(for: desiredInterval)
                 } catch {

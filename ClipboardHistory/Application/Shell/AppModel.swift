@@ -171,28 +171,28 @@ final class AppModel: ObservableObject {
         let routeGeneration = router.navigationGeneration
         Task { [weak self] in
             guard let self else { return }
-            let outcome = await notes.flushPendingSave()
-            guard outcome.allowsTransition, generation == navigationGeneration,
-                  routeGeneration == router.navigationGeneration else { return }
+            let outcome = await self.notes.flushPendingSave()
+            guard outcome.allowsTransition, generation == self.navigationGeneration,
+                  routeGeneration == self.router.navigationGeneration else { return }
             switch feature {
             case .controlCenter:
-                router.showControlCenter()
+                self.router.showControlCenter()
             case .clipboard:
-                showClipboard()
+                self.showClipboard()
             case .keyboardCleaning:
-                router.showKeyboardCleaning()
+                self.router.showKeyboardCleaning()
             case .scrollReverse:
-                router.showScrollReverse()
+                self.router.showScrollReverse()
             case .systemMonitor:
-                router.showSystemMonitor()
+                self.router.showSystemMonitor()
             case .audioMixer:
-                router.showAudioMixer()
+                self.router.showAudioMixer()
             case .menuBarCustomization:
-                router.showMenuBarCustomization()
+                self.router.showMenuBarCustomization()
             case .settings:
-                openSettings(section: settingsSection)
+                self.openSettings(section: settingsSection)
             case .notes:
-                router.showNotes()
+                self.router.showNotes()
             }
         }
     }

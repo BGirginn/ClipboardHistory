@@ -92,12 +92,12 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
 
         pendingCloseTask = Task { [weak self, weak sender] in
             guard let self else { return }
-            let outcome = await appModel.notes.flushPendingSave()
+            let outcome = await self.appModel.notes.flushPendingSave()
             if outcome.allowsTransition, let sender {
-                allowsPendingClose = true
+                self.allowsPendingClose = true
                 sender.performClose(nil)
             }
-            pendingCloseTask = nil
+            self.pendingCloseTask = nil
         }
         return false
     }

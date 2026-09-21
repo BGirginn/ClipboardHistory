@@ -73,8 +73,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         super.init()
         appModel.requestOpenWindow = { [weak self] in
             guard let self else { return }
-            closePopoverNow()
-            applicationWindowPresenter?.showActiveFeature()
+            self.closePopoverNow()
+            self.applicationWindowPresenter?.showActiveFeature()
         }
 
         rebuildStatusItems()
@@ -109,7 +109,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         }
         appModel.clipboard.requestPreview = { [weak self] item in
             guard let self else { return }
-            quickLookService.show(item: item, storage: appModel.clipboard.storage)
+            self.quickLookService.show(item: item, storage: self.appModel.clipboard.storage)
         }
         appModel.clipboard.privateModeDidChange = { [weak self] _ in
             self?.refreshConditionalStatusItems()
@@ -119,9 +119,9 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
             .removeDuplicates()
             .sink { [weak self] enabled in
                 guard let self else { return }
-                shortcutMonitor.setEnabled(
+                self.shortcutMonitor.setEnabled(
                     enabled,
-                    shortcut: appModel.settings.globalShortcut
+                    shortcut: self.appModel.settings.globalShortcut
                 )
             }
         shortcutPresetCancellable = appModel.settings.$globalShortcutPresetID
@@ -131,8 +131,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
                 guard let self else { return }
                 let shortcut = GlobalShortcut.presets.first { $0.id == presetID }
                     ?? GlobalShortcut.defaultShortcut
-                shortcutMonitor.setEnabled(
-                    appModel.settings.globalShortcutEnabled,
+                self.shortcutMonitor.setEnabled(
+                    self.appModel.settings.globalShortcutEnabled,
                     shortcut: shortcut
                 )
             }
@@ -204,29 +204,29 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         let routeGeneration = appModel.router.navigationGeneration
         Task { [weak self] in
             guard let self else { return }
-            if appModel.router.activeFeature == .notes, feature != .notes {
-                let outcome = await appModel.notes.flushPendingSave()
+            if self.appModel.router.activeFeature == .notes, feature != .notes {
+                let outcome = await self.appModel.notes.flushPendingSave()
                 guard outcome.allowsTransition else { return }
             }
-            guard generation == navigationGeneration, !isStopped,
-                  routeGeneration == appModel.router.navigationGeneration else { return }
-            if isPopoverShown {
+            guard generation == self.navigationGeneration, !self.isStopped,
+                  routeGeneration == self.appModel.router.navigationGeneration else { return }
+            if self.isPopoverShown {
                 if let anchorID,
-                   activeAnchorID != anchorID,
-                   appModel.settings.panelPresentationMode == .popover {
-                    popover.performClose(nil)
-                    activeAnchorID = anchorID
-                    showPopover(
+                   self.activeAnchorID != anchorID,
+                   self.appModel.settings.panelPresentationMode == .popover {
+                    self.popover.performClose(nil)
+                    self.activeAnchorID = anchorID
+                    self.showPopover(
                         destination: feature,
                         anchorID: anchorID,
                         preparesDestination: preparesDestination,
                         settingsSection: settingsSection
                     )
                 } else if preparesDestination {
-                    prepare(destination: feature, settingsSection: settingsSection)
+                    self.prepare(destination: feature, settingsSection: settingsSection)
                 }
             } else {
-                showPopover(
+                self.showPopover(
                     destination: feature,
                     anchorID: anchorID,
                     preparesDestination: preparesDestination,
@@ -308,11 +308,11 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         }
         panelClosingTask = Task { [weak self] in
             guard let self else { return }
-            let outcome = await appModel.notes.flushPendingSave()
+            let outcome = await self.appModel.notes.flushPendingSave()
             if outcome.allowsTransition {
-                closePopoverNow()
+                self.closePopoverNow()
             }
-            panelClosingTask = nil
+            self.panelClosingTask = nil
         }
     }
 
@@ -471,14 +471,14 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
             await Task.yield()
             for attempt in 0..<10 {
                 guard !Task.isCancelled,
-                      appModel.settings.panelPresentationMode == .popover else { return }
-                if !popover.isShown && showPopover(
+                      self.appModel.settings.panelPresentationMode == .popover else { return }
+                if !self.popover.isShown && self.showPopover(
                     destination: destination,
-                    anchorID: activeAnchorID,
+                    anchorID: self.activeAnchorID,
                     preparesDestination: false,
                     capturesPasteTargetApplication: false
                 ) {
-                    popoverReanchorTask = nil
+                    self.popoverReanchorTask = nil
                     return
                 }
                 guard attempt < 9 else { break }
@@ -487,7 +487,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
             AppLog.lifecycle.error(
                 "Menu bar popover could not re-anchor after status-item replacement"
             )
-            popoverReanchorTask = nil
+            self.popoverReanchorTask = nil
         }
     }
 
