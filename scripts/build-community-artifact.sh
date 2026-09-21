@@ -15,10 +15,16 @@ if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxd
 fi
 mkdir -p "$output_directory"
 
+cd "$repository_root"
+if [[ -n "$(git status --porcelain)" ]]; then
+  print -u2 "artifact build: repository must be clean"
+  exit 1
+fi
+source_commit=$(git rev-parse HEAD)
+
 derived_data=$(mktemp -d /private/tmp/coredeck-community-build.XXXXXX)
 trap 'rm -rf "$derived_data"' EXIT
 
-cd "$repository_root"
 xcodebuild -quiet \
   -project ClipboardHistory.xcodeproj \
   -scheme ClipboardHistory \
@@ -30,3 +36,9 @@ xcodebuild -quiet \
 
 source_app="$derived_data/Build/Products/CommunityRelease/CoreDeck.app"
 "$repository_root/scripts/package-community-artifact.sh" "$source_app" "$output_directory"
+print -r -- "$source_commit" > "$output_directory/source-commit.txt"
+(
+  cd "$output_directory"
+  shasum -a 256 source-commit.txt >> SHA256SUMS
+  shasum -a 256 -c SHA256SUMS >/dev/null
+)

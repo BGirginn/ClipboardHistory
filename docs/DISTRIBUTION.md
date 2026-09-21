@@ -27,6 +27,7 @@ The script requires `syft` and produces:
 - `CoreDeck-1.0.0-beta.6-arm64.dmg`
 - `CoreDeck-1.0.0-beta.6-arm64.spdx.json`
 - `CoreDeck-Chromium-Audio-1.0.0-beta.6.zip`
+- `source-commit.txt`
 - `SHA256SUMS`
 - `designated-requirement.txt`
 - `signing-certificate-sha256.txt`
