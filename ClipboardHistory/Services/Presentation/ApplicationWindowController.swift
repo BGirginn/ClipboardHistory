@@ -38,9 +38,9 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
             .removeDuplicates()
             .sink { [weak self] feature in
                 guard let self else { return }
-                appModel.updatePresentationDemand(
-                    for: demandSource,
-                    isVisible: isWindowVisible,
+                self.appModel.updatePresentationDemand(
+                    for: self.demandSource,
+                    isVisible: self.isWindowVisible,
                     presentedFeature: feature
                 )
             }
@@ -50,10 +50,10 @@ final class ApplicationWindowController: NSObject, ApplicationWindowPresenting, 
                 Task { @MainActor [weak self] in
                     await Task.yield()
                     guard let self,
-                          appModel.router.activeFeature == .settings else { return }
-                    appModel.updatePresentationDemand(
-                        for: demandSource,
-                        isVisible: isWindowVisible
+                          self.appModel.router.activeFeature == .settings else { return }
+                    self.appModel.updatePresentationDemand(
+                        for: self.demandSource,
+                        isVisible: self.isWindowVisible
                     )
                 }
             }
