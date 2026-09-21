@@ -49,7 +49,7 @@ final class NoteControllerTests: XCTestCase {
         context.controller.draftBody = "old"
         context.controller.draftBody = "latest"
 
-        try await Task.sleep(for: .milliseconds(80))
+        await waitUntil { context.controller.saveState == .saved }
 
         let notes = try await context.storage.loadNotesThrowing()
         XCTAssertEqual(notes.count, 1)

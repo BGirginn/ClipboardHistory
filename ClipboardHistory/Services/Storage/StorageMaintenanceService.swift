@@ -174,10 +174,12 @@ extension StorageService {
                 }
             }
 
-            var currentBytes = try allItems.filter { !removalIDs.contains($0.id) }.reduce(into: Int64(0)) { total, item in
-                total += try reclaimableStorageCost(for: item)
-            }
-            if currentBytes > maximumStorageBytes {
+            if before > maximumStorageBytes {
+                var currentBytes = try allItems
+                    .filter { !removalIDs.contains($0.id) }
+                    .reduce(into: Int64(0)) { total, item in
+                        total += try reclaimableStorageCost(for: item)
+                    }
                 for item in unpinned.sorted(by: { ($0.lastUsedAt ?? $0.creationDate) < ($1.lastUsedAt ?? $1.creationDate) }) {
                     guard currentBytes > maximumStorageBytes else { break }
                     if removalIDs.insert(item.id).inserted {

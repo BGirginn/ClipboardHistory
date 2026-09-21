@@ -41,7 +41,7 @@ final class StorageServiceTests: XCTestCase {
             item.creationDate.timeIntervalSince1970,
             accuracy: 0.000_001
         )
-        XCTAssertEqual(try readOptimizedNullColumnCount(), 4)
+        XCTAssertEqual(try readOptimizedNullColumnCount(), 5)
     }
 
     func testImageRoundTripAndClear() async throws {

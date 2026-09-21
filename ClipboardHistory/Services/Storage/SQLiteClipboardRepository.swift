@@ -8,9 +8,10 @@ extension StorageService {
         try insertOrReplace(item, using: statement, encoder: JSONEncoder())
     }
 
-    func prepareItemUpsertStatement() throws -> OpaquePointer {
-        try prepare("""
-            INSERT OR REPLACE INTO ClipboardItems (
+    func prepareItemUpsertStatement(replacingExisting: Bool = true) throws -> OpaquePointer {
+        let command = replacingExisting ? "INSERT OR REPLACE" : "INSERT"
+        return try prepare("""
+            \(command) INTO ClipboardItems (
                 id, type, textContent, imageFilename, thumbnailFilename, contentHash,
                 createdAt, lastUsedAt, pinnedAt, isPinned, useCount, contentSubtype,
                 expiresAt, isSensitive, sourceApplicationBundleID, storageVersion,
@@ -64,13 +65,22 @@ extension StorageService {
         sqlite3_bind_int(statement, 26, item.isEncrypted ? 1 : 0)
         var metadata = item.protectedMetadata
         metadata.displayTitle = item.displayTitle
-        let privateMetadata = ClipboardPrivateMetadataV2(
-            protectedMetadata: metadata,
-            fileURLs: item.fileURLs,
-            fileBookmarks: item.fileBookmarks
-        )
-        let protectedMetadata = try encoder.encode(privateMetadata)
-        try bind(protectedMetadata, at: 27, to: statement)
+        if metadata.displayTitle == nil,
+           metadata.tags.isEmpty,
+           metadata.extractedText == nil,
+           metadata.qrCodeText == nil,
+           metadata.colorHex == nil,
+           item.fileURLs.isEmpty,
+           item.fileBookmarks.isEmpty {
+            sqlite3_bind_null(statement, 27)
+        } else {
+            let privateMetadata = ClipboardPrivateMetadataV2(
+                protectedMetadata: metadata,
+                fileURLs: item.fileURLs,
+                fileBookmarks: item.fileBookmarks
+            )
+            try bind(try encoder.encode(privateMetadata), at: 27, to: statement)
+        }
         try bind(item.collectionID?.uuidString, at: 28, to: statement)
         sqlite3_bind_int(statement, 29, item.isSnippet ? 1 : 0)
         try bindEncodedCollection(item.pasteboardTypes, at: 30, to: statement, encoder: encoder)

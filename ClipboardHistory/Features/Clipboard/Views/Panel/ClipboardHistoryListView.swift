@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ClipboardHistoryListView: View {
+    private static let initialRecentItemLimit = 200
+
     let isHistoryEmpty: Bool
     let pinnedItems: [ClipboardItem]
     let recentItems: [ClipboardItem]
@@ -12,6 +14,7 @@ struct ClipboardHistoryListView: View {
     let thumbnailService: ThumbnailService
     let actions: ClipboardItemActions
     let reduceMotion: Bool
+    @State private var recentItemLimit = Self.initialRecentItemLimit
 
     var body: some View {
         Group {
@@ -41,7 +44,7 @@ struct ClipboardHistoryListView: View {
                             if !recentItems.isEmpty {
                                 Section {
                                     ClipboardItemRows(
-                                        items: recentItems,
+                                        items: Array(recentItems.prefix(recentItemLimit)),
                                         selectedItemID: selectedItemID,
                                         selectedItemIDs: selectedItemIDs,
                                         copiedItemID: copiedItemID,
@@ -49,6 +52,18 @@ struct ClipboardHistoryListView: View {
                                         thumbnailService: thumbnailService,
                                         actions: actions
                                     )
+                                    if recentItemLimit < recentItems.count {
+                                        Button("Load More") {
+                                            recentItemLimit = min(
+                                                recentItems.count,
+                                                recentItemLimit + Self.initialRecentItemLimit
+                                            )
+                                        }
+                                        .buttonStyle(.borderless)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .accessibilityIdentifier("clipboard.load-more")
+                                    }
                                 } header: {
                                     ClipboardSectionHeader(title: "Recent", systemImage: "clock")
                                 }
@@ -58,8 +73,22 @@ struct ClipboardHistoryListView: View {
                     }
                     .onChange(of: selectedItemID) { _, selectedID in
                         guard let selectedID else { return }
+                        if let selectedIndex = recentItems.firstIndex(where: { $0.id == selectedID }),
+                           selectedIndex >= recentItemLimit {
+                            recentItemLimit = min(
+                                recentItems.count,
+                                selectedIndex + Self.initialRecentItemLimit
+                            )
+                            return
+                        }
                         Self.scrollToSelected(reduceMotion: reduceMotion) {
-                                proxy.scrollTo(selectedID, anchor: .center)
+                            proxy.scrollTo(selectedID, anchor: .center)
+                        }
+                    }
+                    .onChange(of: recentItemLimit) { _, _ in
+                        guard let selectedItemID else { return }
+                        Self.scrollToSelected(reduceMotion: reduceMotion) {
+                            proxy.scrollTo(selectedItemID, anchor: .center)
                         }
                     }
                 }

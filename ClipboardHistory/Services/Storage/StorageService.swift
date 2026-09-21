@@ -213,7 +213,7 @@ actor StorageService {
             try execute("BEGIN IMMEDIATE TRANSACTION")
             do {
                 try execute("DELETE FROM ClipboardItems")
-                let statement = try prepareItemUpsertStatement()
+                let statement = try prepareItemUpsertStatement(replacingExisting: false)
                 defer { sqlite3_finalize(statement) }
                 let encoder = JSONEncoder()
                 for item in items where !item.isSensitive || item.isEncrypted {

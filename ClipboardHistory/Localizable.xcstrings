@@ -2575,6 +2575,16 @@
         }
       }
     },
+    "Load More": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daha Fazla Yükle"
+          }
+        }
+      }
+    },
     "Lowercase": {
       "localizations": {
         "tr": {

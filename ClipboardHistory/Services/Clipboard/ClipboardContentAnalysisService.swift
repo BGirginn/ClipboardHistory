@@ -1,3 +1,4 @@
+import CoreImage
 import Foundation
 import Vision
 
@@ -37,9 +38,10 @@ actor ClipboardContentAnalysisService: ClipboardContentAnalyzing {
             let lines = textRequest?.results?
                 .compactMap { $0.topCandidates(1).first?.string }
                 .filter { !$0.isEmpty } ?? []
-            let qrCode = barcodeRequest.results?
+            let visionQRCode = barcodeRequest.results?
                 .compactMap(\.payloadStringValue)
                 .first { !$0.isEmpty }
+            let qrCode = visionQRCode ?? coreImageQRCode(from: data)
             return ClipboardContentAnalysis(
                 extractedText: lines.isEmpty ? nil : lines.joined(separator: "\n"),
                 qrCodeText: qrCode,
@@ -51,5 +53,17 @@ actor ClipboardContentAnalysisService: ClipboardContentAnalyzing {
             )
             return .empty
         }
+    }
+
+    private func coreImageQRCode(from data: Data) -> String? {
+        guard let image = CIImage(data: data),
+              let detector = CIDetector(
+                ofType: CIDetectorTypeQRCode,
+                context: nil,
+                options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]
+              ) else { return nil }
+        return detector.features(in: image)
+            .compactMap { ($0 as? CIQRCodeFeature)?.messageString }
+            .first { !$0.isEmpty }
     }
 }

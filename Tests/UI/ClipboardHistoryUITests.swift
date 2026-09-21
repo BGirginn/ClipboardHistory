@@ -544,9 +544,11 @@ final class ClipboardHistoryUITests: XCTestCase {
         let statusItem = application.descendants(matching: .statusItem)["menuBar.controlCenter"]
         XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
         let statusItemFrame = statusItem.frame
-        statusItem.click()
 
         let controlCenter = application.descendants(matching: .any)["controlCenter.clipboard"]
+        if !controlCenter.waitForExistence(timeout: 2) {
+            statusItem.click()
+        }
         if !controlCenter.waitForExistence(timeout: 2) {
             // macOS can discard the first synthetic status-item click while a
             // previous UI-test application is finishing its menu-bar teardown.

@@ -122,6 +122,7 @@ final class ClipboardHistoryAppDelegate: NSObject, NSApplicationDelegate {
                 appModel.clipboard.collections = [seedCollection]
                 appModel.clipboard.refreshDisplayedItems()
                 _ = self?.configurePresentation(for: appModel)
+                self?.showControlCenterInterface()
                 AppLog.lifecycle.notice("Application launched; interface=isolated-ui-test")
             } catch {
                 AppLog.lifecycle.error("Isolated UI test data could not be initialized")
