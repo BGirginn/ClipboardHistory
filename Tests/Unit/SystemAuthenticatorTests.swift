@@ -86,7 +86,7 @@ private final class StubDeviceOwnerAuthenticationContext: DeviceOwnerAuthenticat
 }
 
 @MainActor
-private func XCTAssertThrowsErrorAsync<T>(
+private func XCTAssertThrowsErrorAsync<T: Sendable>(
     _ expression: @autoclosure () async throws -> T,
     _ errorHandler: (Error) -> Void = { _ in }
 ) async {
