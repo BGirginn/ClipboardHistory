@@ -1,6 +1,12 @@
 import Foundation
 import IOKit
 
+#if compiler(<6.2)
+nonisolated(unsafe) private let coreDeckMachTask = mach_task_self_
+#else
+private let coreDeckMachTask = mach_task_self_
+#endif
+
 final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked Sendable {
     private struct SMCVersion {
         var major: UInt8 = 0
@@ -90,7 +96,7 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
             guard service != 0 else { continue }
             defer { IOObjectRelease(service) }
             var connection: io_connect_t = 0
-            if IOServiceOpen(service, mach_task_self_, 0, &connection) == KERN_SUCCESS {
+            if IOServiceOpen(service, coreDeckMachTask, 0, &connection) == KERN_SUCCESS {
                 return connection
             }
         }
