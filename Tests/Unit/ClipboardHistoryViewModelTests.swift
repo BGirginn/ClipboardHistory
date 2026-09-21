@@ -15,7 +15,6 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
     private var defaultsSuite: String!
 
     override func setUp() async throws {
-        try await super.setUp()
         temporaryDirectory = FileManager.default.temporaryDirectory.appending(
             path: "ClipboardHistoryViewModelTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -48,7 +47,6 @@ final class ClipboardHistoryViewModelTests: XCTestCase {
             try? FileManager.default.removeItem(at: temporaryDirectory)
         }
         temporaryDirectory = nil
-        try await super.tearDown()
     }
 
     func testDuplicateNewestItemIsIgnored() async {

@@ -10,7 +10,6 @@ final class QuickLookServiceTests: XCTestCase {
     private var storage: StorageService!
 
     override func setUp() async throws {
-        try await super.setUp()
         directory = FileManager.default.temporaryDirectory.appending(
             path: "QuickLookServiceTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -27,7 +26,6 @@ final class QuickLookServiceTests: XCTestCase {
         try? FileManager.default.removeItem(at: directory)
         storage = nil
         directory = nil
-        try await super.tearDown()
     }
 
     func testSystemPanelControllerConfiguresAndClosesBackend() {

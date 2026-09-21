@@ -28,7 +28,6 @@ final class FacadeActionCoverageTests: XCTestCase {
             hostedWindows.forEach { $0.close() }
             hostedWindows.removeAll()
         }
-        try await super.tearDown()
     }
 
     func testLocalizedEnumsIdentifiersAndDefaultProtocolHooks() async {

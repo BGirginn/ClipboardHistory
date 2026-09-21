@@ -10,7 +10,6 @@ final class ClipboardDragProviderTests: XCTestCase {
     private var storage: StorageService!
 
     override func setUp() async throws {
-        try await super.setUp()
         directory = FileManager.default.temporaryDirectory.appending(
             path: "ClipboardDragProviderTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -24,7 +23,6 @@ final class ClipboardDragProviderTests: XCTestCase {
         try? FileManager.default.removeItem(at: directory)
         storage = nil
         directory = nil
-        try await super.tearDown()
     }
 
     func testTextRichTextAndFileProviders() throws {

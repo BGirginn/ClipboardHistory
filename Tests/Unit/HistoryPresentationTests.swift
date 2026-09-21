@@ -13,7 +13,6 @@ final class HistoryPresentationTests: XCTestCase {
     private var viewModel: ClipboardHistoryViewModel!
 
     override func setUp() async throws {
-        try await super.setUp()
         directory = FileManager.default.temporaryDirectory.appending(
             path: "HistoryPresentationTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
@@ -43,7 +42,6 @@ final class HistoryPresentationTests: XCTestCase {
         pasteboard = nil
         directory = nil
         suite = nil
-        try await super.tearDown()
     }
 
     func testSearchIsCaseInsensitiveWhitespaceTolerantAndOrderPreserving() async {
