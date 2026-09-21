@@ -82,11 +82,11 @@ struct MenuBarControllerDependencies {
                 panel.isReleasedWhenClosed = false
                 panel.level = .floating
                 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-                panel.contentMinSize = NSSize(width: 340, height: 420)
-                panel.contentMaxSize = NSSize(width: 420, height: CGFloat.greatestFiniteMagnitude)
                 panel.contentViewController = NSHostingController(
                     rootView: AppShellView(model: model)
                 )
+                panel.contentMinSize = NSSize(width: 340, height: 420)
+                panel.contentMaxSize = NSSize(width: 420, height: CGFloat.greatestFiniteMagnitude)
                 return panel
             },
             quickLookPresenter: quickLookPresenter

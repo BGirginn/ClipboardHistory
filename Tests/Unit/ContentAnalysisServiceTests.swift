@@ -52,7 +52,21 @@ final class ContentAnalysisServiceTests: XCTestCase {
         let filter = CIFilter(name: "CIQRCodeGenerator")
         filter?.setValue(Data(value.utf8), forKey: "inputMessage")
         filter?.setValue("H", forKey: "inputCorrectionLevel")
-        let image = try XCTUnwrap(filter?.outputImage?.transformed(by: .init(scaleX: 12, y: 12)))
+        let code = try XCTUnwrap(filter?.outputImage?.transformed(by: .init(scaleX: 12, y: 12)))
+        let quietZone: CGFloat = 48
+        let extent = CGRect(
+            x: 0,
+            y: 0,
+            width: code.extent.width + quietZone * 2,
+            height: code.extent.height + quietZone * 2
+        )
+        let background = CIImage(color: .white).cropped(to: extent)
+        let image = code.transformed(
+            by: .init(
+                translationX: quietZone - code.extent.minX,
+                y: quietZone - code.extent.minY
+            )
+        ).composited(over: background)
         let context = CIContext(options: [.useSoftwareRenderer: true])
         let cgImage = try XCTUnwrap(context.createCGImage(image, from: image.extent))
         return try XCTUnwrap(

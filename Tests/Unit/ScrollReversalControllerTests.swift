@@ -90,6 +90,15 @@ final class ScrollReversalControllerTests: XCTestCase {
         let event = try makeScrollEvent(continuous: false)
         let timestamp = event.timestamp
         let sourcePID = event.getIntegerValueField(.eventSourceUnixProcessID)
+        let doubleFields: [CGEventField] = [
+            .scrollWheelEventFixedPtDeltaAxis1,
+            .scrollWheelEventAcceleratedDeltaAxis1,
+            .scrollWheelEventRawDeltaAxis1,
+            .scrollWheelEventFixedPtDeltaAxis2,
+            .scrollWheelEventAcceleratedDeltaAxis2,
+            .scrollWheelEventRawDeltaAxis2
+        ]
+        let doubleValues = doubleFields.map { event.getDoubleValueField($0) }
         let configuration = InputEventTapConfiguration(
             scrollReversal: ScrollReversalConfiguration(
                 isEnabled: true,
@@ -106,12 +115,9 @@ final class ScrollReversalControllerTests: XCTestCase {
             configuration: configuration
         )
 
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1), -3)
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis1), -1.5)
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventRawDeltaAxis1), -2.5)
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventFixedPtDeltaAxis2), -2)
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis2), -0.75)
-        XCTAssertEqual(event.getDoubleValueField(.scrollWheelEventRawDeltaAxis2), -1.25)
+        for (field, value) in zip(doubleFields, doubleValues) {
+            XCTAssertEqual(event.getDoubleValueField(field), -value)
+        }
         XCTAssertEqual(event.timestamp, timestamp)
         XCTAssertEqual(event.getIntegerValueField(.eventSourceUnixProcessID), sourcePID)
 

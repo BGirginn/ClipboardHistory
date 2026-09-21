@@ -213,7 +213,8 @@ final class AppleSMCTemperatureProvider: TemperatureSensorProviding, @unchecked 
             UInt8((value >> 8) & 0xff),
             UInt8(value & 0xff)
         ]
-        return String(bytes: bytes, encoding: .ascii) ?? ""
+        guard bytes.allSatisfy({ (0x20...0x7E).contains($0) }) else { return "" }
+        return String(decoding: bytes, as: UTF8.self)
     }
 
     func uint32(from bytes: [UInt8]) -> UInt32 {
