@@ -13,6 +13,10 @@ IOHIDEventRef IOHIDServiceClientCopyEvent(IOHIDServiceClientRef service, int64_t
 CFTypeRef IOHIDServiceClientCopyProperty(IOHIDServiceClientRef service, CFStringRef property);
 double IOHIDEventGetFloatValue(IOHIDEventRef event, int32_t field);
 
+mach_port_t CHMachTaskSelf(void) {
+    return mach_task_self();
+}
+
 NSDictionary<NSString *, NSNumber *> *CHAppleSiliconTemperatureSensors(void) {
     NSDictionary *matching = @{
         @"PrimaryUsagePage": @(0xff00),
