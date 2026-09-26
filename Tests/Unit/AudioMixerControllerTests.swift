@@ -354,7 +354,7 @@ final class AudioMixerControllerTests: XCTestCase {
         await fulfillment(of: [replyExpectation], timeout: 1)
     }
 
-    func testApplicationGainPersistsAndPipelineFailureRollsBackUI() async throws {
+    func testApplicationGainAppliesAndPipelineFailureRollsBackUI() async throws {
         let suite = "AudioMixerControllerTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
@@ -479,10 +479,9 @@ final class AudioMixerControllerTests: XCTestCase {
         controller.stop()
     }
 
-    func testStoredGainRestoreDiscoveryChangeAndFailureCallbackRemainVisible() async {
+    func testControlledGainFollowsOverlappingProcessChangesAndFailureRemainsVisible() async {
         let suite = "AudioMixerRestoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
-        defaults.set(["com.apple.Safari": 35.0], forKey: "audioMixer.applicationGains.v1")
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let discovery = AudioDiscoveryStub(discovered: [makeApplication()])
         let engine = ProcessAudioControllerStub()
@@ -494,7 +493,8 @@ final class AudioMixerControllerTests: XCTestCase {
             defaults: defaults
         )
 
-        try? await Task.sleep(for: .milliseconds(30))
+        await controller.refreshApplications()
+        controller.setVolume(35, for: controller.applications[0])
         XCTAssertEqual(engine.gains.last?.0, "com.apple.Safari")
         XCTAssertEqual(engine.gains.last?.1, 0.35)
         XCTAssertEqual(controller.permissionState, .ready)
@@ -518,7 +518,34 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(engine.stopAllCount, 1)
     }
 
-    func testResetForgetsClosedApplicationGainAcrossRestart() async throws {
+    func testRestartedApplicationDoesNotInheritPreviousZeroGain() async throws {
+        let suite = "AudioRestart-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let discovery = AudioDiscoveryStub(discovered: [makeApplication()])
+        let engine = ProcessAudioControllerStub()
+        let controller = AudioMixerController(
+            discovery: discovery,
+            engine: engine,
+            browserBridge: BrowserAudioBridgeStub(),
+            defaults: defaults
+        )
+        await controller.refreshApplications()
+        controller.setVolume(0, for: controller.applications[0])
+        let appliedGainCount = engine.gains.count
+
+        discovery.discovered = [makeApplication(processObjectIDs: [99], id: 99)]
+        await controller.refreshApplications()
+
+        XCTAssertEqual(controller.applications[0].volume, 100)
+        XCTAssertFalse(controller.applications[0].isMuted)
+        XCTAssertEqual(controller.applications[0].controlState, .native)
+        XCTAssertEqual(engine.gains.count, appliedGainCount)
+        XCTAssertTrue(engine.stoppedBundles.contains("com.apple.Safari"))
+        controller.stop()
+    }
+
+    func testLegacyPersistentGainIsDiscardedAtStartup() throws {
         let suite = "AudioReset-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -527,18 +554,9 @@ final class AudioMixerControllerTests: XCTestCase {
             discovery: AudioDiscoveryStub(discovered: []),
             engine: ProcessAudioControllerStub(), browserBridge: BrowserAudioBridgeStub(), defaults: defaults
         )
-        controller.resetAll()
-        for _ in 0..<100 where defaults.dictionary(forKey: "audioMixer.applicationGains.v1")?["com.example.closed"] != nil {
-            await Task.yield()
-        }
-        XCTAssertNil(defaults.dictionary(forKey: "audioMixer.applicationGains.v1")?["com.example.closed"])
+        XCTAssertNil(defaults.dictionary(forKey: "audioMixer.applicationGains.v1"))
+        XCTAssertFalse(controller.hasActiveUserIntervention)
         controller.stop()
-        let restarted = AudioMixerController(
-            discovery: AudioDiscoveryStub(discovered: []),
-            engine: ProcessAudioControllerStub(), browserBridge: BrowserAudioBridgeStub(), defaults: defaults
-        )
-        XCTAssertFalse(restarted.hasActiveUserIntervention)
-        restarted.stop()
     }
 
     func testMuteResetAndBrowserMasterMatrix() async {

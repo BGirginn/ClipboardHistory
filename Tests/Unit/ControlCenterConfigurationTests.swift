@@ -506,6 +506,18 @@ final class ControlCenterConfigurationTests: XCTestCase {
         XCTAssertTrue(context.model.standaloneFeatures.contains { $0.id == .notes })
     }
 
+    func testSelectingAlwaysMovesClipboardFromDrawerToTopBar() {
+        let context = makeContext()
+        context.model.setShownInDrawer(true, for: .clipboard)
+
+        context.model.setMenuBarVisibility(.always, for: .clipboard)
+
+        let placement = context.model.configuration(for: .clipboard).placement
+        XCTAssertFalse(placement.showsInDrawer)
+        XCTAssertTrue(placement.showsInTopBar)
+        XCTAssertTrue(context.model.standaloneFeatures.contains { $0.id == .clipboard })
+    }
+
     private func makeContext() -> (model: ControlCenterModel, defaults: UserDefaults) {
         let suite = "ControlCenterConfigurationTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!

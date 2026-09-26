@@ -10,8 +10,8 @@ repository_root=${0:A:h:h}
 source_app=${1:A}
 output_directory=${2:A}
 identity='ClipboardHistory Community Beta'
-release_version='1.0.0-beta.6'
-expected_build='10006'
+release_version='1.0.0-beta.7'
+expected_build='10007'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -151,7 +151,7 @@ jq -e '.spdxVersion == "SPDX-2.3" and .name == "CoreDeck"' "$spdx" >/dev/null
 )
 unzip -tq "$chromium_zip" >/dev/null
 unzip -p "$chromium_zip" manifest.json \
-  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.6" and (.key | length > 0)' \
+  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.7" and (.key | length > 0)' \
   >/dev/null
 (
   cd "$output_directory"

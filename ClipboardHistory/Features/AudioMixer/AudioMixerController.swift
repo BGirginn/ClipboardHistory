@@ -16,9 +16,8 @@ final class AudioMixerController: ObservableObject {
     let browserBridge: any BrowserAudioBridging
     private let extensionInstaller: BrowserExtensionInstaller
     private let safariPreferencesOpener: SafariPreferencesOpener
-    private let defaults: UserDefaults
-    private let gainsKey = "audioMixer.applicationGains.v1"
-    private var gains: [String: Double]
+    private static let legacyGainsKey = "audioMixer.applicationGains.v1"
+    private var gains: [String: Double] = [:]
     private var preMuteGains: [String: Double] = [:]
     var browserPreMuteGains: [String: Double] = [:]
     private var refreshTask: Task<Void, Never>?
@@ -50,8 +49,7 @@ final class AudioMixerController: ObservableObject {
         self.browserBridge = browserBridge
         self.extensionInstaller = extensionInstaller ?? BrowserExtensionInstaller()
         self.safariPreferencesOpener = safariPreferencesOpener
-        self.defaults = defaults
-        gains = defaults.dictionary(forKey: gainsKey) as? [String: Double] ?? [:]
+        defaults.removeObject(forKey: Self.legacyGainsKey)
         self.browserBridge.tabsDidChange = { [weak self] tabs in
             guard let self else { return }
             let activeTabIDs = Set(tabs.map(\.id))
@@ -80,11 +78,6 @@ final class AudioMixerController: ObservableObject {
             }
         }
         self.discovery.startObservingChanges(discoveryRelay.callback())
-        if gains.values.contains(where: { $0 < 100 }) {
-            Task { [weak self] in
-                await self?.refreshApplications()
-            }
-        }
     }
 
     var demandCount: Int { demands.count }
@@ -181,12 +174,17 @@ final class AudioMixerController: ObservableObject {
             applications.map { ($0.bundleID, $0) },
             uniquingKeysWith: { existing, _ in existing }
         )
+        discardGainsForEndedOrRestartedApplications(
+            discovered,
+            existingByBundleID: existingByBundleID
+        )
         let updatedApplications = discovered.map { application in
             var application = application
             let storedGain = gains[application.bundleID] ?? 100
             application.volume = storedGain
             application.isMuted = storedGain == 0
-            if let existing = existingByBundleID[application.bundleID] {
+            if let existing = existingByBundleID[application.bundleID],
+               !existing.processObjectIDs.isDisjoint(with: application.processObjectIDs) {
                 application.controlState = existing.controlState
             }
             return application
@@ -206,7 +204,7 @@ final class AudioMixerController: ObservableObject {
             producingBundles.contains($0.key)
         }
         preMuteGains = preMuteGains.filter { activeBundles.contains($0.key) }
-        restoreStoredGainsIfNeeded()
+        restoreSessionGainsIfNeeded()
         return true
     }
 
@@ -256,9 +254,10 @@ final class AudioMixerController: ObservableObject {
             )
             guard persists else { return }
             permissionState = .requesting
-            if gains[application.bundleID] != normalized {
+            if normalized == 100 {
+                gains.removeValue(forKey: application.bundleID)
+            } else if gains[application.bundleID] != normalized {
                 gains[application.bundleID] = normalized
-                defaults.set(gains, forKey: gainsKey)
             }
             if normalized == 100 {
                 appliedProcessIDsByBundle.removeValue(forKey: application.bundleID)
@@ -352,9 +351,7 @@ final class AudioMixerController: ObservableObject {
     }
 
     private func resetLoadedApplications() {
-        let activeBundles = Set(applications.map(\.bundleID))
-        gains = gains.filter { activeBundles.contains($0.key) }
-        defaults.set(gains, forKey: gainsKey)
+        gains.removeAll()
         preMuteGains.removeAll()
         browserPreMuteGains.removeAll()
         for application in applications {
@@ -418,7 +415,26 @@ final class AudioMixerController: ObservableObject {
         inFlightDiscoveryTask = nil
     }
 
-    private func restoreStoredGainsIfNeeded() {
+    private func discardGainsForEndedOrRestartedApplications(
+        _ discovered: [AudioApplication],
+        existingByBundleID: [String: AudioApplication]
+    ) {
+        let continuingBundles = Set(discovered.compactMap { application -> String? in
+            guard let existing = existingByBundleID[application.bundleID],
+                  !existing.processObjectIDs.isDisjoint(with: application.processObjectIDs)
+            else { return nil }
+            return application.bundleID
+        })
+        let endedOrRestartedBundles = Set(gains.keys).subtracting(continuingBundles)
+        for bundleID in endedOrRestartedBundles {
+            gains.removeValue(forKey: bundleID)
+            preMuteGains.removeValue(forKey: bundleID)
+            appliedProcessIDsByBundle.removeValue(forKey: bundleID)
+            engine.stopControlling(bundleID: bundleID)
+        }
+    }
+
+    private func restoreSessionGainsIfNeeded() {
         for application in applications where application.isProducingOutput && application.volume < 100 {
             guard appliedProcessIDsByBundle[application.bundleID] != application.processObjectIDs else {
                 continue

@@ -413,15 +413,23 @@ final class ClipboardHistoryUITests: XCTestCase {
         let clipboardStandalone = application.descendants(matching: .any)[
             "customize.clipboard.standalone"
         ]
+        let clipboardDrawer = application.descendants(matching: .any)[
+            "customize.clipboard.drawer"
+        ]
         XCTAssertTrue(clipboardStandalone.waitForExistence(timeout: 2))
+        XCTAssertTrue(clipboardDrawer.waitForExistence(timeout: 2))
         let customizationForm = application.descendants(matching: .any)["customize.form"]
         XCTAssertTrue(customizationForm.waitForExistence(timeout: 2))
+        scrollToControl(clipboardDrawer, in: customizationForm)
+        clipboardDrawer.click()
         scrollToControl(clipboardStandalone, in: customizationForm)
+        XCTAssertTrue(clipboardStandalone.isEnabled)
         clipboardStandalone.click()
         let alwaysVisible = application.menuItems["Always"]
         XCTAssertTrue(alwaysVisible.waitForExistence(timeout: 2))
         alwaysVisible.click()
         XCTAssertEqual(clipboardStandalone.value as? String, "Always")
+        XCTAssertEqual(clipboardDrawer.value as? String, "0")
 
         let clipboardAction = application.descendants(matching: .any)["customize.clipboard.action"]
         XCTAssertTrue(clipboardAction.waitForExistence(timeout: 2))

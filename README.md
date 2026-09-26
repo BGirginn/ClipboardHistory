@@ -16,12 +16,12 @@ CoreDeck is a modular menu-bar utility hub whose Clipboard History, Notes, Input
 
 ## Current status
 
-- Latest Community beta: [`v1.0.0-beta.6`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.6), distributed as CoreDeck
-- The `main` source and published beta use build `10006`
+- Latest Community beta: [`v1.0.0-beta.7`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7), distributed as CoreDeck
+- The `main` source and published beta use build `10007`
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
-- Release checksums, SBOM, signing evidence, ZIP, and DMG are attached to the beta.6 GitHub prerelease
-- The [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask installs beta.6
+- Release checksums, SBOM, signing evidence, ZIP, and DMG are attached to the beta.7 GitHub prerelease
+- The [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask installs beta.7
 - The Community build is self-signed and is not Apple-notarized
 
 ## Install
@@ -48,7 +48,7 @@ Normal uninstall preserves clipboard history and preferences. `brew uninstall --
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click the installed application, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The packages can also be downloaded from the [beta.6 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.6).
+The packages can also be downloaded from the [beta.7 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7).
 
 ## Features
 
@@ -153,7 +153,7 @@ Project documentation:
 
 ## Distribution
 
-The latest published version is `v1.0.0-beta.6`. Its GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
+The latest published version is `v1.0.0-beta.7`. Its GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
 
 ## License
 

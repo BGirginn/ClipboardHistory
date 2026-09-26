@@ -16,7 +16,6 @@ struct MenuBarFeatureConfigurationCard: View {
                         Text(policy.title).tag(policy)
                     }
                 }
-                .disabled(model.configuration(for: descriptor.id).placement.showsInDrawer)
                 .accessibilityIdentifier("customize.\(descriptor.id.rawValue).standalone")
             }
             if descriptor.id == .keyboardCleaning {

@@ -1,6 +1,6 @@
 # CoreDeck Community beta distribution
 
-The `main` source and current GitHub prerelease are CoreDeck beta.6 build `10006`. The Homebrew Cask downloads the same release ZIP. Community artifacts are self-signed, are not Apple-notarized, and must not be described as Developer ID releases.
+The `main` source and current GitHub prerelease are CoreDeck beta.7 build `10007`. The Homebrew Cask downloads the same release ZIP. Community artifacts are self-signed, are not Apple-notarized, and must not be described as Developer ID releases.
 
 ## Stable signing identity
 
@@ -15,24 +15,24 @@ Changing the signing identity changes the designated requirement and can strand 
 
 ## Release artifacts
 
-The following command reproduces the beta.6 Community artifacts from its exact clean release commit:
+The following command reproduces the beta.7 Community artifacts from its exact clean release commit:
 
 ```sh
-scripts/build-community-artifact.sh /private/tmp/CoreDeck-1.0.0-beta.6
+scripts/build-community-artifact.sh /private/tmp/CoreDeck-1.0.0-beta.7
 ```
 
 The script requires `syft` and produces:
 
-- `CoreDeck-1.0.0-beta.6-arm64.zip`
-- `CoreDeck-1.0.0-beta.6-arm64.dmg`
-- `CoreDeck-1.0.0-beta.6-arm64.spdx.json`
-- `CoreDeck-Chromium-Audio-1.0.0-beta.6.zip`
+- `CoreDeck-1.0.0-beta.7-arm64.zip`
+- `CoreDeck-1.0.0-beta.7-arm64.dmg`
+- `CoreDeck-1.0.0-beta.7-arm64.spdx.json`
+- `CoreDeck-Chromium-Audio-1.0.0-beta.7.zip`
 - `source-commit.txt`
 - `SHA256SUMS`
 - `designated-requirement.txt`
 - `signing-certificate-sha256.txt`
 
-It verifies `CoreDeck.app` and its `CoreDeck` executable, the unchanged `com.brgirgin.ClipboardHistory` bundle identifier, the code signature and designated requirement, an empty main-app entitlement set, the Safari bridge entitlement, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10006`, embedded helper/extension/XPC presence, app/extension ZIP integrity, checksums, and SPDX metadata.
+It verifies `CoreDeck.app` and its `CoreDeck` executable, the unchanged `com.brgirgin.ClipboardHistory` bundle identifier, the code signature and designated requirement, an empty main-app entitlement set, the Safari bridge entitlement, exact `arm64` architecture, minimum macOS 14.2, version `1.0.0` build `10007`, embedded helper/extension/XPC presence, app/extension ZIP integrity, checksums, and SPDX metadata.
 
 The Community beta retains normal quarantine behavior. If Gatekeeper blocks first launch, document Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway. Never remove quarantine, run `xattr`, or suppress the warning in the Cask.
 
@@ -42,7 +42,7 @@ The tag and prerelease use the same clean commit. Release assets include the ZIP
 
 ## Homebrew Cask
 
-The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. Its Cask installs beta.6 CoreDeck:
+The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. Its Cask installs beta.7 CoreDeck:
 
 ```sh
 brew tap BGirginn/tap

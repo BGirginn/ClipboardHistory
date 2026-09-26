@@ -16,12 +16,12 @@ CoreDeck; Pano Geçmişi, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mi
 
 ## Güncel durum
 
-- Son yayımlanan Community beta: [`v1.0.0-beta.4`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4); ClipboardHistory adıyla dağıtılıyor
-- `main` kaynağı CoreDeck adını ve beta.6 build `10006` değerini kullanıyor; bu yapı yayımlanmadı
+- Son yayımlanan Community beta: [`v1.0.0-beta.7`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7); CoreDeck adıyla dağıtılıyor
+- `main` kaynağı ve yayımlanan beta build `10007` değerini kullanıyor
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
-- Yayımlanmış paketler ve imza kanıtları beta.4 GitHub prerelease'ine aittir
-- [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask'i şu anda beta.4 kurar
+- Yayımlanmış paketler ve imza kanıtları beta.7 GitHub prerelease'ine aittir
+- [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask'i beta.7 kurar
 - Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
 
 ## Kurulum
@@ -34,7 +34,7 @@ brew trust BGirginn/tap
 brew install --cask clipboardhistory
 ```
 
-Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Yayımlanan Cask şu anda `ClipboardHistory.app` kurar. Gelecekteki CoreDeck Cask güncellemesinde yönetilen yükseltme ve mevcut Application Support verisi ayrıca doğrulanmalıdır. Elle kurulmuş bir uygulama veya kullanıcı verisi yükseltme sırasında kendiliğinden silinmez.
+Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask `CoreDeck.app` kurar ve mevcut ClipboardHistory Application Support ve tercih kimliklerini korur. Elle kurulmuş eski bir uygulamayı Cask yönetmez; kurmadan önce uygulamayı kapatıp kenara taşıyın, kullanıcı verilerini silmeyin.
 
 Daha sonra güncellemek veya kaldırmak için:
 
@@ -48,7 +48,7 @@ Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall -
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, kurulu uygulama üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-Yayımlanmış paketler [beta.4 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.4) sayfasından indirilebilir.
+Yayımlanmış paketler [beta.7 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7) sayfasından indirilebilir.
 
 ## Özellikler
 
@@ -151,7 +151,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-Son yayımlanan sürüm `v1.0.0-beta.4`'tür. CoreDeck beta.6 yalnız kaynak durumudur. Sonraki yayın için doğrulanmış paket, eşleşen checksum ve Cask ile ayrı yayın talimatı gerekir.
+Son yayımlanan sürüm `v1.0.0-beta.7`'dir. GitHub paketleri, checksum ve Homebrew Cask aynı Community yapısını işaret eder.
 
 ## Lisans
 

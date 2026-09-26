@@ -4,6 +4,54 @@ import XCTest
 
 @MainActor
 final class SettingsWindowControllerTests: XCTestCase {
+    func testControllerUsesIdealContentSizeWithoutUsableSavedFrame() {
+        let model = AppModel(startsAutomatically: false)
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 522, height: 341),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        let controller = SettingsWindowController(
+            appModel: model,
+            makeWindow: { window },
+            configureFrameAutosave: { _ in },
+            restoreFrame: { _ in false }
+        )
+        controller.show(section: nil)
+
+        let firstFrame = window.frame
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.width ?? 0, 820)
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 620)
+        controller.show(section: .menuBar)
+        XCTAssertEqual(window.frame, firstFrame)
+        controller.stop()
+    }
+
+    func testControllerPreservesUsableRestoredFrame() {
+        let model = AppModel(startsAutomatically: false)
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 820, height: 620),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        let controller = SettingsWindowController(
+            appModel: model,
+            makeWindow: { window },
+            configureFrameAutosave: { _ in },
+            restoreFrame: { restoredWindow in
+                restoredWindow.setContentSize(NSSize(width: 900, height: 700))
+                return true
+            }
+        )
+        controller.show(section: nil)
+
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.width ?? 0, 900)
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 700)
+        controller.stop()
+    }
+
     func testControllerReusesWindowAndPreservesLastSelection() {
         var makeWindowCount = 0
         let model = AppModel(startsAutomatically: false)
