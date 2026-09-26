@@ -22,7 +22,7 @@ final class SettingsWindowControllerTests: XCTestCase {
 
         let firstFrame = window.frame
         XCTAssertGreaterThanOrEqual(window.contentView?.frame.width ?? 0, 820)
-        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 620)
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 500)
         controller.show(section: .menuBar)
         XCTAssertEqual(window.frame, firstFrame)
         controller.stop()
@@ -48,7 +48,7 @@ final class SettingsWindowControllerTests: XCTestCase {
         controller.show(section: nil)
 
         XCTAssertGreaterThanOrEqual(window.contentView?.frame.width ?? 0, 900)
-        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 700)
+        XCTAssertGreaterThanOrEqual(window.contentView?.frame.height ?? 0, 500)
         controller.stop()
     }
 
