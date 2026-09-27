@@ -3,6 +3,7 @@
 - `v1.0.0-beta.7` is the latest Community prerelease.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
 - Local test results are recorded by source revision in [release readiness](RELEASE_READINESS_PLAN_TR.md). The complete macOS 14.2/15/26 physical matrix remains open and is not claimed by beta.7.
+- The automatic GitHub Quality workflow is disabled for beta.7; no passing CI matrix is claimed for this release.
 - The drawer manages CoreDeck's own module icons, including System Monitor access. External system and third-party icon management is not enabled in beta.7. Experimental Command-drag swaps demonstrate ordering only; occupied-space reclamation, exact native target activation, supported-OS recovery and permission/conflict acceptance remain unproven.
 - Encrypted Notes and one-time migration of legacy encrypted Clipboard records depend on login-Keychain access and the stable signing identity. Current open Clipboard storage does not require Keychain access.
 - Direct paste, Keyboard Cleaning Mode, and Scroll Reverse require Accessibility permission; ordinary capture, copy, restore, notes, and Paste As do not.

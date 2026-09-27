@@ -341,18 +341,16 @@ extension MenuBarController {
         to id: MenuBarItemID
     ) {
         guard let item = statusItems[id], let button = item.button else { return }
-        let stripView: MenuBarMetricStripView
-        if let existing = metricStripViews[id] {
-            stripView = existing
-        } else {
-            stripView = MenuBarMetricStripView(frame: .zero)
-            metricStripViews[id] = stripView
+        let stripView = metricStripViews[id] ?? MenuBarMetricStripView(frame: .zero)
+        if stripView.superview !== button {
+            stripView.removeFromSuperview()
             button.addSubview(stripView)
             NSLayoutConstraint.activate([
                 stripView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
                 stripView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
             ])
         }
+        metricStripViews[id] = stripView
         stripView.apply(segments)
         let desiredLength = stripView.intrinsicContentSize.width
         if item.length != desiredLength { item.length = desiredLength }

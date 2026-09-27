@@ -15,6 +15,8 @@ final class SystemMetricsController: ObservableObject {
     private var activeSamplingInterval: Duration?
     private var inFlightSampleTask: Task<SystemMetricSnapshot, Never>?
     private var inFlightSampleID = 0
+    private var isSleeping = false
+    private var sleepTransitionID = 0
     private let maximumHistoryCount: Int
     private let defaults: UserDefaults
     private let networkScopeKey = "systemMonitor.networkInterfaceScope.v1"
@@ -39,15 +41,16 @@ final class SystemMetricsController: ObservableObject {
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in self?.restartSamplingIfNeeded() }
             }
-        for name in [NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification] {
-            NSWorkspace.shared.notificationCenter.publisher(for: name)
-                .sink { [weak self] _ in
-                    Task { @MainActor [weak self] in
-                        await self?.resetBaselinesAfterLifecycleChange()
-                    }
-                }
-                .store(in: &workspaceCancellables)
-        }
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in self?.prepareForSystemSleep() }
+            }
+            .store(in: &workspaceCancellables)
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in await self?.resumeAfterSystemWake() }
+            }
+            .store(in: &workspaceCancellables)
     }
 
     func setDemand(_ demand: SystemMetricsDemand?, for source: SamplingDemandSource) {
@@ -132,6 +135,22 @@ final class SystemMetricsController: ObservableObject {
         cancelInFlightSample()
     }
 
+    func prepareForSystemSleep() {
+        sleepTransitionID &+= 1
+        isSleeping = true
+        restartSamplingIfNeeded()
+        cancelInFlightSample()
+    }
+
+    func resumeAfterSystemWake() async {
+        let transitionID = sleepTransitionID
+        cancelInFlightSample()
+        await provider.resetBaselines()
+        guard transitionID == sleepTransitionID else { return }
+        isSleeping = false
+        restartSamplingIfNeeded()
+    }
+
     func value(
         for metric: MenuBarMetricID,
         snapshot presentedSnapshot: SystemMetricSnapshot? = nil,
@@ -190,7 +209,7 @@ final class SystemMetricsController: ObservableObject {
     }
 
     private func restartSamplingIfNeeded() {
-        let desiredInterval = demands.isEmpty ? nil : samplingInterval
+        let desiredInterval = demands.isEmpty || isSleeping ? nil : samplingInterval
         guard desiredInterval != activeSamplingInterval else { return }
         samplingTask?.cancel()
         samplingTask = nil
@@ -255,11 +274,6 @@ final class SystemMetricsController: ObservableObject {
         inFlightSampleID += 1
         inFlightSampleTask?.cancel()
         inFlightSampleTask = nil
-    }
-
-    private func resetBaselinesAfterLifecycleChange() async {
-        cancelInFlightSample()
-        await provider.resetBaselines()
     }
 
     private func formattedRate(

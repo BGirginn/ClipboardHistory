@@ -688,6 +688,11 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertFalse(controller.renderedStatusStates[.metricGroup]?.title.contains("+") == true)
         XCTAssertTrue(metricItem.button?.toolTip?.contains(MenuBarMetricID.networkDownload.title) == true)
 
+        standardStrip.removeFromSuperview()
+        controller.updateMetricStatusItems()
+        XCTAssertTrue(standardStrip.superview === metricItem.button)
+        XCTAssertTrue(controller.metricStripViews[.metricGroup] === standardStrip)
+
         context.appModel.controlCenter.setMetricDensity(.compact)
 
         XCTAssertTrue(controller.statusItems[.metricGroup] === metricItem)

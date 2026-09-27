@@ -9,6 +9,7 @@ All notable changes are documented here. The project follows semantic versioning
 - Fixed the Settings window restoring an obsolete undersized frame or collapsing to its minimum size when SwiftUI content was replaced.
 - Kept module menu-bar placement editable while a module is in the Drawer, allowing Clipboard to move directly to an always-visible menu-bar item.
 - Scoped Audio Mixer gain changes to the current application process lifetime so a relaunched application starts at its native volume instead of inheriting a stale zero gain.
+- Resumed shared System Monitor sampling after Mac wake and reattached detached metric strips so top-bar CPU/RAM values continue updating.
 
 ## 1.0.0-beta.6 - 2026-09-11
 

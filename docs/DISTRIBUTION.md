@@ -40,6 +40,8 @@ The Community beta retains normal quarantine behavior. If Gatekeeper blocks firs
 
 The tag and prerelease use the same clean commit. Release assets include the ZIP, DMG, checksum manifest, SPDX SBOM, designated requirement, and public signing-certificate fingerprint. The release notes identify validation gaps without claiming notarization or unsupported OS evidence.
 
+The automatic GitHub Quality workflow is disabled for this beta at the maintainer's request. A release must not be described as CI-validated while it remains disabled.
+
 ## Homebrew Cask
 
 The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. Its Cask installs beta.7 CoreDeck:

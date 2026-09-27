@@ -133,6 +133,23 @@ final class SystemMetricsControllerTests: XCTestCase {
         XCTAssertFalse(controller.hasActiveSampling)
     }
 
+    func testMenuBarSamplingSuspendsForSleepAndRearmsAfterWake() async {
+        let provider = SystemMetricsProviderStub()
+        let controller = SystemMetricsController(provider: provider)
+        controller.setDemand(.menuBar, for: .menuBar)
+        XCTAssertTrue(controller.hasActiveSampling)
+
+        controller.prepareForSystemSleep()
+        XCTAssertFalse(controller.hasActiveSampling)
+        XCTAssertEqual(controller.demandCount, 1)
+
+        await controller.resumeAfterSystemWake()
+        XCTAssertTrue(controller.hasActiveSampling)
+        let resetCount = await provider.resetCount
+        XCTAssertEqual(resetCount, 1)
+        controller.stop()
+    }
+
     func testMemoryFormulaAndUInt64CounterRatesHandleLargeValuesAndResets() {
         XCTAssertEqual(
             SystemMetricsProvider.usedMemoryBytes(
