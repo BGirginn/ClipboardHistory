@@ -12,6 +12,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     var activeAnchorID: MenuBarItemID = .controlCenter
     private let popover: NSPopover
     let drawerPopover: NSPopover
+    var isInlineDrawerExpanded = false
+    var inlineDrawerButtons: NSStackView?
     let dependencies: MenuBarControllerDependencies
     private let popoverAnchor: (() -> NSView?)?
     private let applicationWindowPresenter: (any ApplicationWindowPresenting)?
@@ -186,7 +188,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     var isDrawerShown: Bool {
-        drawerPopover.isShown
+        isInlineDrawerExpanded || drawerPopover.isShown
     }
 
     var shortcutRegistrationError: String? {
@@ -270,6 +272,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
         capturesPasteTargetApplication: Bool = true,
         settingsSection: AppSettingsSection? = nil
     ) -> Bool {
+        collapseInlineDrawer()
         drawerPopover.performClose(nil)
         beginPresentationSignpost()
         if preparesDestination {
@@ -317,6 +320,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     }
 
     func closePopoverNow() {
+        collapseInlineDrawer()
         popoverReanchorTask?.cancel()
         popoverReanchorTask = nil
         shortcutMonitor.cancelHeldShortcut()
@@ -330,6 +334,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate, NSWindowDelegate {
     func stop() {
         guard !isStopped else { return }
         isStopped = true
+        collapseInlineDrawer()
         panelClosingTask?.cancel()
         panelClosingTask = nil
         popoverReanchorTask?.cancel()

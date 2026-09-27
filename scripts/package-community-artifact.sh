@@ -10,8 +10,8 @@ repository_root=${0:A:h:h}
 source_app=${1:A}
 output_directory=${2:A}
 identity='ClipboardHistory Community Beta'
-release_version='1.0.0-beta.7'
-expected_build='10007'
+release_version='0.7.1'
+expected_build='10008'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -120,9 +120,8 @@ helper_minimum_os=$(otool -l "$helper_app/Contents/MacOS/ClipboardHistoryLoginIt
 }
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$artifact_app/Contents/Info.plist")
 build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$artifact_app/Contents/Info.plist")
-beta=$(/usr/libexec/PlistBuddy -c 'Print :ClipboardHistoryBetaVersion' "$artifact_app/Contents/Info.plist")
-[[ "$version" == "1.0.0" && "$build" == "$expected_build" && "$beta" == "$release_version" ]] || {
-  print -u2 "artifact packaging: version mismatch: $version ($build), $beta"
+[[ "$version" == "$release_version" && "$build" == "$expected_build" ]] || {
+  print -u2 "artifact packaging: version mismatch: $version ($build)"
   exit 1
 }
 
@@ -151,7 +150,8 @@ jq -e '.spdxVersion == "SPDX-2.3" and .name == "CoreDeck"' "$spdx" >/dev/null
 )
 unzip -tq "$chromium_zip" >/dev/null
 unzip -p "$chromium_zip" manifest.json \
-  | jq -e '.manifest_version == 3 and .version == "1.0.0" and .version_name == "1.0.0-beta.7" and (.key | length > 0)' \
+  | jq -e --arg version "$release_version" \
+    '.manifest_version == 3 and .version == $version and .version_name == $version and (.key | length > 0)' \
   >/dev/null
 (
   cd "$output_directory"

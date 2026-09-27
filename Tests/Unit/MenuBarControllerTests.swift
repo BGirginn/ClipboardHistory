@@ -183,6 +183,7 @@ final class MenuBarControllerTests: XCTestCase {
                 removeStatusItem: { NSStatusBar.system.removeStatusItem($0) },
                 makePopover: { popover },
                 makeDrawerPopover: { drawerPopover },
+                canPresentInlineDrawer: { _, _ in true },
                 makePanel: { _ in MenuPanelStub() },
                 quickLookPresenter: MenuQuickLookSpy(),
                 currentEvent: { nil }
@@ -193,6 +194,7 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertNotNil(controller.statusItems[.drawer])
         XCTAssertNotNil(controller.statusItems[.feature(.notes)])
         let drawerContent = try XCTUnwrap(drawerPopover.contentViewController)
+        let drawerStatusItem = try XCTUnwrap(controller.statusItems[.drawer])
         context.settings.appearance = .dark
         XCTAssertEqual(drawerPopover.appearance?.name, .darkAqua)
 
@@ -201,12 +203,26 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertNil(controller.statusItems[.feature(.notes)])
         try XCTUnwrap(controller.statusItems[.drawer]?.button).performClick(nil)
         await settleMenuAction()
-        XCTAssertTrue(drawerPopover.isShown)
+        XCTAssertTrue(controller.isInlineDrawerExpanded)
+        XCTAssertFalse(drawerPopover.isShown)
         XCTAssertFalse(popover.isShown)
         XCTAssertTrue(drawerPopover.contentViewController === drawerContent)
+        XCTAssertEqual(controller.inlineDrawerButtons?.arrangedSubviews.count, 1)
+        XCTAssertTrue(controller.statusItems[.drawer] === drawerStatusItem)
+        let noteButton = try XCTUnwrap(controller.inlineDrawerButtons?.arrangedSubviews.first as? NSButton)
+        noteButton.performClick(nil)
+        await settleMenuAction()
+        XCTAssertFalse(controller.isInlineDrawerExpanded)
+        XCTAssertEqual(context.appModel.router.activeFeature, .notes)
+        XCTAssertTrue(popover.isShown)
+
+        controller.toggleDrawer()
+        await settleMenuAction()
+        XCTAssertTrue(controller.isInlineDrawerExpanded)
 
         try XCTUnwrap(controller.statusItems[.controlCenter]?.button).performClick(nil)
         await settleMenuAction()
+        XCTAssertFalse(controller.isInlineDrawerExpanded)
         XCTAssertFalse(drawerPopover.isShown)
         XCTAssertTrue(popover.isShown)
 
@@ -224,10 +240,10 @@ final class MenuBarControllerTests: XCTestCase {
         for _ in 0..<100 {
             controller.toggleDrawer()
             await settleMenuAction()
-            XCTAssertTrue(drawerPopover.isShown)
+            XCTAssertTrue(controller.isInlineDrawerExpanded)
             XCTAssertTrue(drawerPopover.contentViewController === drawerContent)
             controller.toggleDrawer()
-            XCTAssertFalse(drawerPopover.isShown)
+            XCTAssertFalse(controller.isInlineDrawerExpanded)
         }
         context.appModel.controlCenter.setDrawerItemVisible(false)
         XCTAssertNil(controller.statusItems[.drawer])

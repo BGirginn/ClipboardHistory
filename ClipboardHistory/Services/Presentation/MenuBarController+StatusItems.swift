@@ -36,6 +36,7 @@ extension MenuBarController {
 
         let desiredSet = Set(desired)
         for itemID in Array(statusItems.keys) where !desiredSet.contains(itemID) {
+            if itemID == .drawer { collapseInlineDrawer() }
             if itemID == .drawer, drawerPopover.isShown {
                 drawerPopover.performClose(nil)
             }
@@ -65,6 +66,7 @@ extension MenuBarController {
                 : desired.first ?? .controlCenter
         }
         updateStatusIcon(configuration: configuration)
+        refreshInlineDrawer()
         appModel.controlCenter.setRequestedMenuBarItemsVisible(
             desired.allSatisfy { statusItems[$0]?.isVisible == true }
         )
@@ -191,12 +193,14 @@ extension MenuBarController {
             description: String(localized: "CoreDeck"),
             tooltip: String(localized: "CoreDeck") + stateSuffix
         )
-        configureStatusItem(
-            .drawer,
-            symbol: "rectangle.bottomhalf.inset.filled",
-            description: String(localized: "Drawer"),
-            tooltip: String(localized: "CoreDeck Drawer")
-        )
+        if !isInlineDrawerExpanded {
+            configureStatusItem(
+                .drawer,
+                symbol: "rectangle.bottomhalf.inset.filled",
+                description: String(localized: "Drawer"),
+                tooltip: String(localized: "CoreDeck Drawer")
+            )
+        }
         configureStatusItem(
             .feature(.clipboard),
             symbol: appModel.clipboard.isPaused || appModel.clipboard.isPrivateMode

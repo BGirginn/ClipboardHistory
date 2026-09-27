@@ -31,16 +31,20 @@ final class ClipboardHistoryUITests: XCTestCase {
 
         let drawerStatusItem = application.descendants(matching: .statusItem)["menuBar.drawer"]
         XCTAssertTrue(drawerStatusItem.waitForExistence(timeout: 2))
+        let collapsedWidth = drawerStatusItem.frame.width
         drawerStatusItem.click()
 
-        XCTAssertTrue(
-            application.descendants(matching: .any)["drawer.content"]
-                .waitForExistence(timeout: 2)
-        )
-        XCTAssertTrue(
-            application.descendants(matching: .any)["drawer.feature.notes"].exists
-        )
-        application.descendants(matching: .any)["drawer.restore.notes"].click()
+        let noteButton = application.descendants(matching: .any)["drawer.feature.notes"]
+        XCTAssertTrue(noteButton.waitForExistence(timeout: 2))
+        XCTAssertGreaterThan(drawerStatusItem.frame.width, collapsedWidth)
+        XCTAssertFalse(application.descendants(matching: .any)["drawer.content"].exists)
+        noteButton.click()
+
+        application.descendants(matching: .statusItem)["menuBar.controlCenter"].click()
+        application.descendants(matching: .any)["controlCenter.customize"].click()
+        let restoreToggle = application.descendants(matching: .any)["customize.notes.drawer"]
+        scrollToControl(restoreToggle, in: application.descendants(matching: .any)["customize.form"])
+        restoreToggle.click()
 
         XCTAssertTrue(
             application.descendants(matching: .statusItem)["menuBar.feature.notes"]
