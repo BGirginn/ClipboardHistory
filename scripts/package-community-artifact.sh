@@ -12,6 +12,7 @@ output_directory=${2:A}
 identity='CoreDeck Community Beta'
 release_version='1.0.0-beta.8'
 expected_build='10009'
+extension_version='1.0.1'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -150,8 +151,8 @@ jq -e '.spdxVersion == "SPDX-2.3" and .name == "CoreDeck"' "$spdx" >/dev/null
 )
 unzip -tq "$chromium_zip" >/dev/null
 unzip -p "$chromium_zip" manifest.json \
-  | jq -e --arg version "$release_version" \
-    '.manifest_version == 3 and .version == $version and .version_name == $version and (.key | length > 0)' \
+  | jq -e --arg extension_version "$extension_version" --arg release_version "$release_version" \
+    '.manifest_version == 3 and .version == $extension_version and .version_name == $release_version and (.key | length > 0)' \
   >/dev/null
 (
   cd "$output_directory"
