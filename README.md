@@ -16,10 +16,11 @@ CoreDeck is a modular menu-bar utility hub whose Clipboard History, Notes, Input
 
 ## Current status
 
-- Current Community release: `v1.0.0-beta.8` (build `10009`), distributed as CoreDeck
+- Latest published Community release: `v1.0.0-beta.7` (build `10007`)
+- Next release candidate: `v1.0.0-beta.8` (build `10009`), distributed as CoreDeck
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
-- Homebrew installs the `coredeck` Cask; existing `clipboardhistory` Cask installs migrate through the tap rename map
+- The published Homebrew Cask still uses `clipboardhistory`; beta.8 will move it to `coredeck` with an upgrade mapping
 - The Community build is self-signed and is not Apple-notarized
 
 ## Install
@@ -29,7 +30,7 @@ Install with Homebrew:
 ```sh
 brew tap BGirginn/tap
 brew trust BGirginn/tap
-brew install --cask coredeck
+brew install --cask clipboardhistory
 ```
 
 Homebrew 6 requires explicit trust for third-party taps. The Cask installs `CoreDeck.app` while preserving the existing CoreDeck Application Support and preference identities. Move aside a manually installed old application before using the Cask; do not remove its user data.
@@ -38,15 +39,15 @@ To update or uninstall later:
 
 ```sh
 brew update
-brew upgrade --cask coredeck
-brew uninstall --cask coredeck
+brew upgrade --cask clipboardhistory
+brew uninstall --cask clipboardhistory
 ```
 
-Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap coredeck` also deletes that local user data.
+Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap clipboardhistory` also deletes that local user data.
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click the installed application, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The currently published packages can be downloaded from the [beta.8 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8).
+The currently published packages can be downloaded from the [beta.7 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.7).
 
 ## Features
 
@@ -151,7 +152,7 @@ Project documentation:
 
 ## Distribution
 
-The `v1.0.0-beta.8` GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
+The beta.8 candidate is not published yet. Its GitHub assets, checksums, and Homebrew Cask are prepared to refer to one Community artifact.
 
 ## License
 

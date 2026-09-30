@@ -1,5 +1,6 @@
 # Known limitations
 
+- GitHub and Homebrew still distribute beta.7; beta.8 source and artifacts are candidates pending UI and signed Keychain migration acceptance.
 - The Community application remains a beta; full clean-user migration, OS matrix, energy profiling, and eight-hour soak evidence are incomplete.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
 - Local test results are recorded by source revision in [release readiness](RELEASE_READINESS_PLAN_TR.md). The complete macOS 14.2/15/26 physical matrix remains open and is not claimed by the current prerelease.

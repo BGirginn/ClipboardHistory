@@ -2,7 +2,7 @@
 
 All notable changes are documented here. The project follows semantic versioning from the first public beta.
 
-## 1.0.0-beta.8 - 2026-09-30
+## Unreleased — beta.8 candidate
 
 - Renamed the project, app bundle, executable, and product-facing technical identifiers to CoreDeck.
 - Added fail-closed migration for the old data directory, preferences, launch-at-login setting, and Keychain keys while retaining legacy sources for recovery.

@@ -1,6 +1,6 @@
 # CoreDeck Community beta distribution
 
-The current Community release is CoreDeck v1.0.0-beta.8 build `10009`. GitHub and Homebrew distribute the same signed artifact. Community artifacts are self-signed, are not Apple-notarized, and must not be described as Developer ID releases.
+The latest published Community release is CoreDeck v1.0.0-beta.7 build `10007`. The source prepares beta.8 build `10009`; GitHub and Homebrew remain on beta.7 until its release gates pass. Community artifacts are self-signed, are not Apple-notarized, and must not be described as Developer ID releases.
 
 ## Stable signing identity
 
@@ -44,12 +44,12 @@ The automatic GitHub Quality workflow is disabled for this beta at the maintaine
 
 ## Homebrew Cask
 
-The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. Its `coredeck` Cask installs the beta.8 artifact:
+The public tap is `BGirginn/homebrew-tap`; users address it as `BGirginn/tap`. The published `clipboardhistory` Cask installs beta.7. The beta.8 candidate Cask will install its artifact after publication:
 
 ```sh
 brew tap BGirginn/tap
 brew trust BGirginn/tap
-brew install --cask coredeck
+brew install --cask clipboardhistory
 ```
 
 Homebrew 6 requires explicit trust for this third-party tap. The `coredeck` Cask token is retained for upgrades. Handle a manually installed `/Applications/CoreDeck.app` separately and preserve the existing clipboard database and preferences.

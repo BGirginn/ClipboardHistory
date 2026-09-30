@@ -16,10 +16,11 @@ CoreDeck; Pano Geçmişi, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mi
 
 ## Güncel durum
 
-- Son yayımlanan Community beta: [`v1.0.0-beta.8`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8) (build `10009`); CoreDeck adıyla dağıtılıyor
+- Son yayımlanan Community beta: [`v1.0.0-beta.7`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.7) (build `10007`)
+- Sonraki release adayı: `v1.0.0-beta.8` (build `10009`); CoreDeck adıyla dağıtılacak
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
-- Homebrew `coredeck` Cask'ini kurar; eski `clipboardhistory` Cask kurulumu tap'teki yeniden adlandırma eşlemesiyle taşınır
+- Yayımlanmış Homebrew Cask'i hâlâ `clipboardhistory` adını kullanıyor; beta.8'de `coredeck` adına yükseltme eşlemesiyle taşınacak
 - Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
 
 ## Kurulum
@@ -29,7 +30,7 @@ Homebrew ile kurulum:
 ```sh
 brew tap BGirginn/tap
 brew trust BGirginn/tap
-brew install --cask coredeck
+brew install --cask clipboardhistory
 ```
 
 Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask `CoreDeck.app` kurar ve mevcut CoreDeck Application Support ve tercih kimliklerini korur. Elle kurulmuş eski bir uygulamayı Cask yönetmez; kurmadan önce uygulamayı kapatıp kenara taşıyın, kullanıcı verilerini silmeyin.
@@ -38,15 +39,15 @@ Daha sonra güncellemek veya kaldırmak için:
 
 ```sh
 brew update
-brew upgrade --cask coredeck
-brew uninstall --cask coredeck
+brew upgrade --cask clipboardhistory
+brew uninstall --cask clipboardhistory
 ```
 
-Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap coredeck` komutu bu yerel kullanıcı verilerini de siler.
+Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap clipboardhistory` komutu bu yerel kullanıcı verilerini de siler.
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, kurulu uygulama üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-Yayımlanmış paketler [beta.8 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8) sayfasından indirilebilir.
+Yayımlanmış paketler [beta.7 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.7) sayfasından indirilebilir.
 
 ## Özellikler
 
@@ -149,7 +150,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-Son yayımlanan sürüm `v1.0.0-beta.8`'dir. GitHub paketleri, checksum ve Homebrew Cask aynı Community yapısını işaret eder.
+Beta.8 adayı henüz yayımlanmadı. Yayında GitHub paketleri, checksum ve Homebrew Cask aynı Community yapısını göstermeli.
 
 ## Lisans
 
