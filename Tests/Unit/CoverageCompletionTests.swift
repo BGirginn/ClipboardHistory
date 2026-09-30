@@ -4,7 +4,7 @@ import PDFKit
 import ServiceManagement
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class CoverageCompletionTests: XCTestCase {
@@ -316,7 +316,7 @@ final class CoverageCompletionTests: XCTestCase {
 
     func testSystemKeychainClientRoundTripUsesOnlyAnEphemeralTestItem() throws {
         let client = SystemKeychainSecurityClient()
-        let service = "com.brgirgin.ClipboardHistory.tests.\(UUID().uuidString)"
+        let service = "com.brgirgin.CoreDeck.tests.\(UUID().uuidString)"
         let account = "temporary-test-key"
         let lookup: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

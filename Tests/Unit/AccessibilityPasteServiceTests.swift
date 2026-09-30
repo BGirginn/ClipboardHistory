@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class AccessibilityPasteServiceTests: XCTestCase {

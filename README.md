@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck app icon">
+  <img src="CoreDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck app icon">
 </p>
 
 <h1 align="center">CoreDeck</h1>
@@ -16,12 +16,10 @@ CoreDeck is a modular menu-bar utility hub whose Clipboard History, Notes, Input
 
 ## Current status
 
-- Latest Community beta: [`v1.0.0-beta.7`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7), distributed as CoreDeck
-- The `main` source and published beta use build `10007`
+- Current Community release: `v1.0.0-beta.8` (build `10009`), distributed as CoreDeck
 - Supported platform: Apple silicon (`arm64`) with macOS 14.2 or later
 - The source on `main` is public and current
-- Release checksums, SBOM, signing evidence, ZIP, and DMG are attached to the beta.7 GitHub prerelease
-- The [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask installs beta.7
+- Homebrew installs the `coredeck` Cask; existing `clipboardhistory` Cask installs migrate through the tap rename map
 - The Community build is self-signed and is not Apple-notarized
 
 ## Install
@@ -31,24 +29,24 @@ Install with Homebrew:
 ```sh
 brew tap BGirginn/tap
 brew trust BGirginn/tap
-brew install --cask clipboardhistory
+brew install --cask coredeck
 ```
 
-Homebrew 6 requires explicit trust for third-party taps. The Cask installs `CoreDeck.app` while preserving the existing ClipboardHistory Application Support and preference identities. Move aside a manually installed old application before using the Cask; do not remove its user data.
+Homebrew 6 requires explicit trust for third-party taps. The Cask installs `CoreDeck.app` while preserving the existing CoreDeck Application Support and preference identities. Move aside a manually installed old application before using the Cask; do not remove its user data.
 
 To update or uninstall later:
 
 ```sh
 brew update
-brew upgrade --cask clipboardhistory
-brew uninstall --cask clipboardhistory
+brew upgrade --cask coredeck
+brew uninstall --cask coredeck
 ```
 
-Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap clipboardhistory` also deletes that local user data.
+Normal uninstall preserves clipboard history and preferences. `brew uninstall --cask --zap coredeck` also deletes that local user data.
 
 The Community beta is self-signed and not notarized. If macOS blocks the first launch, open Applications in Finder, Control-click the installed application, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-The packages can also be downloaded from the [beta.7 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7).
+The currently published packages can be downloaded from the [beta.8 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8).
 
 ## Features
 
@@ -90,8 +88,8 @@ Requirements:
 Clone the repository and create the local self-signed Community identity. This does not require a paid Apple Developer account:
 
 ```sh
-git clone https://github.com/BGirginn/ClipboardHistory.git
-cd ClipboardHistory
+git clone https://github.com/BGirginn/CoreDeck.git
+cd CoreDeck
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -100,14 +98,14 @@ Build and launch the Community configuration:
 
 ```sh
 xcodebuild \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeck \
   -configuration CommunityRelease \
   -destination 'generic/platform=macOS' \
   -derivedDataPath .build/LocalRelease \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
   CODE_SIGN_STYLE=Manual \
-  CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
+  CODE_SIGN_IDENTITY='CoreDeck Community Beta' \
   build
 
 open .build/LocalRelease/Build/Products/CommunityRelease/CoreDeck.app
@@ -122,7 +120,7 @@ CoreDeck defaults to a menu-bar-only application. Use **Customize Menu Bar** to 
 Clipboard history and managed assets are stored under:
 
 ```text
-~/Library/Application Support/ClipboardHistory/
+~/Library/Application Support/CoreDeck/
 ```
 
 Direct paste, Keyboard Cleaning Mode, and Scroll Reverse require macOS Accessibility permission. Clipboard capture, panel access, notes, and the global shortcut do not require that permission. Scroll Reverse stays fail-open when permission is unavailable and never opens the system permission prompt automatically at launch.
@@ -133,8 +131,8 @@ Compile without signing:
 
 ```sh
 xcodebuild \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeck \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   CODE_SIGNING_ALLOWED=NO \
@@ -153,7 +151,7 @@ Project documentation:
 
 ## Distribution
 
-The latest published version is `v1.0.0-beta.7`. Its GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
+The `v1.0.0-beta.8` GitHub assets, checksums, and Homebrew Cask refer to the same Community artifact.
 
 ## License
 

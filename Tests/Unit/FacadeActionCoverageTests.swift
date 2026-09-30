@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 #if DEBUG
 @MainActor
@@ -951,7 +951,7 @@ final class FacadeActionCoverageTests: XCTestCase {
             backToHome: {},
             openSettings: { didOpenSettings = true }
         )
-        let historyActions = ClipboardHistoryActionsMenu(viewModel: context.viewModel)
+        let historyActions = CoreDeckActionsMenu(viewModel: context.viewModel)
         historyActions.requestAgeCleanup(3_600)
         XCTAssertEqual(context.viewModel.pendingAgeCleanupInterval, 3_600)
         historyActions.requestAgeCleanup(86_400)
@@ -985,8 +985,8 @@ final class FacadeActionCoverageTests: XCTestCase {
         context.appModel.showClipboard()
 
         var scrollActions = 0
-        ClipboardHistoryListView.scrollToSelected(reduceMotion: true) { scrollActions += 1 }
-        ClipboardHistoryListView.scrollToSelected(reduceMotion: false) { scrollActions += 1 }
+        CoreDeckListView.scrollToSelected(reduceMotion: true) { scrollActions += 1 }
+        CoreDeckListView.scrollToSelected(reduceMotion: false) { scrollActions += 1 }
         XCTAssertEqual(scrollActions, 2)
 
         let revealedFile = context.directory.appending(path: "revealed.txt")
@@ -1073,7 +1073,7 @@ final class FacadeActionCoverageTests: XCTestCase {
         let panels: FacadeArchivePanelStub
         let workspaceRevealer: FacadeWorkspaceRevealer
         let appModel: AppModel
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
     }
 
     private func makeContext(

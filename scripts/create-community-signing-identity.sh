@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 
-identity='ClipboardHistory Community Beta'
+identity='CoreDeck Community Beta'
 if security find-identity -v -p codesigning | rg -Fq "\"$identity\""; then
   print "community identity: already installed"
   exit 0
@@ -16,7 +16,7 @@ if [[ -z "$login_keychain" || ! -f "$login_keychain" ]]; then
   exit 1
 fi
 
-temporary_directory=$(mktemp -d /private/tmp/clipboardhistory-signing.XXXXXX)
+temporary_directory=$(mktemp -d /private/tmp/coredeck-signing.XXXXXX)
 certificate="$temporary_directory/certificate.pem"
 private_key="$temporary_directory/signing-key.pem"
 cleanup() {
@@ -29,7 +29,7 @@ umask 077
 openssl req -x509 -newkey rsa:3072 -sha256 -days 3650 -nodes \
   -keyout "$private_key" \
   -out "$certificate" \
-  -subj '/CN=ClipboardHistory Community Beta/O=ClipboardHistory Community Beta' \
+  -subj '/CN=CoreDeck Community Beta/O=CoreDeck Community Beta' \
   -addext 'basicConstraints=critical,CA:FALSE' \
   -addext 'keyUsage=critical,digitalSignature' \
   -addext 'extendedKeyUsage=codeSigning' \

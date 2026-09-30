@@ -2,7 +2,7 @@ import AppKit
 import QuickLookUI
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class QuickLookServiceTests: XCTestCase {

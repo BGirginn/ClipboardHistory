@@ -43,6 +43,6 @@ Decision: **approved for public Community beta packaging with the limitations be
 - Critical mutations: 7 killed, 0 survived.
 - Debug, Release, and CommunityRelease: app, login helper, XPC service, and Safari extension are arm64-only with macOS 14.2 minimum.
 - Static structure, localization, analyzer, release-secret/history scan, optimized arm64 p95 performance, and `git diff --check` passed.
-- Coverage evidence: `/private/tmp/ClipboardHistoryCoverage-beta3-public-r1/Combined.xccovreport`; aggregate 95.80%, gate passed.
+- Coverage evidence: `/private/tmp/CoreDeckCoverage-beta3-public-r1/Combined.xccovreport`; aggregate 95.80%, gate passed.
 
 This document must be updated with command output and physical-test evidence before a beta readiness decision changes.

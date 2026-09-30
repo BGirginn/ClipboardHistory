@@ -3,7 +3,7 @@ import CoreAudio
 import PDFKit
 import SwiftUI
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ClipboardPanelRenderingTests: XCTestCase {
@@ -454,7 +454,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
             context.viewModel.settings.pasteStackOrder = .lifo
             try render(ClipboardPasteStackView(viewModel: context.viewModel), named: "paste-stack-lifo", colorScheme: .dark)
             try render(
-                ClipboardHistoryListView(
+                CoreDeckListView(
                     isHistoryEmpty: false,
                     pinnedItems: [text],
                     recentItems: [rich, image, files],
@@ -471,7 +471,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 colorScheme: .light
             )
             try render(
-                ClipboardHistoryListView(
+                CoreDeckListView(
                     isHistoryEmpty: true,
                     pinnedItems: [],
                     recentItems: [],
@@ -488,7 +488,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
                 colorScheme: .dark
             )
             try render(
-                ClipboardHistoryListView(
+                CoreDeckListView(
                     isHistoryEmpty: false,
                     pinnedItems: [],
                     recentItems: [],
@@ -993,8 +993,8 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         XCTAssertEqual(representation.pixelsHigh, Int((height * 2).rounded()), accuracy: 2)
 
         let outputDirectory = ProcessInfo.processInfo.environment[
-            "CLIPBOARD_HISTORY_RENDER_OUTPUT"
-        ] ?? "/tmp/ClipboardHistoryUI"
+            "COREDECK_RENDER_OUTPUT"
+        ] ?? "/tmp/CoreDeckUI"
         let directory = URL(fileURLWithPath: outputDirectory, isDirectory: true)
         try FileManager.default.createDirectory(
             at: directory,
@@ -1025,7 +1025,7 @@ final class ClipboardPanelRenderingTests: XCTestCase {
         let defaultsSuite: String
         let storage: StorageService
         let appModel: AppModel
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
         let audioBridge: RenderingBrowserAudioBridge
         let inputCoordinator: InputEventTapCoordinatorStub
     }

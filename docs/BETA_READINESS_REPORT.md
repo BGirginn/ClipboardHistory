@@ -12,24 +12,24 @@ This report records local evidence gathered during beta preparation. Later targe
 
 ## Preservation and scope
 
-- Before implementation, the complete dirty repository including `.git` was copied to a sibling directory named `ClipboardHistory-backup-20260801-ZteHHj`; 301 files were compared with `diff -rq` and matched.
+- Before implementation, the complete dirty repository including `.git` was copied to a sibling directory named `CoreDeck-backup-20260801-ZteHHj`; 301 files were compared with `diff -rq` and matched.
 - The original worktree was not reset or discarded. Work continues on `beta/arm64-opt-in-lock` from starting commit `351fe22`.
 - The product remains offline-only. Certificates, private keys, and provisioning profiles are forbidden from the repository.
 
 ## Implemented changes
 
 - Every target configuration now uses minimum macOS 14 and `ARCHS=arm64`; legacy platform build/release paths were removed. Debug, Release, and CommunityRelease are checked with `lipo`, `file`, `otool`, and bundle metadata.
-- Application lock is off by default and modelled as `disabled`, `unlocked`, or `locked`. Enabling/disabling and unlocking use Touch ID or the Mac login password through LocalAuthentication; no separate ClipboardHistory password or verifier exists.
+- Application lock is off by default and modelled as `disabled`, `unlocked`, or `locked`. Enabling/disabling and unlocking use Touch ID or the Mac login password through LocalAuthentication; no separate CoreDeck password or verifier exists.
 - The numbered settings migration preserves existing automatic-lock users. Later launches start locked when enabled; manual, Mac-lock, and inactivity options relock the app.
 - While locked, copy/restore/paste and history visibility are blocked. Recording can remain enabled with encrypted persistence or be consumed and dropped; Private Mode/pause takes precedence. Ask-before-saving sensitive content remains memory-only until unlock or expiry.
 - AES-GCM history encryption remains independent from the UI lock. Keychain, authentication, storage, and archive errors fail closed without plaintext fallback.
 - Debug, Release, and CommunityRelease now share one classic login-Keychain service and one empty source entitlement file. Apple Development Team, Data Protection Keychain, keychain access groups, and provisioning profiles were removed. The existing master-key service name was retained and its 32-byte value was confirmed readable through the classic login-Keychain query without logging the key.
-- `ClipboardHistoryViewModel` is a 223-line main-actor façade and `StorageService` a 384-line actor façade. Extracted controller/repository, asset, migration, maintenance, recovery, and rotation facets are all below 500 lines. Static checks enforce 500 lines and one top-level type per production Swift file.
+- `CoreDeckViewModel` is a 223-line main-actor façade and `StorageService` a 384-line actor façade. Extracted controller/repository, asset, migration, maintenance, recovery, and rotation facets are all below 500 lines. Static checks enforce 500 lines and one top-level type per production Swift file.
 - English and Turkish String Catalog entries cover the new lock states, actions, explanations, and errors.
 - Settings now offer persistent System/Light/Dark appearance. Reopening the menu-bar panel always returns to the main history instead of stale settings/detail/search state, and the one-shot ignore action is visually distinct from Private Mode with armed-state feedback.
 - Panel context-menu coordination now protects the right-mouse-down to AppKit menu-tracking transition, so the first right click cannot be mistaken for an outside interaction while genuine outside clicks still close the panel.
 - The checked-in CI workflow is arm64-only on GitHub's macOS 14, 15, and 26 runners, but repository GitHub Actions are disabled by owner request. Equivalent architecture, sanitizer, performance, mutation, coverage, and UI gates run locally.
-- Artifact tooling requires exact arm64 output and names ZIP/DMG/SBOM files `ClipboardHistory-1.0.0-beta.1-arm64.*`. The documented Cask requires Sonoma and arm64.
+- Artifact tooling requires exact arm64 output and names ZIP/DMG/SBOM files `CoreDeck-1.0.0-beta.1-arm64.*`. The documented Cask requires Sonoma and arm64.
 
 ## Current local evidence
 
@@ -47,7 +47,7 @@ This report records local evidence gathered during beta preparation. Later targe
 | Optimized performance | Warm-up plus 20-repeat 5,000-item p95 assertions passed |
 | Idle resource smoke | CommunityRelease after 30-second warm-up: 10/10 CPU samples at 0.0%, maximum RSS 44,400 KB, SQLite `integrity_check=ok` |
 | Localization/static/source structure | Passed |
-| Accountless signing | Stable `ClipboardHistory Community Beta` identity installed; SHA-256 `13:19:E8:8B:23:2F:B0:F1:70:A5:DE:8B:A8:32:D3:58:72:E1:C9:5C:D0:3D:A9:59:90:23:47:62:3D:ED:46:CC` |
+| Accountless signing | Stable `CoreDeck Community Beta` identity installed; SHA-256 `13:19:E8:8B:23:2F:B0:F1:70:A5:DE:8B:A8:32:D3:58:72:E1:C9:5C:D0:3D:A9:59:90:23:47:62:3D:ED:46:CC` |
 | Signed CommunityRelease | `1.0.0 (10001)`, beta label `1.0.0-beta.1`, exact arm64, empty final entitlements, hardened runtime, designated requirement verified; launched and quit cleanly |
 
 The merged coverage result is retained locally as `Combined.xccovreport` alongside its unit and UI `.xcresult` bundles. Release evidence paths are working-session artifacts and are not committed into the source repository.
@@ -67,7 +67,7 @@ The owner explicitly authorized a public beta release with these gaps disclosed.
 
 - Annotated tag `v1.0.0-beta.1` points to clean release commit `fad51547ceec3f68ba82734dbd699645bcfa985e`.
 - The public GitHub prerelease contains the signed arm64 ZIP and DMG, SPDX SBOM, checksum manifest, designated requirement, and signing-certificate fingerprint.
-- The public `BGirginn/homebrew-tap` repository publishes `Casks/clipboardhistory.rb` with exact ZIP SHA-256 `8d2bf2a7312e3eec6a915c92507110d2e4a0bceb6b2e1cb0108d2dffcdd0576f`, `depends_on arch: :arm64`, and `depends_on macos: :sonoma`.
+- The public `BGirginn/homebrew-tap` repository publishes `Casks/coredeck.rb` with exact ZIP SHA-256 `8d2bf2a7312e3eec6a915c92507110d2e4a0bceb6b2e1cb0108d2dffcdd0576f`, `depends_on arch: :arm64`, and `depends_on macos: :sonoma`.
 - Homebrew style and strict Cask audit passed. The central `homebrew/cask` new-cask eligibility audit remains intentionally inapplicable because this is a self-signed GitHub prerelease in a personal tap and does not meet official notability/notarization rules.
 - Homebrew fetched the public ZIP with the published checksum, retained quarantine, installed into an isolated app directory, and launched the exact `1.0.0 (10001)` arm64 app. Normal uninstall removed the staged app while preserving Application Support and SQLite `integrity_check=ok`.
-- GitHub Actions are disabled at repository level for both `BGirginn/ClipboardHistory` and `BGirginn/homebrew-tap` by owner instruction.
+- GitHub Actions are disabled at repository level for both `BGirginn/CoreDeck` and `BGirginn/homebrew-tap` by owner instruction.

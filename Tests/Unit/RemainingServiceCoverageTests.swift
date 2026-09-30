@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class RemainingServiceCoverageTests: XCTestCase {
@@ -298,7 +298,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
             showControlCenterHandler: appModel.prepareForNormalPresentation
         )
         var activationPolicies: [NSApplication.ActivationPolicy] = []
-        let delegate = ClipboardHistoryAppDelegate(
+        let delegate = CoreDeckAppDelegate(
             environment: [:],
             appModelFactory: {
                 appModelFactoryCount += 1
@@ -367,7 +367,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
         var backgroundController: MenuBarController?
         var terminationReplies: [Bool] = []
         let terminationExpectation = expectation(description: "shutdown reply")
-        let backgroundDelegate = ClipboardHistoryAppDelegate(
+        let backgroundDelegate = CoreDeckAppDelegate(
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },
@@ -448,7 +448,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
         )
         var replies: [Bool] = []
         let blockedReply = expectation(description: "blocked shutdown reply")
-        let delegate = ClipboardHistoryAppDelegate(
+        let delegate = CoreDeckAppDelegate(
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },
@@ -477,7 +477,7 @@ final class RemainingServiceCoverageTests: XCTestCase {
         appModel.notes.discardChanges()
         let successfulReply = expectation(description: "successful retry reply")
         replies.removeAll()
-        let retryDelegate = ClipboardHistoryAppDelegate(
+        let retryDelegate = CoreDeckAppDelegate(
             environment: [:],
             arguments: ["--background-launch"],
             appModelFactory: { appModel },

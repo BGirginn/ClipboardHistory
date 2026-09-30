@@ -1,0 +1,40 @@
+import SwiftUI
+
+struct ClipboardPanelHeaderView: View {
+    @ObservedObject var viewModel: CoreDeckViewModel
+    let backToHome: () -> Void
+    let openSettings: () -> Void
+
+    var body: some View {
+        VStack(spacing: 7) {
+            ModuleToolbar(
+                title: String(localized: "Clipboard"),
+                subtitle: itemCountText,
+                backTitle: String(localized: "Back to Control Center"),
+                back: backToHome,
+                openSettings: openSettings
+            ) {
+                Button("Search History", systemImage: "magnifyingglass", action: viewModel.toggleSearch)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .help("Search History")
+                    .accessibilityIdentifier("clipboard.search")
+                CoreDeckActionsMenu(viewModel: viewModel)
+            }
+
+            if viewModel.isPaused {
+                ClipboardPanelStatusView(viewModel: viewModel)
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    private var itemCountText: String {
+        if viewModel.items.count == 1 {
+            String(localized: "1 item")
+        } else {
+            String(localized: "\(viewModel.items.count) items")
+        }
+    }
+
+}

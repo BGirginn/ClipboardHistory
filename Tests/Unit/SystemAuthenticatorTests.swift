@@ -1,7 +1,7 @@
 import Foundation
 import LocalAuthentication
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class SystemAuthenticatorTests: XCTestCase {

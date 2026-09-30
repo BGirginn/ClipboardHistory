@@ -9,8 +9,8 @@ trap 'rm -rf -- "$evidence/DerivedData"' EXIT
 python3 "$repository_root/scripts/write-evidence-metadata.py" "$evidence/Environment.json" analyzer
 print "analyzer gate: evidence=$evidence"
 if ! xcodebuild -quiet \
-    -project "$repository_root/ClipboardHistory.xcodeproj" \
-    -scheme ClipboardHistory -configuration Debug \
+    -project "$repository_root/CoreDeck.xcodeproj" \
+    -scheme CoreDeck -configuration Debug \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$evidence/DerivedData" \
     -resultBundlePath "$evidence/Analyze.xcresult" \

@@ -3,7 +3,7 @@
 Baseline repository snapshot used for the comprehensive review:
 
 ```text
-repository: BGirginn/ClipboardHistory
+repository: BGirginn/CoreDeck
 branch: main
 commit: 3c2a2f583cd3deb0b5009cf33c76cc8ef9a5c13b
 ```

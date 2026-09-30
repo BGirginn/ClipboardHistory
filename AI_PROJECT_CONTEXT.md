@@ -137,7 +137,7 @@ CoreAudio ABI/property reads, process lifetime, browser identity, native-message
 
 There are two distinct concepts:
 
-1. ClipboardHistory's own `NSStatusItem` lifecycle.
+1. CoreDeck's own `NSStatusItem` lifecycle.
 2. A future external menu-bar management capability for hiding/proxying other apps' or system items.
 
 Do not conflate them. External menu-bar management has no clean public API that simply "moves" arbitrary third-party/system items into this application's popover. Treat it as a separate capability with explicit support levels and graceful degradation.

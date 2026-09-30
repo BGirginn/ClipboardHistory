@@ -24,7 +24,7 @@ test('Chromium acknowledgements are finite and idle capture has no timer', () =>
       }
     } }
   });
-  vm.runInContext(fs.readFileSync(path.join(root, 'ClipboardHistory/Resources/ChromiumAudioExtension/offscreen.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(root, 'CoreDeck/Resources/ChromiumAudioExtension/offscreen.js'), 'utf8'), context);
   assert.equal(connections, 0);
   assert.equal(timers.size, 0);
   vm.runInContext(`captures.set(1, {tabId: 1, title: 'Synthetic', context: {currentTime: 0},
@@ -61,7 +61,7 @@ test('Safari coalesces concurrent native requests and stops its idle heartbeat',
       tabs: { onRemoved: { addListener: callback => { removed = callback; } } }
     }
   });
-  vm.runInContext(fs.readFileSync(path.join(root, 'ClipboardHistorySafariExtension/Resources/background.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(root, 'CoreDeckSafariExtension/Resources/background.js'), 'utf8'), context);
   assert.equal(messages.length, 0);
   assert.equal(timers.size, 0);
   for (let i = 0; i < 100; i++) receive({type: 'media-state', controllable: true, volume: 100}, {tab: {id: 1}});

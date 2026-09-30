@@ -24,7 +24,7 @@ new `-derivedDataPath` for every run:
 
 ```sh
 scripts/run-development-tests.sh
-scripts/run-development-tests.sh ClipboardHistoryTests/PasteStackTests
+scripts/run-development-tests.sh CoreDeckTests/PasteStackTests
 scripts/run-development-tests.sh --clean
 ```
 
@@ -34,13 +34,13 @@ default DerivedData is also reusable; avoid UUID-based DerivedData paths for
 routine testing. Every selection must execute at least one test with no skipped, expected-failure, or failed cases; an empty/mistyped selector fails the runner. Full selections also verify every declared test identity. `Tests/Scripts/test_development_test_summary.sh` exercises negative summary cases.
 
 The shared Xcode scheme runs the repository's artifact maintenance before and
-after builds. It removes only recognized, rebuildable ClipboardHistory test and
+after builds. It removes only recognized, rebuildable CoreDeck test and
 build paths. The automatic policy removes temporary artifacts older than 24
 hours, trims recognized temporary output above 2 GiB after a 30-minute safety
 window, removes a development cache unused for seven days or larger than 2 GiB,
-and trims ClipboardHistory's Xcode DerivedData above 4 GiB or after seven days.
+and trims CoreDeck's Xcode DerivedData above 4 GiB or after seven days.
 Paths mentioned by a running process are kept. Source snapshots, release
-artifacts, `ClipboardHistoryUI`, application data, and other projects' Xcode
+artifacts, `CoreDeckUI`, application data, and other projects' Xcode
 data are outside the deletion rules.
 
 Inspect or run the same maintenance manually:
@@ -60,15 +60,15 @@ its post-action could not run.
 Run unit and UI coverage separately and merge their `.xccovreport`/`.xccovarchive` evidence:
 
 ```sh
-scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
+scripts/run-coverage-suite.sh /private/tmp/CoreDeckCoverage
 ```
 
-The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty production entitlement file. Unit, UI, sanitizer, mutation and performance runs use the `ClipboardHistoryTests` scheme and the separate `ClipboardHistoryTestHost` application. It compiles the same application sources with `CLIPBOARD_HISTORY_TEST_HOST`, an isolated bundle identifier, and no embedded login or browser helpers. UI composition injects temporary storage, a named pasteboard, a dedicated UserDefaults suite, ephemeral keys, and inert input, authentication, paste, login, metrics and audio adapters. The production application does not compile test routing, even in Debug. Optimized host results validate shared code; they do not validate native adapters or the packaged production application.
+The script uses unsigned unit tests and an ad-hoc-signed UI build with the empty production entitlement file. Unit, UI, sanitizer, mutation and performance runs use the `CoreDeckTests` scheme and the separate `CoreDeckTestHost` application. It compiles the same application sources with `COREDECK_TEST_HOST`, an isolated bundle identifier, and no embedded login or browser helpers. UI composition injects temporary storage, a named pasteboard, a dedicated UserDefaults suite, ephemeral keys, and inert input, authentication, paste, login, metrics and audio adapters. The production application does not compile test routing, even in Debug. Optimized host results validate shared code; they do not validate native adapters or the packaged production application.
 
-The suite retains compact unit/UI JSON summaries, source/host metadata (including per-file SHA-256 for dirty-source identification), run logs, and the merged coverage report/archive, then removes successful raw `.xcresult` bundles, transient DerivedData, and exported intermediate coverage directories on exit. Set `CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS=1` when raw result bundles are required as release evidence. Failed runs retain their raw `.xcresult` bundles and logs for diagnosis. The test-inventory check requires every declared unit and UI test identity to pass, so a partial selection cannot satisfy the complete suite. Each UI test creates its isolated database under the test runner's temporary directory and removes that root plus its UserDefaults suite during teardown. This keeps reproducible evidence without accumulating rebuildable multi-gigabyte test trees in temporary storage.
+The suite retains compact unit/UI JSON summaries, source/host metadata (including per-file SHA-256 for dirty-source identification), run logs, and the merged coverage report/archive, then removes successful raw `.xcresult` bundles, transient DerivedData, and exported intermediate coverage directories on exit. Set `COREDECK_RETAIN_RAW_RESULTS=1` when raw result bundles are required as release evidence. Failed runs retain their raw `.xcresult` bundles and logs for diagnosis. The test-inventory check requires every declared unit and UI test identity to pass, so a partial selection cannot satisfy the complete suite. Each UI test creates its isolated database under the test runner's temporary directory and removes that root plus its UserDefaults suite during teardown. This keeps reproducible evidence without accumulating rebuildable multi-gigabyte test trees in temporary storage.
 
-Coverage evidence directories named `clipboardhistory-coverage-*` or
-`ClipboardHistoryCoverage*` under `/private/tmp` participate in the same 2 GiB
+Coverage evidence directories named `coredeck-coverage-*` or
+`CoreDeckCoverage*` under `/private/tmp` participate in the same 2 GiB
 and 24-hour cleanup policy. Copy release evidence out of temporary storage when
 it must be retained longer.
 
@@ -112,12 +112,12 @@ frame-presentation or eight-hour soak evidence.
 The eight-hour soak requires a separate macOS test account, synthetic clipboard
 data, and Accessibility/Automation permission for its System Events response
 probe. The database argument must resolve to that account's
-`~/Library/Application Support/ClipboardHistory/history.sqlite3`:
+`~/Library/Application Support/CoreDeck/history.sqlite3`:
 
 ```sh
 COREDECK_SOAK_ISOLATED_ACCOUNT=1 scripts/run-eight-hour-soak.sh \
   /path/to/CoreDeck.app \
-  "$HOME/Library/Application Support/ClipboardHistory/history.sqlite3" \
+  "$HOME/Library/Application Support/CoreDeck/history.sqlite3" \
   /path/to/new-soak-evidence
 ```
 

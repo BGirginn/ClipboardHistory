@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class CollectionAndEditingTests: XCTestCase {
     func testLocalTextTransformationsAreDeterministicAndTurkishAware() {
@@ -14,7 +14,7 @@ final class CollectionAndEditingTests: XCTestCase {
 
     func testCollectionNameUsesOpenStorageAndDeletionClearsMembership() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryCollections-\(UUID().uuidString)",
+            path: "CoreDeckCollections-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -56,14 +56,14 @@ final class CollectionAndEditingTests: XCTestCase {
     @MainActor
     func testEditingTextTitleTagsAndSnippetUpdatesPresentation() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryEditing-\(UUID().uuidString)",
+            path: "CoreDeckEditing-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
         let suiteName = "CollectionAndEditingTests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: StorageService(baseDirectory: directory),
             settings: AppSettings(defaults: defaults),
             startsAutomatically: false

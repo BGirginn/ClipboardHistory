@@ -1,4 +1,4 @@
-# ClipboardHistory 1.0.0-beta.5
+# CoreDeck 1.0.0-beta.5
 
 This Community beta adds a compact, native Control Center and a reusable wider window backed by the same feature controllers. Open in Window preserves Clipboard selection/search and the Notes draft. Clipboard search opens from the magnifier, focuses immediately and clears when closed. Notes distinguishes unsaved edits from a completed save; System Monitor starts with a numeric summary and loads charts on demand. Menu-bar customization immediately reflects placement and click-action changes.
 

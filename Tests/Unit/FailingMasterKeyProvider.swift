@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 struct FailingMasterKeyProvider: MasterKeyProvider {
     func loadOrCreateKey() throws -> Data {

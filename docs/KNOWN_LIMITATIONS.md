@@ -1,11 +1,13 @@
 # Known limitations
 
-- `v1.0.0-beta.7` is the latest Community prerelease.
+- The Community application remains a beta; full clean-user migration, OS matrix, energy profiling, and eight-hour soak evidence are incomplete.
 - The Community application is self-signed. Gatekeeper can require Finder Control-click → Open or System Settings → Privacy & Security → Open Anyway on first launch.
-- Local test results are recorded by source revision in [release readiness](RELEASE_READINESS_PLAN_TR.md). The complete macOS 14.2/15/26 physical matrix remains open and is not claimed by beta.7.
-- The automatic GitHub Quality workflow is disabled for beta.7; no passing CI matrix is claimed for this release.
-- The drawer manages CoreDeck's own module icons, including System Monitor access. External system and third-party icon management is not enabled in beta.7. Experimental Command-drag swaps demonstrate ordering only; occupied-space reclamation, exact native target activation, supported-OS recovery and permission/conflict acceptance remain unproven.
+- Local test results are recorded by source revision in [release readiness](RELEASE_READINESS_PLAN_TR.md). The complete macOS 14.2/15/26 physical matrix remains open and is not claimed by the current prerelease.
+- The automatic GitHub Quality workflow is disabled for the current prerelease; no passing CI matrix is claimed for it.
+- The drawer manages CoreDeck's own module icons, including System Monitor access. External system and third-party icon management is not enabled in the current prerelease. Experimental Command-drag swaps demonstrate ordering only; occupied-space reclamation, exact native target activation, supported-OS recovery and permission/conflict acceptance remain unproven.
 - Encrypted Notes and one-time migration of legacy encrypted Clipboard records depend on login-Keychain access and the stable signing identity. Current open Clipboard storage does not require Keychain access.
+- The `CoreDeck` identity transition copies the old data directory, preferences, and Keychain keys without deleting the old sources. If both data directories already exist without a migration marker, startup reports a conflict and leaves both untouched. A new signing certificate can require an interactive Keychain authorization for the old Notes key; denial must not generate a replacement key.
+- macOS may retain the previous `ClipboardHistory` login-item or browser-bridge registration after the application identifier changes. The new helper is registered once when the previous launch-at-login preference was enabled, but the old background items should be checked in System Settings before release acceptance.
 - Direct paste, Keyboard Cleaning Mode, and Scroll Reverse require Accessibility permission; ordinary capture, copy, restore, notes, and Paste As do not.
 - Keyboard Cleaning Mode intentionally leaves mouse input available and stays active until the user stops it. Sleep, session resignation, event-tap failure, and application termination release the keyboard; Secure Input or system policy can prevent the event tap from starting.
 - Public CoreGraphics fields distinguish line-based from pixel-based scrolling, not a guaranteed device model. The UI therefore cannot promise brand/model-specific routing, and external wheel-mouse behavior must be checked with the intended hardware.

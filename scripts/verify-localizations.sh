@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repository_root=${0:A:h:h}
-temporary_directory=$(mktemp -d /private/tmp/clipboardhistory-localization.XXXXXX)
+temporary_directory=$(mktemp -d /private/tmp/coredeck-localization.XXXXXX)
 trap 'rm -rf "$temporary_directory"' EXIT
 
 cd "$repository_root"
@@ -11,10 +11,10 @@ xcrun xcstringstool extract \
   --modern-localizable-strings \
   --output-format xcstrings \
   --output-directory "$temporary_directory" \
-  $(rg --files ClipboardHistory -g '*.swift')
+  $(rg --files CoreDeck -g '*.swift')
 
 fresh="$temporary_directory/Localizable.xcstrings"
-catalog="ClipboardHistory/Localizable.xcstrings"
+catalog="CoreDeck/Localizable.xcstrings"
 translations="scripts/tr-localizations.json"
 
 jq -e 'type == "object" and all(.[]; type == "string" and length > 0)' "$translations" >/dev/null
@@ -34,7 +34,7 @@ fi
 
 jq -e '.strings | all(.[]; .localizations.tr.stringUnit.state == "translated" and (.localizations.tr.stringUnit.value | length > 0))' "$catalog" >/dev/null
 xcrun xcstringstool compile --output-directory "$temporary_directory/compiled" "$catalog"
-info_plist_catalog="ClipboardHistory/InfoPlist.xcstrings"
+info_plist_catalog="CoreDeck/InfoPlist.xcstrings"
 jq -e '
   .strings.NSAudioCaptureUsageDescription.localizations
   | all(.en, .tr; .stringUnit.state == "translated" and (.stringUnit.value | length > 0))

@@ -31,7 +31,7 @@ for scenario in empty skipped failed incomplete missing passed; do
     result: "Passed", passedTests: $counts[0], failedTests: $counts[1],
     skippedTests: $counts[2], totalTestCount: $counts[3], expectedFailures: 0
   }' > "$TEST_SUMMARY_PATH"
-  if "$temporary_root/scripts/run-development-tests.sh" ClipboardHistoryTests/SelectedCase \
+  if "$temporary_root/scripts/run-development-tests.sh" CoreDeckTests/SelectedCase \
       > "$temporary_root/$scenario.log" 2>&1; then
     [[ "$scenario" == passed ]] || {
       print -u2 "development test summary regression: accepted $scenario"

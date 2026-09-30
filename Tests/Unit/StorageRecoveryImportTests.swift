@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 private struct FixedMasterKeyProvider: MasterKeyProvider {
     let key: Data
@@ -15,7 +15,7 @@ final class StorageRecoveryImportTests: XCTestCase {
         let root = temporaryDirectory("StorageRecoveryImport")
         defer { try? FileManager.default.removeItem(at: root) }
         let sourceRoot = root.appending(path: "Source", directoryHint: .isDirectory)
-        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        let destination = root.appending(path: "CoreDeck", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         let marker = destination.appending(path: "old-database-marker")
         try Data("preserve me".utf8).write(to: marker)
@@ -101,7 +101,7 @@ final class StorageRecoveryImportTests: XCTestCase {
             password: "correct-password"
         )
         await sourceStorage.close()
-        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        let destination = root.appending(path: "CoreDeck", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         let marker = destination.appending(path: "must-remain")
         try Data([1, 2, 3]).write(to: marker)
@@ -125,7 +125,7 @@ final class StorageRecoveryImportTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         let target = root.appending(path: "target", directoryHint: .isDirectory)
-        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        let destination = root.appending(path: "CoreDeck", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
         try FileManager.default.createSymbolicLink(at: destination, withDestinationURL: target)
 
@@ -161,7 +161,7 @@ final class StorageRecoveryImportTests: XCTestCase {
             password: "password"
         )
         await sourceStorage.close()
-        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        let destination = root.appending(path: "CoreDeck", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         let marker = destination.appending(path: "old-marker")
         try Data("old".utf8).write(to: marker)
@@ -203,7 +203,7 @@ final class StorageRecoveryImportTests: XCTestCase {
             password: "password"
         )
         await sourceStorage.close()
-        let destination = root.appending(path: "ClipboardHistory", directoryHint: .isDirectory)
+        let destination = root.appending(path: "CoreDeck", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
         try Data("old".utf8).write(to: destination.appending(path: "old-marker"))
         let fileSystem = FailingFinalMoveFileSystem(
@@ -263,7 +263,7 @@ private final class FailingFinalMoveFileSystem: MigrationFileSystem, @unchecked 
     }
 
     func moveItem(at source: URL, to destination: URL) throws {
-        if source.lastPathComponent.hasPrefix(".ClipboardHistory-recovery-import-"),
+        if source.lastPathComponent.hasPrefix(".CoreDeck-recovery-import-"),
            destination.standardizedFileURL == self.destination,
            injectedFailureCount == 0 {
             injectedFailureCount += 1
@@ -279,7 +279,7 @@ private final class FailingFinalMoveFileSystem: MigrationFileSystem, @unchecked 
     }
 
     func removeItem(at url: URL) throws {
-        if url.lastPathComponent.hasPrefix(".ClipboardHistory-recovery-import-") {
+        if url.lastPathComponent.hasPrefix(".CoreDeck-recovery-import-") {
             removedStagingCount += 1
         }
         try local.removeItem(at: url)

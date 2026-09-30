@@ -2,12 +2,12 @@ import Foundation
 import SQLite3
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class ProtectedMetadataTests: XCTestCase {
     func testClipboardMetadataRoundTripsAsOpenStorage() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryProtectedMetadata-\(UUID().uuidString)",
+            path: "CoreDeckProtectedMetadata-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -60,7 +60,7 @@ final class ProtectedMetadataTests: XCTestCase {
 
     func testSchemaMigrationTwoIsAtomicAndRecorded() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistorySchemaTwo-\(UUID().uuidString)",
+            path: "CoreDeckSchemaTwo-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -80,7 +80,7 @@ final class ProtectedMetadataTests: XCTestCase {
 
     func testSchemaFiveClipboardMetadataMigratesToOpenStorage() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistorySchemaSix-\(UUID().uuidString)",
+            path: "CoreDeckSchemaSix-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -120,7 +120,7 @@ final class ProtectedMetadataTests: XCTestCase {
 
     func testSchemaSixMigrationRollsBackWhenLegacyKeyIsUnavailable() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistorySchemaSixRollback-\(UUID().uuidString)",
+            path: "CoreDeckSchemaSixRollback-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }

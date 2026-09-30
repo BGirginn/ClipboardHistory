@@ -1,6 +1,6 @@
-# ClipboardHistory 1.0.0-beta.3
+# CoreDeck 1.0.0-beta.3
 
-ClipboardHistory is now a modular macOS menu-bar Control Center. Clipboard History and Notes are joined by Input Tools, a live System Monitor, configurable menu-bar metrics, and an experimental Audio Mixer.
+CoreDeck is now a modular macOS menu-bar Control Center. Clipboard History and Notes are joined by Input Tools, a live System Monitor, configurable menu-bar metrics, and an experimental Audio Mixer.
 
 ## Highlights
 

@@ -42,7 +42,7 @@ if (( $# > 1 )); then
   exit 64
 fi
 
-selector=${1:-ClipboardHistoryTests}
+selector=${1:-CoreDeckTests}
 enforce_cache_limit
 trap finish EXIT
 
@@ -50,16 +50,16 @@ mkdir -p "$development_root"
 rm -rf -- "$result_bundle"
 
 cd "$repository_root"
-if [[ "$selector" == ClipboardHistoryUITests* ]]; then
-  identity='ClipboardHistory Community Beta'
+if [[ "$selector" == CoreDeckUITests* ]]; then
+  identity='CoreDeck Community Beta'
   security find-identity -v -p codesigning | rg -Fq "\"$identity\"" || {
     print -u2 "development UI tests: missing trusted code-signing identity: $identity"
     exit 1
   }
-  ui_derived_data=$(mktemp -d /private/tmp/clipboardhistory-development-ui.XXXXXX)
+  ui_derived_data=$(mktemp -d /private/tmp/coredeck-development-ui.XXXXXX)
   xcodebuild -quiet \
-    -project ClipboardHistory.xcodeproj \
-    -scheme ClipboardHistoryTests \
+    -project CoreDeck.xcodeproj \
+    -scheme CoreDeckTests \
     -configuration Debug \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$ui_derived_data" \
@@ -71,8 +71,8 @@ if [[ "$selector" == ClipboardHistoryUITests* ]]; then
     "-only-testing:$selector" test
 else
   xcodebuild -quiet \
-    -project ClipboardHistory.xcodeproj \
-    -scheme ClipboardHistoryTests \
+    -project CoreDeck.xcodeproj \
+    -scheme CoreDeckTests \
     -configuration Debug \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$derived_data" \
@@ -93,9 +93,9 @@ if ! jq -e '
   print -u2 "development tests: selector produced no tests, incomplete results, or skipped/failed tests: $selector"
   exit 1
 fi
-if [[ "$selector" == "ClipboardHistoryTests" ]]; then
+if [[ "$selector" == "CoreDeckTests" ]]; then
   python3 scripts/verify-test-inventory.py Unit "$result_bundle"
-elif [[ "$selector" == "ClipboardHistoryUITests" ]]; then
+elif [[ "$selector" == "CoreDeckUITests" ]]; then
   python3 scripts/verify-test-inventory.py UI "$result_bundle"
 fi
 print "development tests: selector=$selector passed=$passed_tests cache=$development_root"

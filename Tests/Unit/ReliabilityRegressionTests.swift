@@ -1,7 +1,7 @@
 import AppKit
 import CoreAudio
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ReliabilityRegressionTests: XCTestCase {
@@ -87,7 +87,7 @@ final class ReliabilityRegressionTests: XCTestCase {
         defer { board.releaseGlobally() }
         let settings = AppSettings(defaults: defaults)
         settings.historyLimit = 10
-        let model = ClipboardHistoryViewModel(
+        let model = CoreDeckViewModel(
             storage: storage, monitor: ClipboardMonitor(pasteboard: board), restorePasteboard: board,
             settings: settings, launchAtLoginService: LaunchAtLoginService(backend: ReliabilityLoginBackend()),
             startsAutomatically: false
@@ -131,7 +131,7 @@ final class ReliabilityRegressionTests: XCTestCase {
             defer { defaults.removePersistentDomain(forName: suite) }
             let board = NSPasteboard(name: .init(suite))
             defer { board.releaseGlobally() }
-            let model = ClipboardHistoryViewModel(
+            let model = CoreDeckViewModel(
                 storage: storage, monitor: ClipboardMonitor(pasteboard: board), restorePasteboard: board,
                 settings: AppSettings(defaults: defaults), launchAtLoginService: LaunchAtLoginService(backend: ReliabilityLoginBackend()),
                 contentAnalyzer: analyzer, startsAutomatically: false
@@ -166,7 +166,7 @@ final class ReliabilityRegressionTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suite) }
         let board = NSPasteboard(name: .init(suite))
         defer { board.releaseGlobally() }
-        let model = ClipboardHistoryViewModel(storage: storage, monitor: ClipboardMonitor(pasteboard: board), restorePasteboard: board, settings: AppSettings(defaults: defaults), launchAtLoginService: LaunchAtLoginService(backend: ReliabilityLoginBackend()), contentAnalyzer: analyzer, startsAutomatically: false)
+        let model = CoreDeckViewModel(storage: storage, monitor: ClipboardMonitor(pasteboard: board), restorePasteboard: board, settings: AppSettings(defaults: defaults), launchAtLoginService: LaunchAtLoginService(backend: ReliabilityLoginBackend()), contentAnalyzer: analyzer, startsAutomatically: false)
         await model.loadHistory()
         let task = Task { await model.insert(.text(value: "Synthetic", rtfData: nil, htmlData: nil, subtype: .plainText, hash: "pending", sourceBundleIdentifier: nil)) }
         while !(await analyzer.isWaiting) { await Task.yield() }

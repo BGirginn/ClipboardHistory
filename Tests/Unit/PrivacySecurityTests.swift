@@ -2,7 +2,7 @@ import AppKit
 import Carbon
 import Foundation
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class PrivacySecurityTests: XCTestCase {
@@ -314,7 +314,7 @@ final class PrivacySecurityTests: XCTestCase {
         let directory: URL
         let storage: StorageService
         let settings: AppSettings
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
         let defaultsSuite: String
     }
 
@@ -331,7 +331,7 @@ final class PrivacySecurityTests: XCTestCase {
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         let pasteboard = NSPasteboard(name: .init("PrivacySecurityPasteboard-\(UUID().uuidString)"))
         let monitor = ClipboardMonitor(pasteboard: pasteboard)
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: monitor,
             restorePasteboard: pasteboard,

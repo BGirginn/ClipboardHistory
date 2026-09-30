@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import SwiftUI
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class PerformanceBenchmarkTests: XCTestCase {
@@ -32,7 +32,7 @@ final class PerformanceBenchmarkTests: XCTestCase {
         let settings = AppSettings(defaults: defaults)
         settings.historyLimit = 5_000
         settings.retentionDays = 3_650
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: NSPasteboard(name: .init("BenchmarkPasteboard"))),
             settings: settings,

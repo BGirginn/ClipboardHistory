@@ -600,6 +600,8 @@
   "Collapsed": "Daraltılmış",
   "Expanded": "Genişletilmiş",
   "History recovery is required. Recovery files were preserved. Restart the application to retry recovery.": "Geçmişin kurtarılması gerekiyor. Kurtarma dosyaları korundu. Kurtarmayı yeniden denemek için uygulamayı yeniden başlatın.",
+  "Both old and new CoreDeck data directories exist. Neither was changed; resolve the conflict before continuing.": "Eski ve yeni CoreDeck veri klasörleri birlikte mevcut. Hiçbiri değiştirilmedi; devam etmeden önce çakışmayı çözün.",
+  "Quit the previous CoreDeck version before migrating its data.": "Verilerini taşımadan önce önceki CoreDeck sürümünden çıkın.",
   "Import failed and some created files could not be removed. Retry storage cleanup before importing again.": "İçe aktarma başarısız oldu ve oluşturulan bazı dosyalar kaldırılamadı. Yeniden içe aktarmadan önce depolama temizliğini tekrar deneyin.",
   "Open in Window": "Pencerede Aç",
   "Search History": "Geçmişte Ara",

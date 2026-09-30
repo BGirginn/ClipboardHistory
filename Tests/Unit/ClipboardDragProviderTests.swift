@@ -2,7 +2,7 @@ import AppKit
 import UniformTypeIdentifiers
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ClipboardDragProviderTests: XCTestCase {

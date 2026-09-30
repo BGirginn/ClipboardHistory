@@ -1,21 +1,21 @@
 import AppKit
 import CoreAudio
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class UITestCompositionRootTests: XCTestCase {
     func testCompositionRootRejectsSharedDefaultsAndBuildsAnIsolatedModel() async throws {
         XCTAssertNil(UITestCompositionRoot.makeModel(environment: [
-            "CLIPBOARD_HISTORY_TEST_DEFAULTS": "unsafe-suite"
+            "COREDECK_TEST_DEFAULTS": "unsafe-suite"
         ]))
 
         let identifier = UUID().uuidString
-        let root = URL(fileURLWithPath: "/private/tmp/ClipboardHistory-\(identifier)")
-        let suite = "ClipboardHistory.Coverage.\(identifier)"
+        let root = URL(fileURLWithPath: "/private/tmp/CoreDeck-\(identifier)")
+        let suite = "CoreDeck.Coverage.\(identifier)"
         let model = try XCTUnwrap(UITestCompositionRoot.makeModel(environment: [
-            "CLIPBOARD_HISTORY_TEST_ROOT": root.path,
-            "CLIPBOARD_HISTORY_TEST_DEFAULTS": suite
+            "COREDECK_TEST_ROOT": root.path,
+            "COREDECK_TEST_DEFAULTS": suite
         ]))
 
         XCTAssertEqual(model.uiTestRoot, root)
@@ -27,7 +27,7 @@ final class UITestCompositionRootTests: XCTestCase {
     }
 
     func testUITestServicesExerciseEverySafeAdapterBoundary() async throws {
-        let root = URL(fileURLWithPath: "/private/tmp/ClipboardHistory-\(UUID().uuidString)")
+        let root = URL(fileURLWithPath: "/private/tmp/CoreDeck-\(UUID().uuidString)")
         let fileManager = UITestFileManager(root: root)
         XCTAssertEqual(fileManager.temporaryDirectory, root)
 

@@ -1,0 +1,140 @@
+import AppKit
+import Combine
+import Foundation
+import UniformTypeIdentifiers
+
+extension CoreDeckViewModel {
+    func prepareForPanelPresentation() {
+        if detailItem != nil {
+            detailItem = nil
+        }
+        if !searchText.isEmpty {
+            searchText = ""
+        }
+    }
+
+    func enforceUnpinnedHistoryLimit() async {
+        let unpinned = items.filter { !$0.isPinned && temporaryContent[$0.id] == nil }
+            .sorted { $0.creationDate > $1.creationDate }
+        guard unpinned.count > settings.historyLimit else { return }
+        for item in unpinned.dropFirst(settings.historyLimit) {
+            await finishDeleting(item)
+        }
+    }
+
+    func refreshDisplayedItems() {
+        let query = ClipboardSearchQuery(searchText)
+        var filtered: [ClipboardItem]
+        if query.isEmpty {
+            filtered = items
+        } else {
+            let collectionNamesByID = Dictionary(
+                collections.map { ($0.id, $0.name) },
+                uniquingKeysWith: { _, latest in latest }
+            )
+            filtered = items.filter { item in
+                let collectionName = item.collectionID.flatMap {
+                    collectionNamesByID[$0]
+                }
+                return matchesSearch(
+                    item,
+                    query: query,
+                    collectionName: collectionName
+                )
+            }
+        }
+        switch settings.selectedFilter {
+        case .all:
+            break
+        case .text:
+            filtered = filtered.filter { $0.type == .text || $0.type == .richText }
+        case .images:
+            filtered = filtered.filter { $0.type == .image || $0.type == .imageGroup }
+        case .pinned:
+            filtered = filtered.filter(\.isPinned)
+        case .snippets:
+            filtered = filtered.filter(\.isSnippet)
+        }
+
+        let updatedPinnedItems = filtered.filter(\.isPinned).sorted {
+            ($0.pinnedAt ?? .distantPast) > ($1.pinnedAt ?? .distantPast)
+        }
+        let unpinned = filtered.filter { !$0.isPinned }
+        let updatedRecentItems: [ClipboardItem]
+        switch settings.selectedSortMode {
+        case .newestFirst:
+            updatedRecentItems = unpinned.sorted { $0.creationDate > $1.creationDate }
+        case .oldestFirst:
+            updatedRecentItems = unpinned.sorted { $0.creationDate < $1.creationDate }
+        case .recentlyUsed:
+            updatedRecentItems = unpinned.sorted {
+                ($0.lastUsedAt ?? .distantPast) > ($1.lastUsedAt ?? .distantPast)
+            }
+        }
+
+        let visibleItems = updatedPinnedItems + updatedRecentItems
+        let visibleIDs = Set(visibleItems.map(\.id))
+        let updatedSelectedItemID = selectedItemID.flatMap {
+            visibleIDs.contains($0) ? $0 : nil
+        } ?? visibleItems.first?.id
+        var updatedSelectedItemIDs = selectedItemIDs.intersection(visibleIDs)
+        if updatedSelectedItemIDs.isEmpty, let updatedSelectedItemID {
+            updatedSelectedItemIDs = [updatedSelectedItemID]
+        }
+
+        if pinnedItems != updatedPinnedItems { pinnedItems = updatedPinnedItems }
+        if recentItems != updatedRecentItems { recentItems = updatedRecentItems }
+        if selectedItemID != updatedSelectedItemID { selectedItemID = updatedSelectedItemID }
+        if selectedItemIDs != updatedSelectedItemIDs { selectedItemIDs = updatedSelectedItemIDs }
+    }
+
+    func matchesSearch(_ item: ClipboardItem) -> Bool {
+        let query = ClipboardSearchQuery(searchText)
+        guard !query.isEmpty else { return true }
+        return matchesSearch(
+            item,
+            query: query,
+            collectionName: collectionName(for: item)
+        )
+    }
+
+    private func matchesSearch(
+        _ item: ClipboardItem,
+        query: ClipboardSearchQuery,
+        collectionName: String?
+    ) -> Bool {
+        guard !query.isEmpty else { return true }
+        guard !item.isSensitive else { return false }
+        return query.matches(item, collectionName: collectionName)
+    }
+
+    func collectionName(for item: ClipboardItem) -> String? {
+        guard let collectionID = item.collectionID else { return nil }
+        return collections.first(where: { $0.id == collectionID })?.name
+    }
+
+    static func normalizedTags(from input: String) -> [String] {
+        var keys = Set<String>()
+        return input
+            .split(whereSeparator: { $0 == "," || $0 == "\n" })
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .filter { keys.insert($0.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)).inserted }
+    }
+
+    func moveSelection(by offset: Int) {
+        let visible = pinnedItems + recentItems
+        guard !visible.isEmpty else {
+            selectedItemID = nil
+            return
+        }
+        guard let selectedItemID,
+              let currentIndex = visible.firstIndex(where: { $0.id == selectedItemID }) else {
+            self.selectedItemID = visible.first?.id
+            return
+        }
+        let newIndex = min(max(0, currentIndex + offset), visible.count - 1)
+        self.selectedItemID = visible[newIndex].id
+    }
+
+}

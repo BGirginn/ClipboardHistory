@@ -13,14 +13,14 @@ print "performance gate: evidence=$evidence"
 
 build_passed=1
 if ! xcodebuild -quiet \
-    -project "$repository_root/ClipboardHistory.xcodeproj" \
-    -scheme ClipboardHistoryTests \
+    -project "$repository_root/CoreDeck.xcodeproj" \
+    -scheme CoreDeckTests \
     -configuration Release \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$build_root/DerivedData" \
     -resultBundlePath "$evidence/Performance.xcresult" \
     ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO ENABLE_TESTABILITY=YES \
-    -only-testing:ClipboardHistoryTests/PerformanceBenchmarkTests test >"$log" 2>&1; then
+    -only-testing:CoreDeckTests/PerformanceBenchmarkTests test >"$log" 2>&1; then
   build_passed=0
 fi
 

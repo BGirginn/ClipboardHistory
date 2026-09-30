@@ -1,0 +1,1407 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		H10000000000000000000001 /* com.brgirgin.CoreDeck.BrowserAudioBridge.plist in Embed Launch Agents */ = {isa = PBXBuildFile; fileRef = H20000000000000000000001 /* com.brgirgin.CoreDeck.BrowserAudioBridge.plist */; };
+		G10000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		E10000000000000000000001 /* CoreDeckLoginItem.app in Embed Login Items */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* CoreDeckLoginItem.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F10000000000000000000001 /* CoreDeckSafariExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* CoreDeckSafariExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A10000000000000000000001 /* CoreDeckApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* CoreDeckApp.swift */; };
+		A10000000000000000000002 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ClipboardItem.swift */; };
+		A10000000000000000000003 /* ClipboardItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* ClipboardItemType.swift */; };
+		A10000000000000000000004 /* ClipboardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ClipboardContent.swift */; };
+		A10000000000000000000005 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ClipboardMonitor.swift */; };
+		A10000000000000000000006 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Logger.swift */; };
+		A10000000000000000000007 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* StorageService.swift */; };
+		A10000000000000000000008 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* DateFormatting.swift */; };
+		A10000000000000000000009 /* HashUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* HashUtility.swift */; };
+		A1000000000000000000000A /* ImageDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* ImageDataLoader.swift */; };
+		A1000000000000000000000B /* CoreDeckViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* CoreDeckViewModel.swift */; };
+		A1000000000000000000000C /* ClipboardPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* ClipboardPanelView.swift */; };
+		A1000000000000000000000D /* ClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* ClipboardItemRow.swift */; };
+		A1000000000000000000000E /* TextClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* TextClipboardItemRow.swift */; };
+		A1000000000000000000000F /* ImageClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* ImageClipboardItemRow.swift */; };
+		A10000000000000000000010 /* ClipboardImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ClipboardImageThumbnail.swift */; };
+		A10000000000000000000011 /* ClipboardPanelHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* ClipboardPanelHeaderView.swift */; };
+		A10000000000000000000012 /* ClipboardEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* ClipboardEmptyStateView.swift */; };
+		B10000000000000000000002 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ClipboardItem.swift */; };
+		B10000000000000000000003 /* ClipboardItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* ClipboardItemType.swift */; };
+		B10000000000000000000004 /* ClipboardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ClipboardContent.swift */; };
+		B10000000000000000000005 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ClipboardMonitor.swift */; };
+		B10000000000000000000006 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Logger.swift */; };
+		B10000000000000000000007 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* StorageService.swift */; };
+		B10000000000000000000008 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* DateFormatting.swift */; };
+		B10000000000000000000009 /* HashUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* HashUtility.swift */; };
+		B1000000000000000000000A /* ImageDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* ImageDataLoader.swift */; };
+		B1000000000000000000000B /* CoreDeckViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* CoreDeckViewModel.swift */; };
+		B10000000000000000000011 /* HashUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* HashUtilityTests.swift */; };
+		B10000000000000000000012 /* StorageServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* StorageServiceTests.swift */; };
+		B10000000000000000000013 /* CoreDeckViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* CoreDeckViewModelTests.swift */; };
+		B10000000000000000000014 /* ClipboardMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* ClipboardMonitorTests.swift */; };
+		B10000000000000000000015 /* ClipboardPanelRenderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* ClipboardPanelRenderingTests.swift */; };
+		B1000000000000000000000C /* ClipboardPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* ClipboardPanelView.swift */; };
+		B1000000000000000000000D /* ClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* ClipboardItemRow.swift */; };
+		B1000000000000000000000E /* TextClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* TextClipboardItemRow.swift */; };
+		B1000000000000000000000F /* ImageClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* ImageClipboardItemRow.swift */; };
+		B10000000000000000000010 /* ClipboardImageThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ClipboardImageThumbnail.swift */; };
+		B10000000000000000000017 /* ClipboardPanelHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* ClipboardPanelHeaderView.swift */; };
+		B10000000000000000000018 /* ClipboardEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* ClipboardEmptyStateView.swift */; };
+		FB91B2E2A7C3DCC860DE8E7D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F26DFBBA273486E7AF16742 /* Cocoa.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		H20000000000000000000001 /* com.brgirgin.CoreDeck.BrowserAudioBridge.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Support/LaunchAgents/com.brgirgin.CoreDeck.BrowserAudioBridge.plist; sourceTree = SOURCE_ROOT; };
+		G20000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = CoreDeckBrowserAudioBridge.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
+		E20000000000000000000001 /* CoreDeckLoginItem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreDeckLoginItem.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F20000000000000000000001 /* CoreDeckSafariExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CoreDeckSafariExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000001 /* CoreDeckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDeckApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* ClipboardItemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemType.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* ClipboardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContent.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* HashUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashUtility.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* ImageDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDataLoader.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* CoreDeckViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDeckViewModel.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* ClipboardPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* ClipboardItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemRow.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* TextClipboardItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextClipboardItemRow.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* ImageClipboardItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageClipboardItemRow.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* ClipboardImageThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardImageThumbnail.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* HashUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashUtilityTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* StorageServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageServiceTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* CoreDeckViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDeckViewModelTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* ClipboardMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitorTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000016 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		A20000000000000000000017 /* ClipboardPanelHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelHeaderView.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* ClipboardEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardEmptyStateView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* ClipboardPanelRenderingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPanelRenderingTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* CoreDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000021 /* CoreDeckTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreDeckTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D20000000000000000000001 /* CoreDeckUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreDeckUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		80667A22AA980F7D1E57444F /* CoreDeckTestHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreDeckTestHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8F26DFBBA273486E7AF16742 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		H11000000000000000000001 /* Embed Launch Agents */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolderSpec = 1;
+			files = (
+				H10000000000000000000001 /* com.brgirgin.CoreDeck.BrowserAudioBridge.plist in Embed Launch Agents */,
+			);
+			name = "Embed Launch Agents";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		G11000000000000000000001 /* Embed XPC Services */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/XPCServices;
+			dstSubfolderSpec = 1;
+			files = (
+				G10000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc in Embed XPC Services */,
+			);
+			name = "Embed XPC Services";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E11000000000000000000001 /* Embed Login Items */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LoginItems;
+			dstSubfolderSpec = 1;
+			files = (
+				E10000000000000000000001 /* CoreDeckLoginItem.app in Embed Login Items */,
+			);
+			name = "Embed Login Items";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F11000000000000000000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F10000000000000000000001 /* CoreDeckSafariExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		G30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0284083DD98274677A3E472B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB91B2E2A7C3DCC860DE8E7D /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		G13000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = G50000000000000000000001;
+			remoteInfo = CoreDeckBrowserAudioBridge;
+		};
+		F13000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F50000000000000000000001;
+			remoteInfo = CoreDeckSafariExtension;
+		};
+		E13000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E50000000000000000000001;
+			remoteInfo = CoreDeckLoginItem;
+		};
+		C10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F7679A0DD30E27564C2F0E59;
+			remoteInfo = CoreDeckTestHost;
+		};
+		D10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F7679A0DD30E27564C2F0E59;
+			remoteInfo = CoreDeckTestHost;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		G14000000000000000000001 /* Exceptions for CoreDeckBrowserAudioBridge folder */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = G50000000000000000000001 /* CoreDeckBrowserAudioBridge */;
+		};
+		F14000000000000000000001 /* Exceptions for CoreDeckSafariExtension folder */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F50000000000000000000001 /* CoreDeckSafariExtension */;
+		};
+		C10000000000000000000002 /* Exceptions for CoreDeck folder in CoreDeck target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A50000000000000000000001 /* CoreDeck */;
+		};
+		5358167F4707F692CDD1755E /* Exceptions for "CoreDeck" folder in "CoreDeckTestHost" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F7679A0DD30E27564C2F0E59 /* CoreDeckTestHost */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				H20000000000000000000001 /* com.brgirgin.CoreDeck.BrowserAudioBridge.plist */,
+				A40000000000000000000002 /* CoreDeck */,
+				G40000000000000000000001 /* CoreDeckBrowserAudioBridge */,
+				E40000000000000000000001 /* CoreDeckLoginItem */,
+				F40000000000000000000001 /* CoreDeckSafariExtension */,
+				A40000000000000000000008 /* Tests/Unit */,
+				D40000000000000000000001 /* Tests/UI */,
+				A20000000000000000000016 /* README.md */,
+				A40000000000000000000009 /* Products */,
+				F5CC9ECFA91DA5D1E1EECAA8 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* CoreDeck */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C10000000000000000000002 /* Exceptions for "CoreDeck" folder in "CoreDeck" target */,
+				5358167F4707F692CDD1755E /* Exceptions for "CoreDeck" folder in "CoreDeckTestHost" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = CoreDeck;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000002 /* ClipboardItem.swift */,
+				A20000000000000000000003 /* ClipboardItemType.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000004 /* ClipboardContent.swift */,
+				A20000000000000000000005 /* ClipboardMonitor.swift */,
+				A20000000000000000000006 /* Logger.swift */,
+				A20000000000000000000007 /* StorageService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000008 /* DateFormatting.swift */,
+				A20000000000000000000009 /* HashUtility.swift */,
+				A2000000000000000000000A /* ImageDataLoader.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000B /* CoreDeckViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000C /* ClipboardPanelView.swift */,
+				A2000000000000000000000D /* ClipboardItemRow.swift */,
+				A2000000000000000000000E /* TextClipboardItemRow.swift */,
+				A2000000000000000000000F /* ImageClipboardItemRow.swift */,
+				A20000000000000000000010 /* ClipboardImageThumbnail.swift */,
+				A20000000000000000000017 /* ClipboardPanelHeaderView.swift */,
+				A20000000000000000000018 /* ClipboardEmptyStateView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* CoreDeckTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			name = CoreDeckTests;
+			path = Tests/Unit;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000020 /* CoreDeck.app */,
+				G20000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc */,
+				E20000000000000000000001 /* CoreDeckLoginItem.app */,
+				F20000000000000000000001 /* CoreDeckSafariExtension.appex */,
+				A20000000000000000000021 /* CoreDeckTests.xctest */,
+				D20000000000000000000001 /* CoreDeckUITests.xctest */,
+				80667A22AA980F7D1E57444F /* CoreDeckTestHost.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G40000000000000000000001 /* CoreDeckBrowserAudioBridge */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				G14000000000000000000001 /* Exceptions for CoreDeckBrowserAudioBridge folder */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = CoreDeckBrowserAudioBridge;
+			sourceTree = "<group>";
+		};
+		E40000000000000000000001 /* CoreDeckLoginItem */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = CoreDeckLoginItem;
+			sourceTree = "<group>";
+		};
+		F40000000000000000000001 /* CoreDeckSafariExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F14000000000000000000001 /* Exceptions for CoreDeckSafariExtension folder */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = CoreDeckSafariExtension;
+			sourceTree = "<group>";
+		};
+		D40000000000000000000001 /* CoreDeckUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			name = CoreDeckUITests;
+			path = Tests/UI;
+			sourceTree = "<group>";
+		};
+		F5CC9ECFA91DA5D1E1EECAA8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				86EA9CF0F1344FA2137EA869 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		86EA9CF0F1344FA2137EA869 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				8F26DFBBA273486E7AF16742 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* CoreDeck */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000002 /* Build configuration list for PBXNativeTarget "CoreDeck" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+				A70000000000000000000001 /* Resources */,
+				E11000000000000000000001 /* Embed Login Items */,
+				F11000000000000000000001 /* Embed App Extensions */,
+				G11000000000000000000001 /* Embed XPC Services */,
+				H11000000000000000000001 /* Embed Launch Agents */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E12000000000000000000001 /* PBXTargetDependency */,
+				F12000000000000000000001 /* PBXTargetDependency */,
+				G12000000000000000000001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A40000000000000000000002 /* CoreDeck */,
+			);
+			name = CoreDeck;
+			productName = CoreDeck;
+			productReference = A20000000000000000000020 /* CoreDeck.app */;
+			productType = "com.apple.product-type.application";
+		};
+		G50000000000000000000001 /* CoreDeckBrowserAudioBridge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = G90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckBrowserAudioBridge" */;
+			buildPhases = (
+				G60000000000000000000001 /* Sources */,
+				G30000000000000000000001 /* Frameworks */,
+				G70000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				G40000000000000000000001 /* CoreDeckBrowserAudioBridge */,
+			);
+			name = CoreDeckBrowserAudioBridge;
+			productName = CoreDeckBrowserAudioBridge;
+			productReference = G20000000000000000000001 /* CoreDeckBrowserAudioBridge.xpc */;
+			productType = "com.apple.product-type.xpc-service";
+		};
+		E50000000000000000000001 /* CoreDeckLoginItem */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckLoginItem" */;
+			buildPhases = (
+				E60000000000000000000001 /* Sources */,
+				E30000000000000000000001 /* Frameworks */,
+				E70000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E40000000000000000000001 /* CoreDeckLoginItem */,
+			);
+			name = CoreDeckLoginItem;
+			productName = CoreDeckLoginItem;
+			productReference = E20000000000000000000001 /* CoreDeckLoginItem.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F50000000000000000000001 /* CoreDeckSafariExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckSafariExtension" */;
+			buildPhases = (
+				F60000000000000000000001 /* Sources */,
+				F30000000000000000000001 /* Frameworks */,
+				F70000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F40000000000000000000001 /* CoreDeckSafariExtension */,
+			);
+			name = CoreDeckSafariExtension;
+			productName = CoreDeckSafariExtension;
+			productReference = F20000000000000000000001 /* CoreDeckSafariExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A50000000000000000000002 /* CoreDeckTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000003 /* Build configuration list for PBXNativeTarget "CoreDeckTests" */;
+			buildPhases = (
+				A60000000000000000000002 /* Sources */,
+				A30000000000000000000002 /* Frameworks */,
+				A70000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C10000000000000000000003 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A40000000000000000000008 /* CoreDeckTests */,
+			);
+			name = CoreDeckTests;
+			productName = CoreDeckTests;
+			productReference = A20000000000000000000021 /* CoreDeckTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D50000000000000000000001 /* CoreDeckUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckUITests" */;
+			buildPhases = (
+				D60000000000000000000001 /* Sources */,
+				D30000000000000000000001 /* Frameworks */,
+				D70000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D10000000000000000000002 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D40000000000000000000001 /* CoreDeckUITests */,
+			);
+			name = CoreDeckUITests;
+			productName = CoreDeckUITests;
+			productReference = D20000000000000000000001 /* CoreDeckUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		F7679A0DD30E27564C2F0E59 /* CoreDeckTestHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74BBA51B0CD22D549F690396 /* Build configuration list for PBXNativeTarget "CoreDeckTestHost" */;
+			buildPhases = (
+				17D72D87C5BDF948BE6B1524 /* Sources */,
+				0284083DD98274677A3E472B /* Frameworks */,
+				F7DFBE5345772A069F5CB2B6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A40000000000000000000002 /* CoreDeck */,
+			);
+			name = CoreDeckTestHost;
+			productName = CoreDeckTestHost;
+			productReference = 80667A22AA980F7D1E57444F /* CoreDeckTestHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					A50000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					D50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = F7679A0DD30E27564C2F0E59;
+					};
+					E50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					F50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					G50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "CoreDeck" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				tr,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A40000000000000000000009 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* CoreDeck */,
+				G50000000000000000000001 /* CoreDeckBrowserAudioBridge */,
+				E50000000000000000000001 /* CoreDeckLoginItem */,
+				F50000000000000000000001 /* CoreDeckSafariExtension */,
+				A50000000000000000000002 /* CoreDeckTests */,
+				D50000000000000000000001 /* CoreDeckUITests */,
+				F7679A0DD30E27564C2F0E59 /* CoreDeckTestHost */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		G70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A70000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D70000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F7DFBE5345772A069F5CB2B6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		G12000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = G50000000000000000000001 /* CoreDeckBrowserAudioBridge */;
+			targetProxy = G13000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		F12000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F50000000000000000000001 /* CoreDeckSafariExtension */;
+			targetProxy = F13000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		E12000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E50000000000000000000001 /* CoreDeckLoginItem */;
+			targetProxy = E13000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		C10000000000000000000003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7679A0DD30E27564C2F0E59 /* CoreDeckTestHost */;
+			targetProxy = C10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		D10000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7679A0DD30E27564C2F0E59 /* CoreDeckTestHost */;
+			targetProxy = D10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXSourcesBuildPhase section */
+		G60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17D72D87C5BDF948BE6B1524 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				EXTRACT_APP_INTENTS_METADATA = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				EXTRACT_APP_INTENTS_METADATA = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+		};
+			name = Release;
+		};
+		AA0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				EXTRACT_APP_INTENTS_METADATA = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = CommunityRelease;
+		};
+		AA0000000000000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXECUTABLE_NAME = CoreDeck;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck;
+				PRODUCT_MODULE_NAME = CoreDeck;
+				PRODUCT_NAME = CoreDeck;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXECUTABLE_NAME = CoreDeck;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck;
+				PRODUCT_MODULE_NAME = CoreDeck;
+				PRODUCT_NAME = CoreDeck;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AA0000000000000000000013 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+							CURRENT_PROJECT_VERSION = 10009;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXECUTABLE_NAME = CoreDeck;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+							MARKETING_VERSION = 1.0.0-beta.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck;
+				PRODUCT_MODULE_NAME = CoreDeck;
+				PRODUCT_NAME = CoreDeck;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+		AA0000000000000000000021 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CoreDeckTestHost.app/Contents/MacOS/CoreDeckTestHost";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000022 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CoreDeckTestHost.app/Contents/MacOS/CoreDeckTestHost";
+			};
+			name = Release;
+		};
+		AA0000000000000000000023 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CoreDeckTestHost.app/Contents/MacOS/CoreDeckTestHost";
+			};
+			name = CommunityRelease;
+		};
+		DD0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CoreDeckTestHost;
+			};
+			name = Debug;
+		};
+		DD0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CoreDeckTestHost;
+			};
+			name = Release;
+		};
+		DD0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeckUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CoreDeckTestHost;
+			};
+			name = CommunityRelease;
+		};
+		EE0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.LoginItem;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		EE0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.LoginItem;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		EE0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+							CURRENT_PROJECT_VERSION = 10009;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+							MARKETING_VERSION = 1.0.0-beta.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.LoginItem;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+		FF0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CoreDeckSafariExtension/CoreDeckSafariExtension.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckSafariExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.SafariExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		FF0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CoreDeckSafariExtension/CoreDeckSafariExtension.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckSafariExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.SafariExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		FF0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CoreDeckSafariExtension/CoreDeckSafariExtension.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+							CURRENT_PROJECT_VERSION = 10009;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckSafariExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+							MARKETING_VERSION = 1.0.0-beta.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.SafariExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+		GG0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.BrowserAudioBridge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		GG0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.BrowserAudioBridge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		GG0000000000000000000003 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+							CURRENT_PROJECT_VERSION = 10009;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeckBrowserAudioBridge/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+							MARKETING_VERSION = 1.0.0-beta.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.BrowserAudioBridge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+		9D7F7A61A8980319A3700715 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) COREDECK_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		2B13B5AAB4F35123642E64AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) COREDECK_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		94BB87C7C9A209D19B579C24 /* CommunityRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CoreDeck/CoreDeck.entitlements;
+				CODE_SIGN_IDENTITY = "CoreDeck Community Beta";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+							CURRENT_PROJECT_VERSION = 10009;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CoreDeck/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+							MARKETING_VERSION = 1.0.0-beta.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.brgirgin.CoreDeck.TestHost;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) COREDECK_TEST_HOST";
+				SWIFT_OBJC_BRIDGING_HEADER = "CoreDeck/CoreDeck-Bridging-Header.h";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = CommunityRelease;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A90000000000000000000001 /* Build configuration list for PBXProject "CoreDeck" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000001 /* Debug */,
+				AA0000000000000000000002 /* Release */,
+				AA0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "CoreDeck" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000011 /* Debug */,
+				AA0000000000000000000012 /* Release */,
+				AA0000000000000000000013 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "CoreDeckTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000021 /* Debug */,
+				AA0000000000000000000022 /* Release */,
+				AA0000000000000000000023 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD0000000000000000000001 /* Debug */,
+				DD0000000000000000000002 /* Release */,
+				DD0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckLoginItem" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE0000000000000000000001 /* Debug */,
+				EE0000000000000000000002 /* Release */,
+				EE0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckSafariExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF0000000000000000000001 /* Debug */,
+				FF0000000000000000000002 /* Release */,
+				FF0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		G90000000000000000000001 /* Build configuration list for PBXNativeTarget "CoreDeckBrowserAudioBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				GG0000000000000000000001 /* Debug */,
+				GG0000000000000000000002 /* Release */,
+				GG0000000000000000000003 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74BBA51B0CD22D549F690396 /* Build configuration list for PBXNativeTarget "CoreDeckTestHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D7F7A61A8980319A3700715 /* Release */,
+				2B13B5AAB4F35123642E64AC /* Debug */,
+				94BB87C7C9A209D19B579C24 /* CommunityRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}

@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import SQLite3
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class StorageServiceTests: XCTestCase {
     private var temporaryDirectory: URL!
@@ -11,7 +11,7 @@ final class StorageServiceTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         temporaryDirectory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryTests-\(UUID().uuidString)",
+            path: "CoreDeckTests-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         storage = StorageService(baseDirectory: temporaryDirectory)

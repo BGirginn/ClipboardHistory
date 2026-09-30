@@ -1,4 +1,4 @@
-# ClipboardHistory 1.0.0-beta.2
+# CoreDeck 1.0.0-beta.2
 
 This Community beta updates the menu-bar interaction for Apple silicon Macs running macOS 14 Sonoma or later.
 
@@ -8,10 +8,10 @@ This Community beta updates the menu-bar interaction for Apple silicon Macs runn
 brew tap BGirginn/tap
 brew trust BGirginn/tap
 brew update
-brew upgrade --cask clipboardhistory
+brew upgrade --cask coredeck
 ```
 
-For a first installation, replace the final command with `brew install --cask clipboardhistory`. If ClipboardHistory was previously copied into `/Applications` manually, quit it and move that unmanaged application bundle out of `/Applications` before installing the Cask. Clipboard history remains stored separately under Application Support.
+For a first installation, replace the final command with `brew install --cask coredeck`. If CoreDeck was previously copied into `/Applications` manually, quit it and move that unmanaged application bundle out of `/Applications` before installing the Cask. Clipboard history remains stored separately under Application Support.
 
 ## Changes since beta.1
 
@@ -22,6 +22,6 @@ For a first installation, replace the final command with `brew install --cask cl
 
 ## Signing notice
 
-The arm64 ZIP and DMG are signed with the stable self-signed `ClipboardHistory Community Beta` identity and are not Apple-notarized. If macOS blocks first launch, open Applications in Finder, Control-click ClipboardHistory, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
+The arm64 ZIP and DMG are signed with the stable self-signed `CoreDeck Community Beta` identity and are not Apple-notarized. If macOS blocks first launch, open Applications in Finder, Control-click CoreDeck, choose **Open**, and confirm. The same approval is available under System Settings → Privacy & Security. Do not remove quarantine with `xattr`.
 
-This update received focused menu-bar regression tests and a signed CommunityRelease build. The broader external OS, accessibility/visual, Instruments, and long-soak gaps remain disclosed in the [known limitations](https://github.com/BGirginn/ClipboardHistory/blob/v1.0.0-beta.2/docs/KNOWN_LIMITATIONS.md).
+This update received focused menu-bar regression tests and a signed CommunityRelease build. The broader external OS, accessibility/visual, Instruments, and long-soak gaps remain disclosed in the [known limitations](https://github.com/BGirginn/CoreDeck/blob/v1.0.0-beta.2/docs/KNOWN_LIMITATIONS.md).

@@ -9,9 +9,9 @@ fi
 repository_root=${0:A:h:h}
 source_app=${1:A}
 output_directory=${2:A}
-identity='ClipboardHistory Community Beta'
-release_version='0.7.1'
-expected_build='10008'
+identity='CoreDeck Community Beta'
+release_version='1.0.0-beta.8'
+expected_build='10009'
 
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact packaging: output directory must be empty"
@@ -30,10 +30,10 @@ trap 'rm -rf "$staging"' EXIT
 artifact_app="$staging/CoreDeck.app"
 ditto --noqtn "$source_app" "$artifact_app"
 
-helper_app="$artifact_app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
-xpc_service="$artifact_app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
-safari_extension="$artifact_app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
-launch_agent="$artifact_app/Contents/Library/LaunchAgents/com.brgirgin.ClipboardHistory.BrowserAudioBridge.plist"
+helper_app="$artifact_app/Contents/Library/LoginItems/CoreDeckLoginItem.app"
+xpc_service="$artifact_app/Contents/XPCServices/CoreDeckBrowserAudioBridge.xpc"
+safari_extension="$artifact_app/Contents/PlugIns/CoreDeckSafariExtension.appex"
+launch_agent="$artifact_app/Contents/Library/LaunchAgents/com.brgirgin.CoreDeck.BrowserAudioBridge.plist"
 for nested_bundle in "$helper_app" "$xpc_service" "$safari_extension"; do
   [[ -d "$nested_bundle" ]] || {
     print -u2 "artifact packaging: embedded bundle is missing: $nested_bundle"
@@ -45,7 +45,7 @@ done
   exit 1
 }
 plutil -convert json -o - "$launch_agent" \
-  | jq -e '.MachServices["com.brgirgin.ClipboardHistory.BrowserAudioBridge"] == true' \
+  | jq -e '.MachServices["com.brgirgin.CoreDeck.BrowserAudioBridge"] == true' \
   >/dev/null || {
   print -u2 "artifact packaging: browser audio Mach service is not advertised"
   exit 1
@@ -54,10 +54,10 @@ plutil -convert json -o - "$launch_agent" \
 codesign --force --options runtime --timestamp=none --sign "$identity" "$helper_app"
 codesign --force --options runtime --timestamp=none --sign "$identity" "$xpc_service"
 codesign --force --options runtime --timestamp=none \
-  --entitlements "$repository_root/ClipboardHistorySafariExtension/ClipboardHistorySafariExtension.entitlements" \
+  --entitlements "$repository_root/CoreDeckSafariExtension/CoreDeckSafariExtension.entitlements" \
   --sign "$identity" "$safari_extension"
 codesign --force --options runtime --timestamp=none \
-  --entitlements "$repository_root/ClipboardHistory/ClipboardHistory.entitlements" \
+  --entitlements "$repository_root/CoreDeck/CoreDeck.entitlements" \
   --sign "$identity" "$artifact_app"
 
 codesign --verify --deep --strict --verbose=2 "$artifact_app"
@@ -65,12 +65,12 @@ codesign --verify --strict --verbose=2 "$helper_app"
 codesign --verify --strict --verbose=2 "$xpc_service"
 codesign --verify --strict --verbose=2 "$safari_extension"
 helper_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$helper_app/Contents/Info.plist")
-[[ "$helper_identifier" == "com.brgirgin.ClipboardHistory.LoginItem" ]] || {
+[[ "$helper_identifier" == "com.brgirgin.CoreDeck.LoginItem" ]] || {
   print -u2 "artifact packaging: login helper identifier mismatch: $helper_identifier"
   exit 1
 }
 main_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$artifact_app/Contents/Info.plist")
-[[ "$main_identifier" == "com.brgirgin.ClipboardHistory" ]] || {
+[[ "$main_identifier" == "com.brgirgin.CoreDeck" ]] || {
   print -u2 "artifact packaging: main bundle identifier mismatch: $main_identifier"
   exit 1
 }
@@ -91,17 +91,17 @@ codesign -d --entitlements :- "$safari_extension" 2>/dev/null \
   | jq -e '
       .["com.apple.security.app-sandbox"] == true
       and .["com.apple.security.temporary-exception.mach-lookup.global-name"]
-        == ["com.brgirgin.ClipboardHistory.BrowserAudioBridge"]
+        == ["com.brgirgin.CoreDeck.BrowserAudioBridge"]
     ' >/dev/null || {
     print -u2 "artifact packaging: Safari browser bridge entitlement mismatch"
     exit 1
   }
-helper_architectures=$(lipo -archs "$helper_app/Contents/MacOS/ClipboardHistoryLoginItem")
+helper_architectures=$(lipo -archs "$helper_app/Contents/MacOS/CoreDeckLoginItem")
 [[ "$helper_architectures" == "arm64" ]] || {
   print -u2 "artifact packaging: login helper arm64-only verification failed: $helper_architectures"
   exit 1
 }
-bridge_architectures=$(lipo -archs "$xpc_service/Contents/MacOS/ClipboardHistoryBrowserAudioBridge")
+bridge_architectures=$(lipo -archs "$xpc_service/Contents/MacOS/CoreDeckBrowserAudioBridge")
 [[ "$bridge_architectures" == "arm64" ]] || {
   print -u2 "artifact packaging: browser bridge arm64-only verification failed: $bridge_architectures"
   exit 1
@@ -112,7 +112,7 @@ minimum_os=$(otool -l "$artifact_app/Contents/MacOS/CoreDeck" \
   print -u2 "artifact packaging: minimum macOS mismatch: $minimum_os"
   exit 1
 }
-helper_minimum_os=$(otool -l "$helper_app/Contents/MacOS/ClipboardHistoryLoginItem" \
+helper_minimum_os=$(otool -l "$helper_app/Contents/MacOS/CoreDeckLoginItem" \
   | awk '$1 == "minos" { print $2; exit }')
 [[ "$helper_minimum_os" == "14.2" ]] || {
   print -u2 "artifact packaging: login helper minimum macOS mismatch: $helper_minimum_os"
@@ -145,7 +145,7 @@ syft scan "dir:$artifact_app" \
   -o "spdx-json=$spdx"
 jq -e '.spdxVersion == "SPDX-2.3" and .name == "CoreDeck"' "$spdx" >/dev/null
 (
-  cd "$repository_root/ClipboardHistory/Resources/ChromiumAudioExtension"
+  cd "$repository_root/CoreDeck/Resources/ChromiumAudioExtension"
   zip -X -q -r "$chromium_zip" . -x '.DS_Store'
 )
 unzip -tq "$chromium_zip" >/dev/null

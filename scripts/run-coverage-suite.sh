@@ -16,7 +16,7 @@ mkdir -p "$evidence_root"
 python3 "$repository_root/scripts/write-evidence-metadata.py" "$evidence_root/Environment.json" coverage
 
 suite_succeeded=0
-retain_raw_results=${CLIPBOARD_HISTORY_RETAIN_RAW_RESULTS:-0}
+retain_raw_results=${COREDECK_RETAIN_RAW_RESULTS:-0}
 build_root=""
 save_summary() {
   local kind=$1
@@ -51,8 +51,8 @@ build_root=$(mktemp -d /private/tmp/coredeck-coverage-work.XXXXXX)
 
 cd "$repository_root"
 if ! xcodebuild -quiet \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistoryTests \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeckTests \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$build_root/UnitDerivedData" \
@@ -63,7 +63,7 @@ if ! xcodebuild -quiet \
   -maximum-test-execution-time-allowance 300 \
   ENABLE_DEBUG_DYLIB=NO \
   CODE_SIGNING_ALLOWED=NO \
-  -only-testing:ClipboardHistoryTests test >"$evidence_root/Unit.log" 2>&1; then
+  -only-testing:CoreDeckTests test >"$evidence_root/Unit.log" 2>&1; then
   cat "$evidence_root/Unit.log" >&2
   print -u2 "coverage suite: unit run failed; evidence=$evidence_root"
   exit 1
@@ -74,8 +74,8 @@ python3 scripts/verify-test-inventory.py Unit "$evidence_root/Unit.xcresult"
 # The production entitlement file is empty, so the isolated UI run can use an
 # ad-hoc signature without an Apple account or provisioning profile.
 if ! xcodebuild -quiet \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistoryTests \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeckTests \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$build_root/UIDerivedData" \
@@ -88,9 +88,9 @@ if ! xcodebuild -quiet \
   CODE_SIGNING_ALLOWED=YES \
   CODE_SIGNING_REQUIRED=YES \
   CODE_SIGN_STYLE=Manual \
-  CODE_SIGN_ENTITLEMENTS=ClipboardHistory/ClipboardHistory.entitlements \
+  CODE_SIGN_ENTITLEMENTS=CoreDeck/CoreDeck.entitlements \
   CODE_SIGN_IDENTITY=- \
-  -only-testing:ClipboardHistoryUITests test >"$evidence_root/UI.log" 2>&1; then
+  -only-testing:CoreDeckUITests test >"$evidence_root/UI.log" 2>&1; then
   cat "$evidence_root/UI.log" >&2
   print -u2 "coverage suite: UI run failed; evidence=$evidence_root"
   exit 1

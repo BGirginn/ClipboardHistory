@@ -8,12 +8,12 @@ Copy the contents of this kit into the repository root.
 AGENTS.md
 .agents/
   skills/
-    clipboardhistory-change-safety/
-    clipboardhistory-privacy-storage/
-    clipboardhistory-performance/
-    clipboardhistory-menubar/
-    clipboardhistory-audio-mixer/
-    clipboardhistory-release/
+    coredeck-change-safety/
+    coredeck-privacy-storage/
+    coredeck-performance/
+    coredeck-menubar/
+    coredeck-audio-mixer/
+    coredeck-release/
 docs/
   AI_PROJECT_CONTEXT.md
   AI_AUDIT_BASELINE.md
@@ -41,12 +41,12 @@ Reusable expert workflows.
 
 Use explicitly in Codex with the skill picker/mention when needed, or allow Codex to match them from their descriptions.
 
-- `clipboardhistory-change-safety`: general implementation/refactor/bug-fix workflow
-- `clipboardhistory-privacy-storage`: SQLite/assets/encryption/Keychain/deletion/migration/import/export
-- `clipboardhistory-performance`: System Monitor, polling, CPU, battery, timers
-- `clipboardhistory-menubar`: Control Center, NSStatusItem, topbar customization, future external manager
-- `clipboardhistory-audio-mixer`: CoreAudio and browser audio bridge
-- `clipboardhistory-release`: CI, test matrix, signing, artifacts, release evidence
+- `coredeck-change-safety`: general implementation/refactor/bug-fix workflow
+- `coredeck-privacy-storage`: SQLite/assets/encryption/Keychain/deletion/migration/import/export
+- `coredeck-performance`: System Monitor, polling, CPU, battery, timers
+- `coredeck-menubar`: Control Center, NSStatusItem, topbar customization, future external manager
+- `coredeck-audio-mixer`: CoreAudio and browser audio bridge
+- `coredeck-release`: CI, test matrix, signing, artifacts, release evidence
 
 ### `docs/ENGINEERING_INVARIANTS.md`
 
@@ -86,33 +86,33 @@ Ready-to-paste prompts for:
 For a normal task:
 
 ```text
-Read AGENTS.md, then implement [task]. Use the relevant ClipboardHistory skill.
+Read AGENTS.md, then implement [task]. Use the relevant CoreDeck skill.
 ```
 
 For a storage/privacy task:
 
 ```text
-Use $clipboardhistory-privacy-storage.
+Use $coredeck-privacy-storage.
 Fix [issue]. Prove the persistent-state invariant before editing and add a regression test.
 ```
 
 For System Monitor:
 
 ```text
-Use $clipboardhistory-performance.
+Use $coredeck-performance.
 Review/implement [change] without creating duplicate producers or per-widget timers.
 ```
 
 For menu-bar work:
 
 ```text
-Use $clipboardhistory-menubar.
+Use $coredeck-menubar.
 Implement [change] while preserving hybrid Control Center + independent status-item behavior.
 ```
 
 For release:
 
 ```text
-Use $clipboardhistory-release.
+Use $coredeck-release.
 Assess this exact commit. Separate executed evidence from historical or unrun checks.
 ```

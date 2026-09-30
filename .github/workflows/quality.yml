@@ -1,9 +1,7 @@
 name: Quality
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -41,28 +39,28 @@ jobs:
       - uses: ./.github/actions/setup-required-tools
       - name: Unit and integration tests
         run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
+          xcodebuild -quiet -project CoreDeck.xcodeproj -scheme CoreDeckTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
-            -derivedDataPath /private/tmp/ClipboardHistoryCI \
-            -resultBundlePath /private/tmp/ClipboardHistoryCI-Unit.xcresult \
-            CODE_SIGNING_ALLOWED=NO -only-testing:ClipboardHistoryTests test
-      - run: python3 scripts/verify-test-inventory.py Unit /private/tmp/ClipboardHistoryCI-Unit.xcresult
+            -derivedDataPath /private/tmp/CoreDeckCI \
+            -resultBundlePath /private/tmp/CoreDeckCI-Unit.xcresult \
+            CODE_SIGNING_ALLOWED=NO -only-testing:CoreDeckTests test
+      - run: python3 scripts/verify-test-inventory.py Unit /private/tmp/CoreDeckCI-Unit.xcresult
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: unit-${{ matrix.runner }}-${{ github.sha }}
-          path: /private/tmp/ClipboardHistoryCI-Unit.xcresult
+          path: /private/tmp/CoreDeckCI-Unit.xcresult
           retention-days: 14
           if-no-files-found: error
       - name: Release build
         run: |
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistory \
+          xcodebuild -quiet -project CoreDeck.xcodeproj -scheme CoreDeck \
             -configuration Release -destination 'generic/platform=macOS' \
-            -derivedDataPath /private/tmp/ClipboardHistoryRelease \
+            -derivedDataPath /private/tmp/CoreDeckRelease \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
       - name: Verify Release architecture
         run: |
-          executable=/private/tmp/ClipboardHistoryRelease/Build/Products/Release/CoreDeck.app/Contents/MacOS/CoreDeck
+          executable=/private/tmp/CoreDeckRelease/Build/Products/Release/CoreDeck.app/Contents/MacOS/CoreDeck
           test "$(lipo -archs "$executable")" = arm64
           file "$executable" | grep -q 'Mach-O 64-bit executable arm64'
 
@@ -74,13 +72,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: ./.github/actions/setup-required-tools
       - name: Produce coverage result
-        run: scripts/run-coverage-suite.sh /private/tmp/ClipboardHistoryCoverage
+        run: scripts/run-coverage-suite.sh /private/tmp/CoreDeckCoverage
       - name: Verify required coverage artifacts
         run: |
           for artifact in Unit.xcresult UI.xcresult UnitSummary.json UISummary.json Combined.xccovreport Combined.xccovarchive Unit.log UI.log; do
-            test -e "/private/tmp/ClipboardHistoryCoverage/$artifact" || exit 1
+            test -e "/private/tmp/CoreDeckCoverage/$artifact" || exit 1
           done
-          test -s /private/tmp/ClipboardHistoryCoverage/Environment.json
+          test -s /private/tmp/CoreDeckCoverage/Environment.json
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -88,17 +86,17 @@ jobs:
           retention-days: 14
           if-no-files-found: error
           path: |
-            /private/tmp/ClipboardHistoryCoverage/Unit.xcresult
-            /private/tmp/ClipboardHistoryCoverage/UI.xcresult
-            /private/tmp/ClipboardHistoryCoverage/UnitSummary.json
-            /private/tmp/ClipboardHistoryCoverage/UISummary.json
-            /private/tmp/ClipboardHistoryCoverage/*SummaryExport.log
-            /private/tmp/ClipboardHistoryCoverage/*Summary.json.partial
-            /private/tmp/ClipboardHistoryCoverage/Combined.xccovreport
-            /private/tmp/ClipboardHistoryCoverage/Combined.xccovarchive
-            /private/tmp/ClipboardHistoryCoverage/Environment.json
-            /private/tmp/ClipboardHistoryCoverage/Unit.log
-            /private/tmp/ClipboardHistoryCoverage/UI.log
+            /private/tmp/CoreDeckCoverage/Unit.xcresult
+            /private/tmp/CoreDeckCoverage/UI.xcresult
+            /private/tmp/CoreDeckCoverage/UnitSummary.json
+            /private/tmp/CoreDeckCoverage/UISummary.json
+            /private/tmp/CoreDeckCoverage/*SummaryExport.log
+            /private/tmp/CoreDeckCoverage/*Summary.json.partial
+            /private/tmp/CoreDeckCoverage/Combined.xccovreport
+            /private/tmp/CoreDeckCoverage/Combined.xccovarchive
+            /private/tmp/CoreDeckCoverage/Environment.json
+            /private/tmp/CoreDeckCoverage/Unit.log
+            /private/tmp/CoreDeckCoverage/UI.log
 
   analyze:
     runs-on: macos-26
@@ -181,14 +179,14 @@ jobs:
           evidence=$(mktemp -d /private/tmp/coredeck-signed-ui.XXXXXX)
           echo "SIGNED_UI_EVIDENCE=$evidence" >> "$GITHUB_ENV"
           python3 scripts/write-evidence-metadata.py "$evidence/Environment.json" signed-ui
-          xcodebuild -quiet -project ClipboardHistory.xcodeproj -scheme ClipboardHistoryTests \
+          xcodebuild -quiet -project CoreDeck.xcodeproj -scheme CoreDeckTests \
             -configuration Debug -destination 'platform=macOS,arch=arm64' \
-            -derivedDataPath /private/tmp/ClipboardHistorySignedUI \
+            -derivedDataPath /private/tmp/CoreDeckSignedUI \
             -resultBundlePath "$evidence/UI.xcresult" \
             -test-timeouts-enabled YES -default-test-execution-time-allowance 180 \
             -maximum-test-execution-time-allowance 300 \
-            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
-            -only-testing:ClipboardHistoryUITests test > "$evidence/UI.log" 2>&1
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='CoreDeck Community Beta' \
+            -only-testing:CoreDeckUITests test > "$evidence/UI.log" 2>&1
           python3 scripts/verify-test-inventory.py UI "$evidence/UI.xcresult"
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

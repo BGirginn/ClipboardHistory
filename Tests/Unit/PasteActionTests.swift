@@ -1,7 +1,7 @@
 import AppKit
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class PasteActionTests: XCTestCase {
     @MainActor
@@ -62,13 +62,13 @@ final class PasteActionTests: XCTestCase {
     @MainActor
     func testDirectPasteInvokesAccessibilityServiceButCopyDoesNot() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryDirectPaste-\(UUID().uuidString)",
+            path: "CoreDeckDirectPaste-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
         let pasteboard = NSPasteboard(name: .init("DirectPaste-\(UUID().uuidString)"))
         let pasteService = StubActiveApplicationPasteService()
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: StorageService(baseDirectory: directory),
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
@@ -88,13 +88,13 @@ final class PasteActionTests: XCTestCase {
     @MainActor
     func testPermissionIsRequestedOnlyByDirectPasteAndCopyStillSucceeds() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryPastePermission-\(UUID().uuidString)",
+            path: "CoreDeckPastePermission-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
         let pasteboard = NSPasteboard(name: .init("PastePermission-\(UUID().uuidString)"))
         let pasteService = StubActiveApplicationPasteService(result: .permissionRequired)
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: StorageService(baseDirectory: directory),
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,

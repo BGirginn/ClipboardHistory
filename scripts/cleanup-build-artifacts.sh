@@ -18,16 +18,16 @@ case "$mode" in
     ;;
 esac
 
-repository_root=${CLIPBOARD_HISTORY_REPOSITORY_ROOT:-${0:A:h:h}}
-temporary_root=${CLIPBOARD_HISTORY_TEMP_ROOT:-/private/tmp}
-derived_data_root=${CLIPBOARD_HISTORY_DERIVED_DATA_ROOT:-$HOME/Library/Developer/Xcode/DerivedData}
-maximum_temporary_kib=${CLIPBOARD_HISTORY_MAX_TEMP_KIB:-2097152}
-maximum_development_kib=${CLIPBOARD_HISTORY_MAX_DEVELOPMENT_KIB:-2097152}
-maximum_derived_data_kib=${CLIPBOARD_HISTORY_MAX_DERIVED_DATA_KIB:-4194304}
-minimum_age_minutes=${CLIPBOARD_HISTORY_MINIMUM_AGE_MINUTES:-30}
-stale_temporary_hours=${CLIPBOARD_HISTORY_STALE_TEMP_HOURS:-24}
-stale_development_days=${CLIPBOARD_HISTORY_STALE_DEVELOPMENT_DAYS:-7}
-stale_derived_data_days=${CLIPBOARD_HISTORY_STALE_DERIVED_DATA_DAYS:-7}
+repository_root=${COREDECK_REPOSITORY_ROOT:-${0:A:h:h}}
+temporary_root=${COREDECK_TEMP_ROOT:-/private/tmp}
+derived_data_root=${COREDECK_DERIVED_DATA_ROOT:-$HOME/Library/Developer/Xcode/DerivedData}
+maximum_temporary_kib=${COREDECK_MAX_TEMP_KIB:-2097152}
+maximum_development_kib=${COREDECK_MAX_DEVELOPMENT_KIB:-2097152}
+maximum_derived_data_kib=${COREDECK_MAX_DERIVED_DATA_KIB:-4194304}
+minimum_age_minutes=${COREDECK_MINIMUM_AGE_MINUTES:-30}
+stale_temporary_hours=${COREDECK_STALE_TEMP_HOURS:-24}
+stale_development_days=${COREDECK_STALE_DEVELOPMENT_DAYS:-7}
+stale_derived_data_days=${COREDECK_STALE_DERIVED_DATA_DAYS:-7}
 
 for value in \
   "$maximum_temporary_kib" \
@@ -140,33 +140,33 @@ is_known_temporary_artifact() {
   case ${1:t} in
     coredeck-community-build.*|\
     coredeck-community-stage.*|\
-    clipboardhistory-arm64-builds.*|\
-    clipboardhistory-community-build.*|\
-    clipboardhistory-community-stage.*|\
-    clipboardhistory-coverage-*|\
-    clipboardhistory-coverage.*.json|\
-    clipboardhistory-localization.*|\
-    clipboardhistory-mutation-*.*|\
-    clipboardhistory-performance.*|\
-    clipboardhistory-sanitizers.*|\
-    clipboardhistory-signing.*|\
+    coredeck-arm64-builds.*|\
+    coredeck-community-build.*|\
+    coredeck-community-stage.*|\
+    coredeck-coverage-*|\
+    coredeck-coverage.*.json|\
+    coredeck-localization.*|\
+    coredeck-mutation-*.*|\
+    coredeck-performance.*|\
+    coredeck-sanitizers.*|\
+    coredeck-signing.*|\
     ClipboardAssetStoreCoverageTests-*|\
     ClipboardDragProviderTests-*|\
-    ClipboardHistoryCollections-*|\
-    ClipboardHistoryDirectPaste-*|\
-    ClipboardHistoryEditing-*|\
-    ClipboardHistoryFailClosed-*|\
-    ClipboardHistoryInjectedSQLite-*|\
-    ClipboardHistoryKeyFailure-*|\
-    ClipboardHistoryPastePermission-*|\
-    ClipboardHistoryPasteStack-*|\
-    ClipboardHistoryCoverage*|\
-    ClipboardHistoryTamperedText-*|\
-    ClipboardHistoryTests-*|\
-    ClipboardHistory-UITesting-*|\
-    ClipboardHistory-UITests-*|\
-    ClipboardHistoryViewModelSQLiteFailure-*|\
-    ClipboardHistoryViewModelTests-*)
+    CoreDeckCollections-*|\
+    CoreDeckDirectPaste-*|\
+    CoreDeckEditing-*|\
+    CoreDeckFailClosed-*|\
+    CoreDeckInjectedSQLite-*|\
+    CoreDeckKeyFailure-*|\
+    CoreDeckPastePermission-*|\
+    CoreDeckPasteStack-*|\
+    CoreDeckCoverage*|\
+    CoreDeckTamperedText-*|\
+    CoreDeckTests-*|\
+    CoreDeck-UITesting-*|\
+    CoreDeck-UITests-*|\
+    CoreDeckViewModelSQLiteFailure-*|\
+    CoreDeckViewModelTests-*)
       return 0
       ;;
     *)
@@ -178,7 +178,7 @@ is_known_temporary_artifact() {
 is_temporary_xcode_derived_data() {
   local item=$1
   case ${item:t} in
-    ClipboardHistory*|CoreDeck*|clipboardhistory*|coredeck*) ;;
+    CoreDeck*|CoreDeck*|coredeck*|coredeck*) ;;
     *) return 1 ;;
   esac
 
@@ -266,7 +266,7 @@ fi
 derived_data_candidates=()
 if [[ -d "$derived_data_root" ]]; then
   derived_data_candidates=(
-    "$derived_data_root"/ClipboardHistory-*(N)
+    "$derived_data_root"/CoreDeck-*(N)
     "$derived_data_root"/CoreDeck-*(N)
   )
 fi

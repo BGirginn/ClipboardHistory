@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 private actor SystemMetricsProviderStub: SystemMetricsProviding {
     private var index = 0

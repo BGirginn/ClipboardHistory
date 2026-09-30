@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class BrowserExtensionInstallerTests: XCTestCase {
@@ -16,7 +16,7 @@ final class BrowserExtensionInstallerTests: XCTestCase {
         )
 
         let extensionDirectory = try installer.install()
-        XCTAssertEqual(extensionDirectory.deletingLastPathComponent().lastPathComponent, "ClipboardHistory")
+        XCTAssertEqual(extensionDirectory.deletingLastPathComponent().lastPathComponent, "CoreDeck")
         let expectedResources = [
             "manifest.json", "service-worker.js", "offscreen.html", "offscreen.js",
             "popup.html", "popup.js", "_locales/en/messages.json", "_locales/tr/messages.json"
@@ -44,11 +44,11 @@ final class BrowserExtensionInstallerTests: XCTestCase {
         for relativePath in browserDirectories {
             let manifestURL = root
                 .appending(path: relativePath, directoryHint: .isDirectory)
-                .appending(path: "com.brgirgin.clipboardhistory.audiomixer.json")
+                .appending(path: "com.brgirgin.coredeck.audiomixer.json")
             let object = try XCTUnwrap(
                 JSONSerialization.jsonObject(with: Data(contentsOf: manifestURL)) as? [String: Any]
             )
-            XCTAssertEqual(object["name"] as? String, "com.brgirgin.clipboardhistory.audiomixer")
+            XCTAssertEqual(object["name"] as? String, "com.brgirgin.coredeck.audiomixer")
             XCTAssertEqual(object["type"] as? String, "stdio")
             XCTAssertEqual(
                 object["allowed_origins"] as? [String],

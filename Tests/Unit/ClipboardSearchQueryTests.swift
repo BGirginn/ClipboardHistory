@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class ClipboardSearchQueryTests: XCTestCase {
     func testFieldFiltersMatchProtectedAndPublicMetadata() {

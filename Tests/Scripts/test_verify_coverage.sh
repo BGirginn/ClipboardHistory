@@ -10,7 +10,7 @@ cat > "$temporary_root/bin/xcrun" <<'SCRIPT'
 cat "$COREDECK_TEST_COVERAGE_JSON"
 SCRIPT
 chmod +x "$temporary_root/bin/xcrun"
-print '{"targets":[{"name":"ClipboardHistoryTestHost.app","lineCoverage":1,"files":[]}]}' \
+print '{"targets":[{"name":"CoreDeckTestHost.app","lineCoverage":1,"files":[]}]}' \
   > "$temporary_root/report.json"
 touch "$temporary_root/Combined.xccovreport"
 
@@ -26,20 +26,20 @@ rg -q 'coverage gate: production source is missing from the report:' \
 print 'coverage regression: missing production sources fail the gate'
 
 fixture_root="$temporary_root/fixture"
-mkdir -p "$fixture_root/scripts" "$fixture_root/ClipboardHistory"
+mkdir -p "$fixture_root/scripts" "$fixture_root/CoreDeck"
 cp "$repository_root/scripts/verify-coverage.sh" "$fixture_root/scripts/verify-coverage.sh"
-print 'protocol CoverageFixture {}' > "$fixture_root/ClipboardHistory/Fixture.swift"
-fixture_hash=$(shasum -a 256 "$fixture_root/ClipboardHistory/Fixture.swift" | cut -d ' ' -f 1)
-print "$fixture_hash\tClipboardHistory/Fixture.swift\tprotocol-only" \
+print 'protocol CoverageFixture {}' > "$fixture_root/CoreDeck/Fixture.swift"
+fixture_hash=$(shasum -a 256 "$fixture_root/CoreDeck/Fixture.swift" | cut -d ' ' -f 1)
+print "$fixture_hash\tCoreDeck/Fixture.swift\tprotocol-only" \
   > "$fixture_root/scripts/coverage-nonexecutable-sources.tsv"
 
 COREDECK_TEST_COVERAGE_JSON="$temporary_root/report.json" \
   PATH="$temporary_root/bin:$PATH" \
   "$fixture_root/scripts/verify-coverage.sh" \
     "$temporary_root/Combined.xccovreport" > "$temporary_root/fixture.log" 2>&1
-rg -q 'coverage exemption: ClipboardHistory/Fixture.swift' "$temporary_root/fixture.log"
+rg -q 'coverage exemption: CoreDeck/Fixture.swift' "$temporary_root/fixture.log"
 
-print 'func newlyExecutable() {}' >> "$fixture_root/ClipboardHistory/Fixture.swift"
+print 'func newlyExecutable() {}' >> "$fixture_root/CoreDeck/Fixture.swift"
 if COREDECK_TEST_COVERAGE_JSON="$temporary_root/report.json" \
     PATH="$temporary_root/bin:$PATH" \
     "$fixture_root/scripts/verify-coverage.sh" \

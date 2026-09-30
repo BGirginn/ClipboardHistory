@@ -2,7 +2,14 @@
 
 All notable changes are documented here. The project follows semantic versioning from the first public beta.
 
-## Unreleased
+## 1.0.0-beta.8 - 2026-09-30
+
+- Renamed the project, app bundle, executable, and product-facing technical identifiers to CoreDeck.
+- Added fail-closed migration for the old data directory, preferences, launch-at-login setting, and Keychain keys while retaining legacy sources for recovery.
+- Updated browser audio service identifiers and release packaging for the CoreDeck bundle.
+- Migrated Homebrew's Cask token from `clipboardhistory` to `coredeck` while retaining an upgrade mapping.
+- Raised the Chromium extension version so installed browsers detect the updated extension.
+- Kept launch-at-login migration retryable when macOS rejects helper registration.
 
 ## 1.0.0-beta.7 - 2026-09-26
 

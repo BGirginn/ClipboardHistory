@@ -1,5 +1,5 @@
 import Foundation
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class InputEventTapCoordinatorStub: InputEventTapCoordinating {

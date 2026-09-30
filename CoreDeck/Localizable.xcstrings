@@ -1,0 +1,5666 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Both old and new CoreDeck data directories exist. Neither was changed; resolve the conflict before continuing.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eski ve yeni CoreDeck veri klasörleri birlikte mevcut. Hiçbiri değiştirilmedi; devam etmeden önce çakışmayı çözün."
+          }
+        }
+      }
+    },
+    "Quit the previous CoreDeck version before migrating its data.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verilerini taşımadan önce önceki CoreDeck sürümünden çıkın."
+          }
+        }
+      }
+    },
+    " — right-click for options": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " — seçenekler için sağ tıklayın"
+          }
+        }
+      }
+    },
+    "%arg %arg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg %2$arg"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg %2$arg"
+          }
+        }
+      }
+    },
+    "%arg Temperature": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg Sıcaklığı"
+          }
+        }
+      }
+    },
+    "%arg audio apps · %arg controlled tabs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$arg audio apps · %2$arg controlled tabs"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg ses uygulaması · %2$arg denetlenen sekme"
+          }
+        }
+      }
+    },
+    "%arg images": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg görsel"
+          }
+        }
+      }
+    },
+    "%arg is already registered by another application.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg başka bir uygulama tarafından zaten kaydedilmiş."
+          }
+        }
+      }
+    },
+    "%arg items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg öğe"
+          }
+        }
+      }
+    },
+    "%arg notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg not"
+          }
+        }
+      }
+    },
+    "%arg saved items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg kayıtlı öğe"
+          }
+        }
+      }
+    },
+    "%arg saved notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg kayıtlı not"
+          }
+        }
+      }
+    },
+    "%arg seconds": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg saniye"
+          }
+        }
+      }
+    },
+    "%arg selected": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg seçildi"
+          }
+        }
+      }
+    },
+    "1 item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 öğe"
+          }
+        }
+      }
+    },
+    "1 note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 not"
+          }
+        }
+      }
+    },
+    "1 saved item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 kayıtlı öğe"
+          }
+        }
+      }
+    },
+    "1 saved note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 kayıtlı not"
+          }
+        }
+      }
+    },
+    "15 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 Dakika"
+          }
+        }
+      }
+    },
+    "5 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 Dakika"
+          }
+        }
+      }
+    },
+    "60 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 Dakika"
+          }
+        }
+      }
+    },
+    "A clipboard item change could not be saved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğesindeki değişiklik kaydedilemedi."
+          }
+        }
+      }
+    },
+    "A database value could not be bound.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir veritabanı değeri bağlanamadı."
+          }
+        }
+      }
+    },
+    "A managed asset filename is unsafe.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yönetilen varlık dosya adı güvenli değil."
+          }
+        }
+      }
+    },
+    "A password is required for this encrypted archive.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu şifreli arşiv için parola gerekiyor."
+          }
+        }
+      }
+    },
+    "Accessibility permission is required only for Paste to Active App. The item was copied; grant access in System Settings and try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik izni yalnız Etkin Uygulamaya Yapıştır için gereklidir. Öğe kopyalandı; Sistem Ayarları'ndan izin verip yeniden deneyin."
+          }
+        }
+      }
+    },
+    "Accessibility permission is required to block keyboard input.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye girişini engellemek için Erişilebilirlik izni gerekir."
+          }
+        }
+      }
+    },
+    "Accessibility permission is required to reverse scrolling.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydırmayı ters çevirmek için Erişilebilirlik izni gerekir."
+          }
+        }
+      }
+    },
+    "Action": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eylem"
+          }
+        }
+      }
+    },
+    "Active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin"
+          }
+        }
+      }
+    },
+    "Active network interface": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin ağ arabirimi"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekle"
+          }
+        }
+      }
+    },
+    "Add Metric": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metrik Ekle"
+          }
+        }
+      }
+    },
+    "Add Selected to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilenleri Yapıştırma Yığınına Ekle"
+          }
+        }
+      }
+    },
+    "Add selected items to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçili öğeleri Yapıştırma Yığınına ekle"
+          }
+        }
+      }
+    },
+    "Add to Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınına Ekle"
+          }
+        }
+      }
+    },
+    "Advanced": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İleri Düzey"
+          }
+        }
+      }
+    },
+    "After preparing the files, open Brave, Chrome, Edge, or Arc Extensions, enable Developer Mode, choose Load unpacked, and select the revealed folder.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosyalar hazırlandıktan sonra Brave, Chrome, Edge veya Arc Eklentiler sayfasını açın, Geliştirici Modunu etkinleştirin, Paketlenmemiş öğe yükle seçeneğini kullanın ve gösterilen klasörü seçin."
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tümü"
+          }
+        }
+      }
+    },
+    "All Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Ayarlar"
+          }
+        }
+      }
+    },
+    "All physical interfaces": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm fiziksel arabirimler"
+          }
+        }
+      }
+    },
+    "All physical network interfaces": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm fiziksel ağ arabirimleri"
+          }
+        }
+      }
+    },
+    "Allow CoreDeck Browser Audio in System Settings > General > Login Items & Extensions.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ayarları > Genel > Giriş Öğeleri ve Uzantılar bölümünde CoreDeck Tarayıcı Sesi'ne izin verin."
+          }
+        }
+      }
+    },
+    "Allowed applications override exclusions. Excluded clipboard content is never read or stored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İzin verilen uygulamalar dışlamaları geçersiz kılar. Dışlanan pano içeriği hiçbir zaman okunmaz veya saklanmaz."
+          }
+        }
+      }
+    },
+    "Always": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her Zaman"
+          }
+        }
+      }
+    },
+    "Always allowed bundle identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her zaman izin verilen paket kimlikleri"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünüm"
+          }
+        }
+      }
+    },
+    "Application Memory": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama Belleği"
+          }
+        }
+      }
+    },
+    "Application Rules": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama Kuralları"
+          }
+        }
+      }
+    },
+    "Applications": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamalar"
+          }
+        }
+      }
+    },
+    "Applications and authorized browser tabs": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamalar ve yetkilendirilmiş tarayıcı sekmeleri"
+          }
+        }
+      }
+    },
+    "Archive password": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv parolası"
+          }
+        }
+      }
+    },
+    "Ask Before Saving": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetmeden Önce Sor"
+          }
+        }
+      }
+    },
+    "Audio Actions": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses İşlemleri"
+          }
+        }
+      }
+    },
+    "Audio Mixer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Mikseri"
+          }
+        }
+      }
+    },
+    "Audio is processed in memory only. CoreDeck never records, stores, analyzes, or logs audio samples.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses yalnızca bellekte işlenir. CoreDeck ses örneklerini kaydetmez, depolamaz, analiz etmez veya günlüğe yazmaz."
+          }
+        }
+      }
+    },
+    "Authenticate to access this sensitive clipboard item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu hassas pano öğesine erişmek için kimliğinizi doğrulayın"
+          }
+        }
+      }
+    },
+    "Automatic": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri"
+          }
+        }
+      }
+    },
+    "Back to Control Center": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrol Merkezine Dön"
+          }
+        }
+      }
+    },
+    "Back to Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlara Dön"
+          }
+        }
+      }
+    },
+    "Balanced": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dengeli"
+          }
+        }
+      }
+    },
+    "Behavior": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Davranış"
+          }
+        }
+      }
+    },
+    "Bottom": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt"
+          }
+        }
+      }
+    },
+    "Browser Extension": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı Eklentisi"
+          }
+        }
+      }
+    },
+    "Browser Tabs": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı Sekmeleri"
+          }
+        }
+      }
+    },
+    "Browser audio service connection was interrupted. Retrying…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi bağlantısı kesildi. Yeniden deneniyor…"
+          }
+        }
+      }
+    },
+    "Browser audio service could not be registered.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi kaydedilemedi."
+          }
+        }
+      }
+    },
+    "Browser audio service is missing from the application bundle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi uygulama paketinde bulunamadı."
+          }
+        }
+      }
+    },
+    "Browser audio service rejected the application connection.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi uygulama bağlantısını reddetti."
+          }
+        }
+      }
+    },
+    "Browser audio service returned an unknown status.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ses servisi bilinmeyen bir durum döndürdü."
+          }
+        }
+      }
+    },
+    "CPU": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU"
+          }
+        }
+      }
+    },
+    "CPU / SoC Sensor": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU / SoC Sensörü"
+          }
+        }
+      }
+    },
+    "CPU Sensor": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU Sensörü"
+          }
+        }
+      }
+    },
+    "CPU usage history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU kullanım geçmişi"
+          }
+        }
+      }
+    },
+    "Cached": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önbellek"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal"
+          }
+        }
+      }
+    },
+    "Cancelled capture cleanup needs to be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal edilen kaydın temizliği yeniden denenmeli."
+          }
+        }
+      }
+    },
+    "Capture PDFs": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF'leri yakala"
+          }
+        }
+      }
+    },
+    "Capture files and folders": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya ve klasörleri yakala"
+          }
+        }
+      }
+    },
+    "Capture rich text and HTML": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zengin metin ve HTML yakala"
+          }
+        }
+      }
+    },
+    "Capture, find, and reuse clipboard items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğelerini kaydedin, bulun ve yeniden kullanın"
+          }
+        }
+      }
+    },
+    "Celsius": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santigrat"
+          }
+        }
+      }
+    },
+    "Change an app's volume to request System Audio Recording permission.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ses Kaydı iznini istemek için bir uygulamanın ses düzeyini değiştirin."
+          }
+        }
+      }
+    },
+    "Changes apply immediately": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikler anında uygulanır"
+          }
+        }
+      }
+    },
+    "Changes are saved automatically while editing.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikler düzenleme sırasında otomatik olarak kaydedilir."
+          }
+        }
+      }
+    },
+    "Charts and Sensors": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grafikler ve Sensörler"
+          }
+        }
+      }
+    },
+    "Choose Duration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Süre Seç"
+          }
+        }
+      }
+    },
+    "Chromium": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium"
+          }
+        }
+      }
+    },
+    "Chromium Companion Extension": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium Yardımcı Eklentisi"
+          }
+        }
+      }
+    },
+    "Clean Clipboard History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Geçmişini Temizle"
+          }
+        }
+      }
+    },
+    "Clean HTML": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temiz HTML"
+          }
+        }
+      }
+    },
+    "Clean History by Age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişi Yaşa Göre Temizle"
+          }
+        }
+      }
+    },
+    "Clean your keyboard without accidental typing": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yanlışlıkla yazmadan klavyenizi temizleyin"
+          }
+        }
+      }
+    },
+    "Clear All History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Geçmişi Temizle"
+          }
+        }
+      }
+    },
+    "Clear History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişi Temizle"
+          }
+        }
+      }
+    },
+    "Clear Search": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aramayı Temizle"
+          }
+        }
+      }
+    },
+    "Clear all clipboard history?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm pano geçmişi temizlensin mi?"
+          }
+        }
+      }
+    },
+    "Clipboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano"
+          }
+        }
+      }
+    },
+    "Clipboard Formats": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Biçimleri"
+          }
+        }
+      }
+    },
+    "Clipboard History could not create a paste keyboard event.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History yapıştırma klavye olayı oluşturamadı."
+          }
+        }
+      }
+    },
+    "Clipboard Storage Unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano Depolaması Kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Clipboard changes could not be saved. Quit was cancelled so you can retry or remove the affected items.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano değişiklikleri kaydedilemedi. Yeniden deneyebilmeniz veya etkilenen öğeleri kaldırabilmeniz için çıkış iptal edildi."
+          }
+        }
+      }
+    },
+    "Clipboard content could not be saved. Recording continues, but this item was not added.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano içeriği kaydedilemedi. Kayıt sürüyor ancak bu öğe eklenmedi."
+          }
+        }
+      }
+    },
+    "Clipboard history could not be cleared. Your saved history was preserved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano geçmişi temizlenemedi. Kayıtlı geçmişiniz korundu."
+          }
+        }
+      }
+    },
+    "Clipboard history was deleted, but residual cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano geçmişi silindi ancak kalıntı temizliği tamamlanamadı. Temizleme yeniden denenecek."
+          }
+        }
+      }
+    },
+    "Clipboard storage could not be opened. Recording is stopped to avoid damaging existing data. Open Settings to inspect or recover it.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano depolaması açılamadı. Mevcut verilerin zarar görmesini önlemek için kayıt durduruldu. İncelemek veya kurtarmak için Ayarlar'ı açın."
+          }
+        }
+      }
+    },
+    "CoreDeck": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck"
+          }
+        }
+      }
+    },
+    "Close Search": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aramayı Kapat"
+          }
+        }
+      }
+    },
+    "Close Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarları Kapat"
+          }
+        }
+      }
+    },
+    "Close panel after copying": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyaladıktan sonra paneli kapat"
+          }
+        }
+      }
+    },
+    "Collapsed": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daraltılmış"
+          }
+        }
+      }
+    },
+    "Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon"
+          }
+        }
+      }
+    },
+    "Collection could not be deleted.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon silinemedi."
+          }
+        }
+      }
+    },
+    "Collection could not be saved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon kaydedilemedi."
+          }
+        }
+      }
+    },
+    "Collection names and item tags are encrypted at rest.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon adları ve öğe etiketleri diskte şifrelenir."
+          }
+        }
+      }
+    },
+    "Collections": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyonlar"
+          }
+        }
+      }
+    },
+    "Command-Shift-V registration can fail if another application reserves it. The native Carbon hot key does not require Accessibility permission.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-Shift-V başka bir uygulama tarafından ayrılmışsa kaydedilemeyebilir. Yerel Carbon kısayolu Erişilebilirlik izni gerektirmez."
+          }
+        }
+      }
+    },
+    "Command-drag actual items to reorder them": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerçek öğeleri sıralamak için Command tuşuna basılı tutarak sürükleyin"
+          }
+        }
+      }
+    },
+    "Compact (2 metrics)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompakt (2 metrik)"
+          }
+        }
+      }
+    },
+    "Compressed": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıkıştırılmış"
+          }
+        }
+      }
+    },
+    "Control Center": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrol Merkezi"
+          }
+        }
+      }
+    },
+    "Control application and supported browser-tab volume": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama ve desteklenen tarayıcı sekmesi ses düzeyini denetleyin"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyalandı"
+          }
+        }
+      }
+    },
+    "Copies this item back to the clipboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu öğeyi yeniden panoya kopyalar"
+          }
+        }
+      }
+    },
+    "Copy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopyala"
+          }
+        }
+      }
+    },
+    "Copy As": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı Kopyala"
+          }
+        }
+      }
+    },
+    "Copy text or take a screenshot to begin.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlamak için metin kopyalayın veya ekran görüntüsü alın."
+          }
+        }
+      }
+    },
+    "Create a note without leaving the menu bar.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü çubuğundan ayrılmadan bir not oluşturun."
+          }
+        }
+      }
+    },
+    "Create and edit encrypted notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli notlar oluşturun ve düzenleyin"
+          }
+        }
+      }
+    },
+    "Critical": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritik"
+          }
+        }
+      }
+    },
+    "Custom": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel"
+          }
+        }
+      }
+    },
+    "Custom UTI identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel UTI tanımlayıcıları"
+          }
+        }
+      }
+    },
+    "Customize Menu Bar": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğunu Özelleştir"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu"
+          }
+        }
+      }
+    },
+    "Database": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı"
+          }
+        }
+      }
+    },
+    "Database operation failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı işlemi başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Database statement failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı deyimi başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Database unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veritabanı kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Default filter": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan filtre"
+          }
+        }
+      }
+    },
+    "Default sort": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan sıralama"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sil"
+          }
+        }
+      }
+    },
+    "Delete %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg öğesini sil"
+          }
+        }
+      }
+    },
+    "Delete Matching Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eşleşen Öğeleri Sil"
+          }
+        }
+      }
+    },
+    "Delete Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu Sil"
+          }
+        }
+      }
+    },
+    "Delete Selected": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilenleri Sil"
+          }
+        }
+      }
+    },
+    "Delete selected items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçili öğeleri sil"
+          }
+        }
+      }
+    },
+    "Delete this note?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu not silinsin mi?"
+          }
+        }
+      }
+    },
+    "Delete unpinned items in this time range?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu zaman aralığındaki sabitlenmemiş öğeler silinsin mi?"
+          }
+        }
+      }
+    },
+    "Denied": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reddedildi"
+          }
+        }
+      }
+    },
+    "Density": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yoğunluk"
+          }
+        }
+      }
+    },
+    "Detachable Keyboard Panel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrılabilir Klavye Paneli"
+          }
+        }
+      }
+    },
+    "Detect secrets locally": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli bilgileri yerel olarak algıla"
+          }
+        }
+      }
+    },
+    "Detection is local and may produce false positives. Temporary content is excluded from disk and search.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algılama yereldir ve hatalı sonuç verebilir. Geçici içerik diske ve aramaya dahil edilmez."
+          }
+        }
+      }
+    },
+    "Disable Scroll Reverse": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse'i Kapat"
+          }
+        }
+      }
+    },
+    "Discard Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikleri At"
+          }
+        }
+      }
+    },
+    "Discard Unsaved Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş Değişiklikleri At"
+          }
+        }
+      }
+    },
+    "Discard unsaved changes?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş değişiklikler atılsın mı?"
+          }
+        }
+      }
+    },
+    "Disk": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk"
+          }
+        }
+      }
+    },
+    "Disk Read": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk Okuma"
+          }
+        }
+      }
+    },
+    "Disk Write": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk Yazma"
+          }
+        }
+      }
+    },
+    "Disk activity history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk etkinliği geçmişi"
+          }
+        }
+      }
+    },
+    "Display Style": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünüm Biçimi"
+          }
+        }
+      }
+    },
+    "Documents": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belgeler"
+          }
+        }
+      }
+    },
+    "Download": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İndirme"
+          }
+        }
+      }
+    },
+    "Duplicate Detection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yinelenen Algılama"
+          }
+        }
+      }
+    },
+    "Effective volume with browser master: %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarayıcı ana sesiyle etkin düzey: %@"
+          }
+        }
+      }
+    },
+    "Efficiency CPU": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verimlilik CPU'su"
+          }
+        }
+      }
+    },
+    "Elevated": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüksek"
+          }
+        }
+      }
+    },
+    "Empty note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boş not"
+          }
+        }
+      }
+    },
+    "Enable CoreDeck Safari Audio and grant website access. Only tabs with directly controllable HTML audio or video are listed; DRM, Web Audio and protected pages are excluded.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck Safari Audio eklentisini etkinleştirin ve site erişimi verin. Yalnız doğrudan denetlenebilen HTML ses veya video sekmeleri listelenir; DRM, Web Audio ve korumalı sayfalar dışlanır."
+          }
+        }
+      }
+    },
+    "Enable CoreDeck Safari Audio, then allow access only on sites you want to control.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck Safari Audio eklentisini etkinleştirin, ardından yalnız denetlemek istediğiniz sitelere erişim verin."
+          }
+        }
+      }
+    },
+    "Enable Scroll Reverse": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse'i Etkinleştir"
+          }
+        }
+      }
+    },
+    "Enable global shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayolu etkinleştir"
+          }
+        }
+      }
+    },
+    "Enable or Disable Scroll Reverse": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse'i Aç veya Kapat"
+          }
+        }
+      }
+    },
+    "Encrypted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli"
+          }
+        }
+      }
+    },
+    "Encrypted Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli Dışa Aktarım"
+          }
+        }
+      }
+    },
+    "Encrypted clipboard data is invalid.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli pano verisi geçersiz."
+          }
+        }
+      }
+    },
+    "Encrypted storage is currently unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli depolama şu anda kullanılamıyor."
+          }
+        }
+      }
+    },
+    "Encrypted storage is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreli depolama kullanılamıyor."
+          }
+        }
+      }
+    },
+    "Excluded application, %arg, %arg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Excluded application, %1$arg, %2$arg"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışlanan uygulama, %1$arg, %2$arg"
+          }
+        }
+      }
+    },
+    "Excluded bundle identifiers": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışlanan paket kimlikleri"
+          }
+        }
+      }
+    },
+    "Expanded": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genişletilmiş"
+          }
+        }
+      }
+    },
+    "Export As JPEG…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG Olarak Dışa Aktar…"
+          }
+        }
+      }
+    },
+    "Export As PNG…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PNG Olarak Dışa Aktar…"
+          }
+        }
+      }
+    },
+    "Export Unencrypted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifresiz Dışa Aktar"
+          }
+        }
+      }
+    },
+    "Export clipboard content and notes without encryption?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano içeriği ve notlar şifrelenmeden dışa aktarılsın mı?"
+          }
+        }
+      }
+    },
+    "Export completed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma tamamlandı."
+          }
+        }
+      }
+    },
+    "Export failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarma başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Extension files are ready. Open your browser's Extensions page, enable Developer Mode, then choose Load unpacked and select the revealed folder.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eklenti dosyaları hazır. Tarayıcınızın Eklentiler sayfasını açın, Geliştirici Modunu etkinleştirin, Paketlenmemiş öğe yükle seçeneğini kullanın ve gösterilen klasörü seçin."
+          }
+        }
+      }
+    },
+    "External": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harici"
+          }
+        }
+      }
+    },
+    "Fahrenheit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahrenhayt"
+          }
+        }
+      }
+    },
+    "Filter": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtre"
+          }
+        }
+      }
+    },
+    "First In, First Out": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İlk Giren, İlk Çıkar"
+          }
+        }
+      }
+    },
+    "Free": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boş"
+          }
+        }
+      }
+    },
+    "Full History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Geçmiş"
+          }
+        }
+      }
+    },
+    "GB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GB/sn"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel"
+          }
+        }
+      }
+    },
+    "Global Shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel Kısayol"
+          }
+        }
+      }
+    },
+    "Global shortcut registration failed (%arg).": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayol kaydı başarısız (%arg)."
+          }
+        }
+      }
+    },
+    "Go to Tab": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sekmeye Git"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli"
+          }
+        }
+      }
+    },
+    "Hiding this icon keeps CoreDeck available in the Dock.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ikonu gizlediğinizde CoreDeck Dock üzerinden kullanılabilir kalır."
+          }
+        }
+      }
+    },
+    "History age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş yaşı"
+          }
+        }
+      }
+    },
+    "History limit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş sınırı"
+          }
+        }
+      }
+    },
+    "History recovery is required. Recovery files were preserved. Restart the application to retry recovery.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişin kurtarılması gerekiyor. Kurtarma dosyaları korundu. Kurtarmayı yeniden denemek için uygulamayı yeniden başlatın."
+          }
+        }
+      }
+    },
+    "Hold mode requests Accessibility permission only when release triggers Paste to Active App.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basılı tutma modu Erişilebilirlik iznini yalnız bırakma etkin uygulamaya yapıştırmayı tetiklediğinde ister."
+          }
+        }
+      }
+    },
+    "Hold, Select, Release to Paste": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basılı Tut, Seç, Yapıştırmak İçin Bırak"
+          }
+        }
+      }
+    },
+    "Icon and Value": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simge ve Değer"
+          }
+        }
+      }
+    },
+    "Ignore Universal Clipboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evrensel Pano'yu Yok Say"
+          }
+        }
+      }
+    },
+    "Ignored Pasteboard Types": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yok Sayılan Pano Türleri"
+          }
+        }
+      }
+    },
+    "Image age": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel yaşı"
+          }
+        }
+      }
+    },
+    "Image export failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel dışa aktarılamadı: %arg"
+          }
+        }
+      }
+    },
+    "Images": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görseller"
+          }
+        }
+      }
+    },
+    "Import Recovery Archive…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma Arşivini İçe Aktar…"
+          }
+        }
+      }
+    },
+    "Import failed and some created files could not be removed. Retry storage cleanup before importing again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İçe aktarma başarısız oldu ve oluşturulan bazı dosyalar kaldırılamadı. Yeniden içe aktarmadan önce depolama temizliğini tekrar deneyin."
+          }
+        }
+      }
+    },
+    "Import failed: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İçe aktarma başarısız: %arg"
+          }
+        }
+      }
+    },
+    "Imported %arg clipboard items and %arg notes; skipped %arg duplicates.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Imported %1$arg clipboard items and %2$arg notes; skipped %3$arg duplicates."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg pano öğesi ve %2$arg not içe aktarıldı; %3$arg yinelenen atlandı."
+          }
+        }
+      }
+    },
+    "Include file references": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya başvurularını dahil et"
+          }
+        }
+      }
+    },
+    "Include images and documents": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsel ve belgeleri dahil et"
+          }
+        }
+      }
+    },
+    "Input Tools": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giriş Araçları"
+          }
+        }
+      }
+    },
+    "Install the companion extension, then add a playing tab to the mixer.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yardımcı eklentiyi kurun, ardından ses çalan bir sekmeyi miksere ekleyin."
+          }
+        }
+      }
+    },
+    "Interface": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arabirim"
+          }
+        }
+      }
+    },
+    "Interfaces": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arabirimler"
+          }
+        }
+      }
+    },
+    "Internal": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dahili"
+          }
+        }
+      }
+    },
+    "Item Details": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğe Ayrıntıları"
+          }
+        }
+      }
+    },
+    "KB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KB/sn"
+          }
+        }
+      }
+    },
+    "Keep Temporarily": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici Olarak Tut"
+          }
+        }
+      }
+    },
+    "Keep as Snippet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snippet Olarak Tut"
+          }
+        }
+      }
+    },
+    "Keep only the Control Center icon in the menu bar.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü çubuğunda yalnızca Kontrol Merkezi simgesini tutun."
+          }
+        }
+      }
+    },
+    "Keep your current menu-bar choices and adjust each item below.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mevcut menü çubuğu seçimlerinizi koruyun ve her öğeyi aşağıdan ayarlayın."
+          }
+        }
+      }
+    },
+    "Keyboard Cleaning": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliği"
+          }
+        }
+      }
+    },
+    "Keyboard Cleaning Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizlik Modu"
+          }
+        }
+      }
+    },
+    "Keyboard Cleaning Mode active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizlik Modu etkin"
+          }
+        }
+      }
+    },
+    "Keyboard Cleaning is active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliği etkin"
+          }
+        }
+      }
+    },
+    "Keyboard input blocking stopped unexpectedly. Start Keyboard Cleaning Mode again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye girişi engellemesi beklenmedik biçimde durdu. Klavye Temizlik Modunu yeniden başlatın."
+          }
+        }
+      }
+    },
+    "Keyboard input could not be blocked. Grant Accessibility permission, then try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye girişi engellenemedi. Erişilebilirlik izni verip yeniden deneyin."
+          }
+        }
+      }
+    },
+    "Keyboard input is blocked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye girişi engellendi"
+          }
+        }
+      }
+    },
+    "Keyboard input stays blocked until you stop cleaning. Mouse input stays available.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temizliği durdurana kadar klavye girişi engellenir. Fare kullanılabilir kalır."
+          }
+        }
+      }
+    },
+    "Keychain operation failed with status %arg.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anahtar Zinciri işlemi %arg durumuyla başarısız oldu."
+          }
+        }
+      }
+    },
+    "Label and Value": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiket ve Değer"
+          }
+        }
+      }
+    },
+    "Last 10 Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son 10 Öğe"
+          }
+        }
+      }
+    },
+    "Last Hour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Saat"
+          }
+        }
+      }
+    },
+    "Last In, First Out": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Giren, İlk Çıkar"
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oturum açılışında başlat"
+          }
+        }
+      }
+    },
+    "Layout": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düzen"
+          }
+        }
+      }
+    },
+    "Layout Preset": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düzen Ön Ayarı"
+          }
+        }
+      }
+    },
+    "Left": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sol"
+          }
+        }
+      }
+    },
+    "Left Click": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sol Tıklama"
+          }
+        }
+      }
+    },
+    "Left-click to use this module. Right-click for options.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modülü kullanmak için sol, seçenekler için sağ tıklayın."
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık"
+          }
+        }
+      }
+    },
+    "Line-based mouse-wheel events and precise trackpad or Magic Mouse events can be configured separately.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kademeli fare tekerleği olayları ile hassas trackpad veya Magic Mouse olaylarını ayrı ayrı yapılandırabilirsiniz."
+          }
+        }
+      }
+    },
+    "Line-based scrolling": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kademeli kaydırma"
+          }
+        }
+      }
+    },
+    "Live CPU, memory, temperature, network, and disk usage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canlı CPU, bellek, sıcaklık, ağ ve disk kullanımı"
+          }
+        }
+      }
+    },
+    "Live System Metrics": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canlı Sistem Metrikleri"
+          }
+        }
+      }
+    },
+    "Live system performance": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canlı sistem performansı"
+          }
+        }
+      }
+    },
+    "Local Archive": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yerel Arşiv"
+          }
+        }
+      }
+    },
+    "Load More": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daha Fazla Yükle"
+          }
+        }
+      }
+    },
+    "Lowercase": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük Harf"
+          }
+        }
+      }
+    },
+    "MB/s": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MB/sn"
+          }
+        }
+      }
+    },
+    "Maximum storage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En fazla depolama"
+          }
+        }
+      }
+    },
+    "Memory": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek"
+          }
+        }
+      }
+    },
+    "Memory Breakdown": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek Dağılımı"
+          }
+        }
+      }
+    },
+    "Memory Format": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek Biçimi"
+          }
+        }
+      }
+    },
+    "Memory Pressure": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek Basıncı"
+          }
+        }
+      }
+    },
+    "Memory usage history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bellek kullanım geçmişi"
+          }
+        }
+      }
+    },
+    "Menu Bar": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğu"
+          }
+        }
+      }
+    },
+    "Menu Bar Popover": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğu Açılır Paneli"
+          }
+        }
+      }
+    },
+    "Menu bar preview": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü çubuğu önizlemesi"
+          }
+        }
+      }
+    },
+    "Merge Import": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birleştirerek İçe Aktar"
+          }
+        }
+      }
+    },
+    "Metadata Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meta Veri Dışa Aktarımı"
+          }
+        }
+      }
+    },
+    "Metrics": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Göstergeler"
+          }
+        }
+      }
+    },
+    "Metrics and Order": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Göstergeler ve Sıralama"
+          }
+        }
+      }
+    },
+    "Migration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçiş"
+          }
+        }
+      }
+    },
+    "Min %arg · Avg %arg · Max %arg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Min %1$arg · Avg %2$arg · Max %3$arg"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Min %1$arg · Ort %2$arg · Maks %3$arg"
+          }
+        }
+      }
+    },
+    "Minimal": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimal"
+          }
+        }
+      }
+    },
+    "Modules": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modüller"
+          }
+        }
+      }
+    },
+    "Mouse Wheel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare Tekerleği"
+          }
+        }
+      }
+    },
+    "Move to Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyona Taşı"
+          }
+        }
+      }
+    },
+    "Mute All Audio": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Sesi Kapat"
+          }
+        }
+      }
+    },
+    "Mute or Restore All Audio": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Sesi Kapat veya Geri Aç"
+          }
+        }
+      }
+    },
+    "Native scrolling is unchanged": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doğal kaydırma değiştirilmedi"
+          }
+        }
+      }
+    },
+    "Needs Attention": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İlgilenilmesi Gerekiyor"
+          }
+        }
+      }
+    },
+    "Network": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ağ"
+          }
+        }
+      }
+    },
+    "Network transfer history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ağ aktarım geçmişi"
+          }
+        }
+      }
+    },
+    "Never Save": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asla Kaydetme"
+          }
+        }
+      }
+    },
+    "New Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni Not"
+          }
+        }
+      }
+    },
+    "New Note (Command-N)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni Not (Command-N)"
+          }
+        }
+      }
+    },
+    "New collection name": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni koleksiyon adı"
+          }
+        }
+      }
+    },
+    "Newest First": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önce En Yeni"
+          }
+        }
+      }
+    },
+    "Newest Item": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En Yeni Öğe"
+          }
+        }
+      }
+    },
+    "Next item: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonraki öğe: %arg"
+          }
+        }
+      }
+    },
+    "No Audio Applications": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Uygulaması Yok"
+          }
+        }
+      }
+    },
+    "No Collection": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksiyon Yok"
+          }
+        }
+      }
+    },
+    "No Controlled Tabs": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denetlenen Sekme Yok"
+          }
+        }
+      }
+    },
+    "No Modules in Control Center": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrol Merkezinde Modül Yok"
+          }
+        }
+      }
+    },
+    "No Notes Yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz Not Yok"
+          }
+        }
+      }
+    },
+    "No active interface": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin arabirim yok"
+          }
+        }
+      }
+    },
+    "No clipboard items yet": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz pano öğesi yok"
+          }
+        }
+      }
+    },
+    "Normal": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal"
+          }
+        }
+      }
+    },
+    "Not Requested": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İstenmedi"
+          }
+        }
+      }
+    },
+    "Not checked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denetlenmedi"
+          }
+        }
+      }
+    },
+    "Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not"
+          }
+        }
+      }
+    },
+    "Note Body": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Gövdesi"
+          }
+        }
+      }
+    },
+    "Note Title": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Başlığı"
+          }
+        }
+      }
+    },
+    "Note could not be deleted: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not silinemedi: %arg"
+          }
+        }
+      }
+    },
+    "Note could not be saved: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not kaydedilemedi: %arg"
+          }
+        }
+      }
+    },
+    "Note titles and bodies are encrypted in local storage.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not başlıkları ve içerikleri yerel depolamada şifrelenir."
+          }
+        }
+      }
+    },
+    "Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlar"
+          }
+        }
+      }
+    },
+    "Notes could not be loaded: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlar yüklenemedi: %arg"
+          }
+        }
+      }
+    },
+    "Older Than 1 Day": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Günden Eski"
+          }
+        }
+      }
+    },
+    "Older Than 1 Hour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Saatten Eski"
+          }
+        }
+      }
+    },
+    "Older Than 1 Week": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Haftadan Eski"
+          }
+        }
+      }
+    },
+    "Older Than 30 Days": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Günden Eski"
+          }
+        }
+      }
+    },
+    "Oldest First": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önce En Eski"
+          }
+        }
+      }
+    },
+    "Open Accessibility Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik Ayarlarını Aç"
+          }
+        }
+      }
+    },
+    "Open Audio Mixer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Mikserini Aç"
+          }
+        }
+      }
+    },
+    "Open Controls": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolü Aç"
+          }
+        }
+      }
+    },
+    "Open History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişi Aç"
+          }
+        }
+      }
+    },
+    "Open Keyboard Cleaning Controls": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliği Kontrolünü Aç"
+          }
+        }
+      }
+    },
+    "Open Menu Bar Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğu Ayarlarını Aç"
+          }
+        }
+      }
+    },
+    "Open Module": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modülü Aç"
+          }
+        }
+      }
+    },
+    "Open Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notları Aç"
+          }
+        }
+      }
+    },
+    "Open Safari Extension Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari Eklenti Ayarlarını Aç"
+          }
+        }
+      }
+    },
+    "Open Scroll Reverse Controls": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse Kontrolünü Aç"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarları Aç"
+          }
+        }
+      }
+    },
+    "Open Settings from Control Center to inspect or recover clipboard storage.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano depolamasını incelemek veya kurtarmak için Kontrol Merkezi'nden Ayarlar'ı açın."
+          }
+        }
+      }
+    },
+    "Open System Monitor": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Monitörünü Aç"
+          }
+        }
+      }
+    },
+    "Open in Window": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pencerede Aç"
+          }
+        }
+      }
+    },
+    "Optional Title": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İsteğe Bağlı Başlık"
+          }
+        }
+      }
+    },
+    "Order": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıra"
+          }
+        }
+      }
+    },
+    "Organize and Edit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düzenle ve Organize Et"
+          }
+        }
+      }
+    },
+    "Original": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özgün"
+          }
+        }
+      }
+    },
+    "Panel style": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel biçimi"
+          }
+        }
+      }
+    },
+    "Paste As": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste Next": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonrakini Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığını"
+          }
+        }
+      }
+    },
+    "Paste Stack: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığını: %arg"
+          }
+        }
+      }
+    },
+    "Paste as Plain Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düz Metin Olarak Yapıştır"
+          }
+        }
+      }
+    },
+    "Paste the next stack item to the active app": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yığındaki sonraki öğeyi etkin uygulamaya yapıştır"
+          }
+        }
+      }
+    },
+    "Paste to Active App": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin Uygulamaya Yapıştır"
+          }
+        }
+      }
+    },
+    "Pause Recording for 60 Minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı 60 Dakika Duraklat"
+          }
+        }
+      }
+    },
+    "Pause or Resume Recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Duraklat veya Sürdür"
+          }
+        }
+      }
+    },
+    "Pause recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı duraklat"
+          }
+        }
+      }
+    },
+    "Paused": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duraklatıldı"
+          }
+        }
+      }
+    },
+    "Percentage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüzde"
+          }
+        }
+      }
+    },
+    "Performance CPU": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performans CPU'su"
+          }
+        }
+      }
+    },
+    "Permission": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İzin"
+          }
+        }
+      }
+    },
+    "Physical Storage Devices": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiziksel Depolama Aygıtları"
+          }
+        }
+      }
+    },
+    "Pinned": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş"
+          }
+        }
+      }
+    },
+    "Pinned items and all associated files and thumbnails will also be removed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş öğeler ile ilişkili tüm dosya ve küçük resimler de kaldırılır."
+          }
+        }
+      }
+    },
+    "Pinned items are preserved. This cannot be undone.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sabitlenmiş öğeler korunur. Bu işlem geri alınamaz."
+          }
+        }
+      }
+    },
+    "Pixel-based scrolling, including Magic Mouse": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magic Mouse dahil piksel tabanlı kaydırma"
+          }
+        }
+      }
+    },
+    "Plain Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düz Metin"
+          }
+        }
+      }
+    },
+    "Prepare Extension and Native Host": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eklentiyi ve Yerel Köprüyü Hazırla"
+          }
+        }
+      }
+    },
+    "Presentation": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunum"
+          }
+        }
+      }
+    },
+    "Press Space for Quick Look": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı Bakış için Boşluk tuşuna basın"
+          }
+        }
+      }
+    },
+    "Press to Open or Close": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açmak veya Kapatmak İçin Bas"
+          }
+        }
+      }
+    },
+    "Preview": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önizleme"
+          }
+        }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizlilik"
+          }
+        }
+      }
+    },
+    "Private": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel"
+          }
+        }
+      }
+    },
+    "Private Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel Mod"
+          }
+        }
+      }
+    },
+    "Private Mode enabled": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli Mod etkin"
+          }
+        }
+      }
+    },
+    "Private Mode is active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli Mod etkin"
+          }
+        }
+      }
+    },
+    "Purgeable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temizlenebilir"
+          }
+        }
+      }
+    },
+    "Quit CoreDeck": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck'ten Çık"
+          }
+        }
+      }
+    },
+    "RAM": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RAM"
+          }
+        }
+      }
+    },
+    "RTF": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RTF"
+          }
+        }
+      }
+    },
+    "Rate Unit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hız Birimi"
+          }
+        }
+      }
+    },
+    "Read": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okuma"
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hazır"
+          }
+        }
+      }
+    },
+    "Recently Used": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Kullanılan"
+          }
+        }
+      }
+    },
+    "Recognize text in images on device": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görsellerdeki metni aygıtta tanı"
+          }
+        }
+      }
+    },
+    "Recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt"
+          }
+        }
+      }
+    },
+    "Recording is paused": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt duraklatıldı"
+          }
+        }
+      }
+    },
+    "Recording paused": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt duraklatıldı"
+          }
+        }
+      }
+    },
+    "Recover from Password-Protected Archive": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parola Korumalı Arşivden Kurtar"
+          }
+        }
+      }
+    },
+    "Recovered %arg clipboard items and %arg notes. The previous database was preserved for rollback. Quit and reopen CoreDeck to finish.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Recovered %1$arg clipboard items and %2$arg notes. The previous database was preserved for rollback. Quit and reopen CoreDeck to finish."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg pano öğesi ve %2$arg not kurtarıldı. Önceki veritabanı geri dönüş için korundu. Tamamlamak üzere CoreDeck'i kapatıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery failed and rollback could not be verified: %arg. Do not relaunch until the rollback backup is inspected.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma başarısız oldu ve geri alma doğrulanamadı: %arg. Geri alma yedeği incelenene kadar uygulamayı yeniden başlatmayın."
+          }
+        }
+      }
+    },
+    "Recovery failed and the previous database was restored: %arg. Quit and reopen CoreDeck.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma başarısız oldu ve önceki veritabanı geri yüklendi: %arg. CoreDeck uygulamasından çıkıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery failed before replacing the previous database: %arg. Quit and reopen CoreDeck.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma önceki veritabanı değiştirilmeden başarısız oldu: %arg. CoreDeck uygulamasından çıkıp yeniden açın."
+          }
+        }
+      }
+    },
+    "Recovery installation failed and rollback could not be verified: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma kurulumu başarısız oldu ve geri alma doğrulanamadı: %arg"
+          }
+        }
+      }
+    },
+    "Recovery installation failed and the previous database was restored: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma kurulumu başarısız oldu ve önceki veritabanı geri yüklendi: %arg"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yenile"
+          }
+        }
+      }
+    },
+    "Remove Metric": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metrik Kaldır"
+          }
+        }
+      }
+    },
+    "Remove an item after it is pasted": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırıldıktan sonra öğeyi çıkar"
+          }
+        }
+      }
+    },
+    "Remove from Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınından Çıkar"
+          }
+        }
+      }
+    },
+    "Removed %arg items and reclaimed %arg.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Removed %1$arg items and reclaimed %2$arg."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$arg öğe kaldırıldı ve %2$arg alan geri kazanıldı."
+          }
+        }
+      }
+    },
+    "Requesting": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İsteniyor"
+          }
+        }
+      }
+    },
+    "Requesting System Audio Recording access…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ses Kaydı erişimi isteniyor…"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıfırla"
+          }
+        }
+      }
+    },
+    "Reset All Volumes to 100%": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm Ses Düzeylerini %100'e Sıfırla"
+          }
+        }
+      }
+    },
+    "Reset All to 100%": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tümünü %100'e Sıfırla"
+          }
+        }
+      }
+    },
+    "Reset Paste Stack": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapıştırma Yığınını Sıfırla"
+          }
+        }
+      }
+    },
+    "Reset after %arg minutes (0 means never)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg dakika sonra sıfırla (0 hiçbir zaman demektir)"
+          }
+        }
+      }
+    },
+    "Restore Audio": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesi Geri Aç"
+          }
+        }
+      }
+    },
+    "Resume": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sürdür"
+          }
+        }
+      }
+    },
+    "Resume Recording": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Sürdür"
+          }
+        }
+      }
+    },
+    "Retention": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saklama"
+          }
+        }
+      }
+    },
+    "Retry Save": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetmeyi Yeniden Dene"
+          }
+        }
+      }
+    },
+    "Reveal Sensitive Content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas İçeriği Göster"
+          }
+        }
+      }
+    },
+    "Reveal in Finder": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finder'da Göster"
+          }
+        }
+      }
+    },
+    "Reverse Horizontal Scrolling": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yatay Kaydırmayı Ters Çevir"
+          }
+        }
+      }
+    },
+    "Reverse Vertical Scrolling": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey Kaydırmayı Ters Çevir"
+          }
+        }
+      }
+    },
+    "Reverse mouse or trackpad scrolling": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare veya trackpad kaydırmasını ters çevirin"
+          }
+        }
+      }
+    },
+    "Right": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sağ"
+          }
+        }
+      }
+    },
+    "Run Cleanup": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temizliği Çalıştır"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; JSON migration complete": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; JSON geçişi tamamlandı"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; legacy migration preserved after failure": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; eski geçiş başarısızlık sonrası korundu"
+          }
+        }
+      }
+    },
+    "SQLite schema %arg; no legacy migration": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQLite şeması %arg; eski geçiş yok"
+          }
+        }
+      }
+    },
+    "Safari": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari"
+          }
+        }
+      }
+    },
+    "Safari Companion Extension": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari Yardımcı Eklentisi"
+          }
+        }
+      }
+    },
+    "Save Anyway": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yine de Kaydet"
+          }
+        }
+      }
+    },
+    "Save Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Değişiklikleri Kaydet"
+          }
+        }
+      }
+    },
+    "Save detected sensitive content?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algılanan hassas içerik kaydedilsin mi?"
+          }
+        }
+      }
+    },
+    "Save failed": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başarısız"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi"
+          }
+        }
+      }
+    },
+    "Saving": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydetme"
+          }
+        }
+      }
+    },
+    "Saving…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydediliyor…"
+          }
+        }
+      }
+    },
+    "Scope": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapsam"
+          }
+        }
+      }
+    },
+    "Screen edge": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kenarı"
+          }
+        }
+      }
+    },
+    "Scroll Reverse": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse"
+          }
+        }
+      }
+    },
+    "Scroll Reverse active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse etkin"
+          }
+        }
+      }
+    },
+    "Scroll Reverse could not start. Check Accessibility permission and try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse başlatılamadı. Erişilebilirlik iznini kontrol edip yeniden deneyin."
+          }
+        }
+      }
+    },
+    "Scroll Reverse is active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse etkin"
+          }
+        }
+      }
+    },
+    "Scroll Reverse stopped unexpectedly. Check Accessibility permission and try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll Reverse beklenmedik biçimde durdu. Erişilebilirlik iznini kontrol edip yeniden deneyin."
+          }
+        }
+      }
+    },
+    "Search Applications": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamalarda Ara"
+          }
+        }
+      }
+    },
+    "Search History": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmişte Ara"
+          }
+        }
+      }
+    },
+    "Search Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlarda Ara"
+          }
+        }
+      }
+    },
+    "Security": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Güvenlik"
+          }
+        }
+      }
+    },
+    "Select a password-protected full archive. The unavailable database is retained as a rollback backup until the import is verified.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parola korumalı bir tam arşiv seçin. İçe aktarma doğrulanana kadar kullanılamayan veritabanı geri dönüş yedeği olarak tutulur."
+          }
+        }
+      }
+    },
+    "Select at least one axis to reverse.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ters çevirmek için en az bir eksen seçin."
+          }
+        }
+      }
+    },
+    "Sensitive Content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas İçerik"
+          }
+        }
+      }
+    },
+    "Sensitive content": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas içerik"
+          }
+        }
+      }
+    },
+    "Sensitive content could not be saved.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hassas içerik kaydedilemedi."
+          }
+        }
+      }
+    },
+    "Sensor Source": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensör Kaynağı"
+          }
+        }
+      }
+    },
+    "Set Up Chromium Extension": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium Eklentisini Kur"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar"
+          }
+        }
+      }
+    },
+    "Shortcut": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kısayol"
+          }
+        }
+      }
+    },
+    "Show Control Center Icon": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrol Merkezi İkonunu Göster"
+          }
+        }
+      }
+    },
+    "Show Details": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrıntıları Göster"
+          }
+        }
+      }
+    },
+    "Show Live Metrics in Menu Bar": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canlı Metrikleri Menü Çubuğunda Göster"
+          }
+        }
+      }
+    },
+    "Show in Control Center": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrol Merkezinde Göster"
+          }
+        }
+      }
+    },
+    "Show three live metrics and reveal module icons only when they need attention.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üç canlı metriği gösterin ve modül simgelerini yalnızca ilgilenmeniz gerektiğinde görüntüleyin."
+          }
+        }
+      }
+    },
+    "Snippets": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parçacıklar"
+          }
+        }
+      }
+    },
+    "SoC": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SoC"
+          }
+        }
+      }
+    },
+    "SoC Die": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SoC Kalıbı"
+          }
+        }
+      }
+    },
+    "Sort": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sırala"
+          }
+        }
+      }
+    },
+    "Sort Order": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıralama Düzeni"
+          }
+        }
+      }
+    },
+    "Standard (3 metrics)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standart (3 metrik)"
+          }
+        }
+      }
+    },
+    "Start Keyboard Cleaning": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliğini Başlat"
+          }
+        }
+      }
+    },
+    "Start audio in an application to show it here.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Burada görünmesi için bir uygulamada ses başlatın."
+          }
+        }
+      }
+    },
+    "Start in Private Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel Modda Başlat"
+          }
+        }
+      }
+    },
+    "Start or Stop Keyboard Cleaning": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliğini Başlat veya Durdur"
+          }
+        }
+      }
+    },
+    "Start typing…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazmaya başlayın…"
+          }
+        }
+      }
+    },
+    "Start with the mouse, then click again when cleaning is complete. Sleep, sign-out, or quitting always releases the keyboard.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fareyle başlatın, temizlik tamamlandığında yeniden tıklayın. Uyku, oturumu kapatma veya uygulamadan çıkma klavyeyi her zaman serbest bırakır."
+          }
+        }
+      }
+    },
+    "Startup": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlangıç"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum"
+          }
+        }
+      }
+    },
+    "Stop Keyboard Cleaning": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliğini Durdur"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depolama"
+          }
+        }
+      }
+    },
+    "Stored Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı Notlar"
+          }
+        }
+      }
+    },
+    "System": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem"
+          }
+        }
+      }
+    },
+    "System Audio": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Sesi"
+          }
+        }
+      }
+    },
+    "System Audio Recording permission is required or the app audio tap could not start.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ses Kaydı izni gerekiyor veya uygulama ses bağlantısı başlatılamadı."
+          }
+        }
+      }
+    },
+    "System Audio Recording permission is required.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ses Kaydı izni gerekiyor."
+          }
+        }
+      }
+    },
+    "System Monitor": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Monitörü"
+          }
+        }
+      }
+    },
+    "System authentication is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem kimlik doğrulaması kullanılamıyor."
+          }
+        }
+      }
+    },
+    "System authentication was cancelled.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem kimlik doğrulaması iptal edildi."
+          }
+        }
+      }
+    },
+    "System-wide, 0–100%": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem geneli, %0–100"
+          }
+        }
+      }
+    },
+    "Tags, separated by commas": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiketler, virgülle ayırın"
+          }
+        }
+      }
+    },
+    "Temperature": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık"
+          }
+        }
+      }
+    },
+    "Temperature Sensors": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık Sensörleri"
+          }
+        }
+      }
+    },
+    "Temperature Unit": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık Birimi"
+          }
+        }
+      }
+    },
+    "Temperature data is unavailable on this Mac.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu Mac'te sıcaklık verisi kullanılamıyor."
+          }
+        }
+      }
+    },
+    "Temperature history": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık geçmişi"
+          }
+        }
+      }
+    },
+    "Temperature is read directly from validated AppleSMC or Apple Silicon HID CPU/SoC die sensors. No estimated temperature is shown when a verified sensor is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıcaklık doğrulanmış AppleSMC veya Apple Silicon HID CPU/SoC kalıp sensörlerinden doğrudan okunur. Doğrulanmış sensör kullanılamıyorsa tahmini sıcaklık gösterilmez."
+          }
+        }
+      }
+    },
+    "Temporarily block keyboard input": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye girişini geçici olarak engelleyin"
+          }
+        }
+      }
+    },
+    "Temporary mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici mod"
+          }
+        }
+      }
+    },
+    "Temporary retention": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici saklama süresi"
+          }
+        }
+      }
+    },
+    "Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metin"
+          }
+        }
+      }
+    },
+    "The app that was active before Clipboard History opened is no longer available.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard History açılmadan önce etkin olan uygulama artık kullanılamıyor."
+          }
+        }
+      }
+    },
+    "The archive contains an unsafe asset path.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv güvenli olmayan bir varlık yolu içeriyor."
+          }
+        }
+      }
+    },
+    "The archive exceeds the safe import limit.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşiv güvenli içe aktarma sınırını aşıyor."
+          }
+        }
+      }
+    },
+    "The archive is missing required content.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arşivde gerekli içerik eksik."
+          }
+        }
+      }
+    },
+    "The clipboard item could not be deleted. Nothing was removed from history.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğesi silinemedi. Geçmişten hiçbir şey kaldırılmadı."
+          }
+        }
+      }
+    },
+    "The clipboard items could not be deleted. Nothing was removed from history.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pano öğeleri silinemedi. Geçmişten hiçbir şey kaldırılmadı."
+          }
+        }
+      }
+    },
+    "The default audio output device is unavailable.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan ses çıkış aygıtı kullanılamıyor."
+          }
+        }
+      }
+    },
+    "The default follows the active interface. All physical interfaces excludes loopback, VPN, bridge and other virtual interfaces.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan seçenek etkin arabirimi izler. Tüm fiziksel arabirimler seçeneği loopback, VPN, köprü ve diğer sanal arabirimleri dışlar."
+          }
+        }
+      }
+    },
+    "The encryption key is invalid.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifreleme anahtarı geçersiz."
+          }
+        }
+      }
+    },
+    "The export can contain clipboard text, note content, and document data in readable form.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dışa aktarılan dosya pano metnini, not içeriğini ve belge verilerini okunabilir biçimde içerebilir."
+          }
+        }
+      }
+    },
+    "The history database failed its integrity check.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı bütünlük denetiminden geçemedi."
+          }
+        }
+      }
+    },
+    "The history database is closed.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı kapalı."
+          }
+        }
+      }
+    },
+    "The item was deleted, but residual file cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğe silindi ancak kalıntı dosya temizliği tamamlanamadı. Temizleme yeniden denenecek."
+          }
+        }
+      }
+    },
+    "The items were deleted, but residual file cleanup could not be completed. Cleanup will be retried.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öğeler silindi ancak kalıntı dosya temizliği tamamlanamadı. Temizleme yeniden denenecek."
+          }
+        }
+      }
+    },
+    "The last successfully saved version will be kept.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son başarıyla kaydedilen sürüm korunacak."
+          }
+        }
+      }
+    },
+    "The menu bar shows two or three prioritized metrics. Every selected metric remains available in System Monitor.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü çubuğu öncelikli iki veya üç metriği gösterir. Seçili tüm metrikler Sistem Monitörü'nde kullanılabilir."
+          }
+        }
+      }
+    },
+    "The note body cannot exceed 1 MiB.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not gövdesi 1 MiB sınırını aşamaz."
+          }
+        }
+      }
+    },
+    "The note title cannot exceed 200 characters.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not başlığı 200 karakter sınırını aşamaz."
+          }
+        }
+      }
+    },
+    "The output device identifier could not be read.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çıkış aygıtı kimliği okunamadı."
+          }
+        }
+      }
+    },
+    "The preview is hidden.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Önizleme gizlendi."
+          }
+        }
+      }
+    },
+    "The private audio routing device could not be created.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel ses yönlendirme aygıtı oluşturulamadı."
+          }
+        }
+      }
+    },
+    "The processed audio output could not be started.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İşlenmiş ses çıkışı başlatılamadı."
+          }
+        }
+      }
+    },
+    "The real-time audio processor could not be created.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerçek zamanlı ses işleyici oluşturulamadı."
+          }
+        }
+      }
+    },
+    "The recovery archive password is required.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurtarma arşivi parolası gerekiyor."
+          }
+        }
+      }
+    },
+    "The selected file is not a valid CoreDeck archive.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen dosya geçerli bir CoreDeck arşivi değil."
+          }
+        }
+      }
+    },
+    "Thermal state: Critical": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termal durum: Kritik"
+          }
+        }
+      }
+    },
+    "Thermal state: Fair": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termal durum: Orta"
+          }
+        }
+      }
+    },
+    "Thermal state: Nominal": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termal durum: Normal"
+          }
+        }
+      }
+    },
+    "Thermal state: Serious": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termal durum: Ciddi"
+          }
+        }
+      }
+    },
+    "Thermal state: Unknown": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termal durum: Bilinmiyor"
+          }
+        }
+      }
+    },
+    "This CoreDeck archive version is unsupported.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu CoreDeck arşiv sürümü desteklenmiyor."
+          }
+        }
+      }
+    },
+    "This audio stream format is unsupported; native audio was restored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ses akışı biçimi desteklenmiyor; yerel ses geri yüklendi."
+          }
+        }
+      }
+    },
+    "This cannot be undone.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu işlem geri alınamaz."
+          }
+        }
+      }
+    },
+    "Thumbnail cache": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük resim önbelleği"
+          }
+        }
+      }
+    },
+    "Thumbnails": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük resimler"
+          }
+        }
+      }
+    },
+    "Title Case": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baş Harfleri Büyük"
+          }
+        }
+      }
+    },
+    "Toggle Keyboard Cleaning": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye Temizliğini Aç veya Kapat"
+          }
+        }
+      }
+    },
+    "Top": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üst"
+          }
+        }
+      }
+    },
+    "Trackpad and Precise Devices": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trackpad ve Hassas Aygıtlar"
+          }
+        }
+      }
+    },
+    "Transform Text": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metni Dönüştür"
+          }
+        }
+      }
+    },
+    "Transient, concealed, and auto-generated pasteboard types are always ignored.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçici, gizli ve otomatik oluşturulan pano türleri her zaman yok sayılır."
+          }
+        }
+      }
+    },
+    "Trim Surrounding Whitespace": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çevre Boşluklarını Kırp"
+          }
+        }
+      }
+    },
+    "Try Again": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeniden Dene"
+          }
+        }
+      }
+    },
+    "Try another search term.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başka bir arama terimi deneyin."
+          }
+        }
+      }
+    },
+    "Unable to install the global shortcut handler (%arg).": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel kısayol işleyicisi yüklenemedi (%arg)."
+          }
+        }
+      }
+    },
+    "Unable to open the history database: %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geçmiş veritabanı açılamadı: %arg"
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanılamıyor"
+          }
+        }
+      }
+    },
+    "Unencrypted Export": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şifresiz Dışa Aktarım"
+          }
+        }
+      }
+    },
+    "Unknown Application": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilinmeyen Uygulama"
+          }
+        }
+      }
+    },
+    "Unsaved Changes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş Değişiklikler"
+          }
+        }
+      }
+    },
+    "Untitled Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlıksız Not"
+          }
+        }
+      }
+    },
+    "Upload": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yükleme"
+          }
+        }
+      }
+    },
+    "Uppercase": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Büyük Harf"
+          }
+        }
+      }
+    },
+    "Usage": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanım"
+          }
+        }
+      }
+    },
+    "Use Customize Menu Bar to add modules here.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buraya modül eklemek için Menü Çubuğunu Özelleştir'i kullanın."
+          }
+        }
+      }
+    },
+    "Use Separate Menu-Bar Items": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayrı Menü Çubuğu Öğeleri Kullan"
+          }
+        }
+      }
+    },
+    "Used": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanılan"
+          }
+        }
+      }
+    },
+    "Used / Total": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanılan / Toplam"
+          }
+        }
+      }
+    },
+    "User": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanıcı"
+          }
+        }
+      }
+    },
+    "Value Only": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yalnız Değer"
+          }
+        }
+      }
+    },
+    "Visible name": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görünen ad"
+          }
+        }
+      }
+    },
+    "Volume for %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg için ses düzeyi"
+          }
+        }
+      }
+    },
+    "Volume for browser tab %arg": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%arg tarayıcı sekmesi için ses düzeyi"
+          }
+        }
+      }
+    },
+    "When Active": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etkin Olduğunda"
+          }
+        }
+      }
+    },
+    "Wired": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kablolu"
+          }
+        }
+      }
+    },
+    "Write": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazma"
+          }
+        }
+      }
+    },
+    "Your local Mac control center": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac’iniz için yerel kontrol merkezi"
+          }
+        }
+      }
+    },
+    "macOS is not currently showing one or more requested menu-bar items.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS şu anda istenen menü çubuğu öğelerinden bir veya daha fazlasını göstermiyor."
+          }
+        }
+      }
+    },
+    "°C": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "°C"
+          }
+        }
+      }
+    },
+    "•": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "•"
+          }
+        }
+      }
+    },
+    "CoreDeck Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CoreDeck Çekmecesi"
+          }
+        }
+      }
+    },
+    "Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece"
+          }
+        }
+      }
+    },
+    "Drawer is Empty": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece Boş"
+          }
+        }
+      }
+    },
+    "Move a CoreDeck menu-bar item here from Customize Menu Bar.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğunu Özelleştir bölümünden bir CoreDeck menü çubuğu öğesini buraya taşıyın."
+          }
+        }
+      }
+    },
+    "Restore to Menu Bar": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü Çubuğuna Geri Yükle"
+          }
+        }
+      }
+    },
+    "Show Drawer Icon": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmece Simgesini Göster"
+          }
+        }
+      }
+    },
+    "Show in Drawer": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çekmecede Göster"
+          }
+        }
+      }
+    },
+    "Another menu-bar change was detected. External management is paused.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Başka bir menü çubuğu değişikliği algılandı. Harici yönetim duraklatıldı." } } }
+    },
+    "Choose a section from the sidebar.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Kenar çubuğundan bir bölüm seçin." } } }
+    },
+    "Copy something to make it available here.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Burada kullanmak için bir içerik kopyalayın." } } }
+    },
+    "CoreDeck Settings": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "CoreDeck Ayarları" } } }
+    },
+    "Drawer recovery is required before external items can be managed.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Harici öğeler yönetilmeden önce çekmece kurtarması gerekiyor." } } }
+    },
+    "Files": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Dosyalar" } } }
+    },
+    "Image": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Görsel" } } }
+    },
+    "No Clipboard Items": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Pano Öğesi Yok" } } }
+    },
+    "Open Clipboard": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Panoyu Aç" } } }
+    },
+    "PDF": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "PDF" } } }
+    },
+    "Quick Note": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Hızlı Not" } } }
+    },
+    "Rich Text": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Zengin Metin" } } }
+    },
+    "Save": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Kaydet" } } }
+    },
+    "Sensitive content hidden": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Hassas içerik gizlendi" } } }
+    },
+    "The drawer operation was restored.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Çekmece işlemi geri yüklendi." } } }
+    },
+    "Your draft is shared with Notes.": {
+      "localizations": { "tr": { "stringUnit": { "state": "translated", "value": "Taslağınız Notlar ile paylaşılır." } } }
+    }
+  },
+  "version": "1.3"
+}

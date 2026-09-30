@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class AppleSMCTemperatureProviderTests: XCTestCase {
     func testSMCCodeConversionClassificationAndNames() throws {

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../ClipboardHistory/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck uygulama ikonu">
+  <img src="../CoreDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-256.png" width="128" height="128" alt="CoreDeck uygulama ikonu">
 </p>
 
 <h1 align="center">CoreDeck</h1>
@@ -16,12 +16,10 @@ CoreDeck; Pano Geçmişi, Notlar, Giriş Araçları, Sistem Monitörü ve Ses Mi
 
 ## Güncel durum
 
-- Son yayımlanan Community beta: [`v1.0.0-beta.7`](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7); CoreDeck adıyla dağıtılıyor
-- `main` kaynağı ve yayımlanan beta build `10007` değerini kullanıyor
+- Son yayımlanan Community beta: [`v1.0.0-beta.8`](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8) (build `10009`); CoreDeck adıyla dağıtılıyor
 - Desteklenen platform: macOS 14.2 veya sonrası kullanan Apple silicon (`arm64`) Mac
 - `main` dalındaki kaynak kod public ve günceldir
-- Yayımlanmış paketler ve imza kanıtları beta.7 GitHub prerelease'ine aittir
-- [`BGirginn/homebrew-tap`](https://github.com/BGirginn/homebrew-tap) Cask'i beta.7 kurar
+- Homebrew `coredeck` Cask'ini kurar; eski `clipboardhistory` Cask kurulumu tap'teki yeniden adlandırma eşlemesiyle taşınır
 - Community yapısı self-signed'dır ve Apple tarafından notarize edilmemiştir
 
 ## Kurulum
@@ -31,24 +29,24 @@ Homebrew ile kurulum:
 ```sh
 brew tap BGirginn/tap
 brew trust BGirginn/tap
-brew install --cask clipboardhistory
+brew install --cask coredeck
 ```
 
-Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask `CoreDeck.app` kurar ve mevcut ClipboardHistory Application Support ve tercih kimliklerini korur. Elle kurulmuş eski bir uygulamayı Cask yönetmez; kurmadan önce uygulamayı kapatıp kenara taşıyın, kullanıcı verilerini silmeyin.
+Homebrew 6, üçüncü taraf tap'ler için açık güven onayı ister. Cask `CoreDeck.app` kurar ve mevcut CoreDeck Application Support ve tercih kimliklerini korur. Elle kurulmuş eski bir uygulamayı Cask yönetmez; kurmadan önce uygulamayı kapatıp kenara taşıyın, kullanıcı verilerini silmeyin.
 
 Daha sonra güncellemek veya kaldırmak için:
 
 ```sh
 brew update
-brew upgrade --cask clipboardhistory
-brew uninstall --cask clipboardhistory
+brew upgrade --cask coredeck
+brew uninstall --cask coredeck
 ```
 
-Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap clipboardhistory` komutu bu yerel kullanıcı verilerini de siler.
+Normal kaldırma işlemi pano geçmişini ve tercihleri korur. `brew uninstall --cask --zap coredeck` komutu bu yerel kullanıcı verilerini de siler.
 
 Community beta self-signed'dır ve notarize edilmemiştir. macOS ilk açılışı engellerse Finder'da Uygulamalar klasörünü açın, kurulu uygulama üzerinde Control-tıklayın, **Aç** seçeneğini seçip onaylayın. Aynı onay Sistem Ayarları → Gizlilik ve Güvenlik altında da verilebilir. Karantinayı `xattr` ile kaldırmayın.
 
-Yayımlanmış paketler [beta.7 GitHub Release](https://github.com/BGirginn/ClipboardHistory/releases/tag/v1.0.0-beta.7) sayfasından indirilebilir.
+Yayımlanmış paketler [beta.8 GitHub Release](https://github.com/BGirginn/CoreDeck/releases/tag/v1.0.0-beta.8) sayfasından indirilebilir.
 
 ## Özellikler
 
@@ -88,8 +86,8 @@ Gereksinimler:
 Depoyu klonlayıp yerel self-signed Community kimliğini oluşturun. Bunun için ücretli Apple Developer hesabı gerekmez:
 
 ```sh
-git clone https://github.com/BGirginn/ClipboardHistory.git
-cd ClipboardHistory
+git clone https://github.com/BGirginn/CoreDeck.git
+cd CoreDeck
 scripts/create-community-signing-identity.sh
 scripts/verify-community-signing.sh
 ```
@@ -98,14 +96,14 @@ Community yapılandırmasını derleyip açın:
 
 ```sh
 xcodebuild \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeck \
   -configuration CommunityRelease \
   -destination 'generic/platform=macOS' \
   -derivedDataPath .build/LocalRelease \
   ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
   CODE_SIGN_STYLE=Manual \
-  CODE_SIGN_IDENTITY='ClipboardHistory Community Beta' \
+  CODE_SIGN_IDENTITY='CoreDeck Community Beta' \
   build
 
 open .build/LocalRelease/Build/Products/CommunityRelease/CoreDeck.app
@@ -120,7 +118,7 @@ CoreDeck varsayılan olarak yalnız menü çubuğunda çalışır. **Menü Çubu
 Pano geçmişi ve yönetilen dosyalar şu konumda saklanır:
 
 ```text
-~/Library/Application Support/ClipboardHistory/
+~/Library/Application Support/CoreDeck/
 ```
 
 Etkin uygulamaya doğrudan yapıştırma, Klavye Temizlik Modu ve Scroll Reverse macOS Erişilebilirlik izni ister. Pano kaydı, paneli açma, notlar ve global kısayol bu izni gerektirmez. İzin yoksa Scroll Reverse doğal kaydırmaya dokunmaz ve uygulama açılışında izin penceresini otomatik göstermez.
@@ -131,8 +129,8 @@ Etkin uygulamaya doğrudan yapıştırma, Klavye Temizlik Modu ve Scroll Reverse
 
 ```sh
 xcodebuild \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeck \
   -configuration Debug \
   -destination 'platform=macOS,arch=arm64' \
   CODE_SIGNING_ALLOWED=NO \
@@ -151,7 +149,7 @@ Proje belgeleri:
 
 ## Dağıtım
 
-Son yayımlanan sürüm `v1.0.0-beta.7`'dir. GitHub paketleri, checksum ve Homebrew Cask aynı Community yapısını işaret eder.
+Son yayımlanan sürüm `v1.0.0-beta.8`'dir. GitHub paketleri, checksum ve Homebrew Cask aynı Community yapısını işaret eder.
 
 ## Lisans
 

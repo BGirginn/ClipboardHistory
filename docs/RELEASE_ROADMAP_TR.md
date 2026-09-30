@@ -13,7 +13,7 @@ CoreDeck; pano, notlar, drawer, sistem metrikleri, girdi araçları ve ses kontr
 - Kendi ikon drawer’ı ara teslimdir. Kararsız kimlikli veya korunan dış öğe zorlanmaz; desteklenmeme nedeni kullanıcıya gösterilir. Clock, Siri, Control Center ve gizlilik göstergelerini zorla gizleme hedeflenmez.
 - Yerel/offline mimari, mevcut veri formatları ve imza kimliği korunur. Hesap, bulut, AI, mobil/Intel desteği veya rakiplerin tüm özelliklerinin birebir kopyası eklenmez.
 - Görünen ad CoreDeck’tir. Eski teknik kimlikler uyumluluk sözleşmesidir; toplu string replacement ile değiştirilmez.
-- GitHub deposunun yeniden adlandırılması varsayılmaz veya otomatik yapılmaz. Mevcut doğrulanmış depo `BGirginn/ClipboardHistory`, Cask token’ı `clipboardhistory` olarak kalır; gerçek bir depo taşıması ayrıca doğrulanmadan CoreDeck URL’si dağıtımda kullanılmaz.
+- GitHub deposunun yeniden adlandırılması varsayılmaz veya otomatik yapılmaz. Mevcut doğrulanmış depo `BGirginn/CoreDeck`, Cask token’ı `coredeck` olarak kalır; gerçek bir depo taşıması ayrıca doğrulanmadan CoreDeck URL’si dağıtımda kullanılmaz.
 
 ## 2. Referanslar ve karşılaştırma yöntemi
 

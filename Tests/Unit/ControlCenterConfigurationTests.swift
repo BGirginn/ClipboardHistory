@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ControlCenterConfigurationTests: XCTestCase {

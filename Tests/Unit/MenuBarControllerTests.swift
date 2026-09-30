@@ -3,7 +3,7 @@ import Carbon
 import CoreAudio
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class MenuBarControllerTests: XCTestCase {
@@ -414,7 +414,7 @@ final class MenuBarControllerTests: XCTestCase {
         )
 
         XCTAssertEqual(createdItems.count, 1)
-        XCTAssertEqual(createdItems.first?.autosaveName, "ClipboardHistory.ControlCenter")
+        XCTAssertEqual(createdItems.first?.autosaveName, "CoreDeck.ControlCenter")
         XCTAssertEqual(
             createdItems.first?.button?.accessibilityIdentifier(),
             "menuBar.controlCenter"
@@ -422,7 +422,7 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
         XCTAssertEqual(createdItems.count, 2)
-        XCTAssertEqual(createdItems.last?.autosaveName, "ClipboardHistory.Feature.notes")
+        XCTAssertEqual(createdItems.last?.autosaveName, "CoreDeck.Feature.notes")
         XCTAssertEqual(
             createdItems.last?.button?.accessibilityIdentifier(),
             "menuBar.feature.notes"
@@ -510,7 +510,7 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .systemMonitor)
         let systemItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Metric.cpu" }
+            createdItems.first { $0.autosaveName == "CoreDeck.Metric.cpu" }
         )
         XCTAssertNil(controller.statusItems[.feature(.systemMonitor)])
         XCTAssertTrue(
@@ -539,7 +539,7 @@ final class MenuBarControllerTests: XCTestCase {
 
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .notes)
         let notesItem = try XCTUnwrap(
-            createdItems.first { $0.autosaveName == "ClipboardHistory.Feature.notes" }
+            createdItems.first { $0.autosaveName == "CoreDeck.Feature.notes" }
         )
         notesItem.button?.performClick(nil)
         performMenuAction(try XCTUnwrap(presentedMenu).items[4])
@@ -554,7 +554,7 @@ final class MenuBarControllerTests: XCTestCase {
             context.appModel.controlCenter.setStandaloneItemVisible(true, for: id)
             let featureItem = try XCTUnwrap(
                 createdItems.first {
-                    $0.autosaveName == "ClipboardHistory.Feature.\(id.rawValue)"
+                    $0.autosaveName == "CoreDeck.Feature.\(id.rawValue)"
                 }
             )
             featureItem.button?.performClick(nil)
@@ -579,7 +579,7 @@ final class MenuBarControllerTests: XCTestCase {
         context.appModel.controlCenter.setStandaloneItemVisible(true, for: .keyboardCleaning)
         let inputToolsItem = try XCTUnwrap(
             createdItems.first {
-                $0.autosaveName == "ClipboardHistory.Feature.keyboardCleaning"
+                $0.autosaveName == "CoreDeck.Feature.keyboardCleaning"
             }
         )
         inputToolsItem.button?.performClick(nil)
@@ -1067,7 +1067,7 @@ final class MenuBarControllerTests: XCTestCase {
         let storage: StorageService
         let settings: AppSettings
         let appModel: AppModel
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
     }
 
     private func makeContext(

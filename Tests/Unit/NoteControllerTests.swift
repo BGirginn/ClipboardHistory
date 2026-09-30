@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class NoteControllerTests: XCTestCase {
@@ -30,6 +30,23 @@ final class NoteControllerTests: XCTestCase {
         XCTAssertEqual(outcome, .nothingToSave)
         let notes = try await context.storage.loadNotesThrowing()
         XCTAssertEqual(notes, [])
+    }
+
+    func testFailedLegacyNoteLoadBlocksNewWrites() async throws {
+        let failure = NoteLoadFailureSwitch()
+        failure.shouldFail = true
+        let context = makeContext(operationFailureInjector: failure.inject)
+        context.controller.openQuickEditor()
+        context.controller.draftBody = "preserve draft"
+
+        let outcome = await context.controller.flushPendingSave()
+        XCTAssertEqual(outcome, .failed)
+        XCTAssertEqual(context.controller.saveState, .failed)
+        XCTAssertEqual(context.controller.draftBody, "preserve draft")
+
+        failure.shouldFail = false
+        let notes = try await context.storage.loadNotesThrowing()
+        XCTAssertTrue(notes.isEmpty)
     }
 
     func testConcurrentFirstLoadsShareOneReadAndReloadReadsAgain() async throws {
@@ -376,6 +393,23 @@ final class NoteControllerTests: XCTestCase {
             try? await Task.sleep(for: .milliseconds(10))
         }
         XCTAssertTrue(condition())
+    }
+}
+
+private final class NoteLoadFailureSwitch: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var shouldFail: Bool {
+        get { lock.withLock { value } }
+        set { lock.withLock { value = newValue } }
+    }
+
+    func inject(_ operation: StorageOperation) throws {
+        guard shouldFail,
+              case let .prepareSQL(sql) = operation,
+              sql.contains("FROM Notes") else { return }
+        throw CocoaError(.fileReadUnknown)
     }
 }
 

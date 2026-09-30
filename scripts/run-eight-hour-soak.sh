@@ -11,7 +11,7 @@ app=${1:A}
 database=${2:A}
 evidence=${3:A}
 executable="$app/Contents/MacOS/CoreDeck"
-expected_database="$HOME/Library/Application Support/ClipboardHistory/history.sqlite3"
+expected_database="$HOME/Library/Application Support/CoreDeck/history.sqlite3"
 [[ ${COREDECK_SOAK_ISOLATED_ACCOUNT:-0} == 1 ]] || {
   print -u2 "soak gate: run from an isolated test account with synthetic clipboard data"
   exit 1

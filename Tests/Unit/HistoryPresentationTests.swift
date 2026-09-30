@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class HistoryPresentationTests: XCTestCase {
@@ -10,7 +10,7 @@ final class HistoryPresentationTests: XCTestCase {
     private var storage: StorageService!
     private var settings: AppSettings!
     private var pasteboard: NSPasteboard!
-    private var viewModel: ClipboardHistoryViewModel!
+    private var viewModel: CoreDeckViewModel!
 
     override func setUp() async throws {
         directory = FileManager.default.temporaryDirectory.appending(
@@ -22,7 +22,7 @@ final class HistoryPresentationTests: XCTestCase {
         settings.closePanelAfterCopying = false
         storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         pasteboard = NSPasteboard(name: .init("PresentationPasteboard-\(UUID().uuidString)"))
-        viewModel = ClipboardHistoryViewModel(
+        viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
@@ -125,7 +125,7 @@ final class HistoryPresentationTests: XCTestCase {
         settings.closePanelAfterCopying = true
         let clock = PausedPanelCloseClock()
         viewModel.prepareForShutdown()
-        viewModel = ClipboardHistoryViewModel(
+        viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,

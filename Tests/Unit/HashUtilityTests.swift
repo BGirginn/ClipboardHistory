@@ -1,5 +1,5 @@
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class HashUtilityTests: XCTestCase {
     func testSHA256ForTextUsesUTF8() {

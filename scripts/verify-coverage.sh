@@ -10,7 +10,7 @@ repository_root=${0:A:h:h}
 result_bundle=${1:A}
 minimum_aggregate_coverage=0.95
 low_file_coverage_warning=0.80
-report=$(mktemp /private/tmp/clipboardhistory-coverage.XXXXXX.json)
+report=$(mktemp /private/tmp/coredeck-coverage.XXXXXX.json)
 trap 'rm -f "$report"' EXIT
 
 if [[ -d "$result_bundle" ]]; then
@@ -18,9 +18,9 @@ if [[ -d "$result_bundle" ]]; then
 else
   xcrun xccov view --json "$result_bundle" > "$report"
 fi
-target_name=$(jq -r '.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .name' "$report")
-if [[ "$target_name" != "ClipboardHistoryTestHost.app" ]]; then
-  print -u2 "coverage gate: ClipboardHistoryTestHost.app target is missing"
+target_name=$(jq -r '.targets[] | select(.name == "CoreDeckTestHost.app") | .name' "$report")
+if [[ "$target_name" != "CoreDeckTestHost.app" ]]; then
+  print -u2 "coverage gate: CoreDeckTestHost.app target is missing"
   exit 1
 fi
 
@@ -34,7 +34,7 @@ fi
 while IFS=$'\t' read -r expected_hash source classification; do
   [[ "$expected_hash" == \#* || -z "$expected_hash" ]] && continue
   if [[ ! "$expected_hash" =~ '^[0-9a-f]{64}$' ||
-        "$source" != ClipboardHistory/* || "$source" != *.swift ||
+        "$source" != CoreDeck/* || "$source" != *.swift ||
         "$source" == *..* || -z "$classification" ||
         -n "${reviewed_nonexecutable_sources[$source]-}" ||
         ! -f "$repository_root/$source" ]]; then
@@ -54,7 +54,7 @@ done < "$manifest"
 while IFS= read -r source; do
   absolute="$repository_root/$source"
   values=$(jq -r --arg path "$absolute" '
-    [.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .files[] | select(.path == $path)]
+    [.targets[] | select(.name == "CoreDeckTestHost.app") | .files[] | select(.path == $path)]
     | if length == 1 then "\(.[0].lineCoverage)\t\(.[0].coveredLines)\t\(.[0].executableLines)" else "missing" end
   ' "$report")
   if [[ "$values" == "missing" ]]; then
@@ -86,9 +86,9 @@ while IFS= read -r source; do
     '$coverage >= $warning' >/dev/null; then
     print -u2 "coverage warning: $source -> $values"
   fi
-done < <(cd "$repository_root" && rg --files ClipboardHistory -g '*.swift' | sort)
+done < <(cd "$repository_root" && rg --files CoreDeck -g '*.swift' | sort)
 
-target_coverage=$(jq -r '.targets[] | select(.name == "ClipboardHistoryTestHost.app") | .lineCoverage' "$report")
+target_coverage=$(jq -r '.targets[] | select(.name == "CoreDeckTestHost.app") | .lineCoverage' "$report")
 if ! jq -en \
   --argjson coverage "$target_coverage" \
   --argjson minimum "$minimum_aggregate_coverage" \

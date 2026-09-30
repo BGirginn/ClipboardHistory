@@ -62,7 +62,7 @@ scripts/run-development-tests.sh
 Targeted example:
 
 ```zsh
-scripts/run-development-tests.sh ClipboardHistoryTests/PasteStackTests
+scripts/run-development-tests.sh CoreDeckTests/PasteStackTests
 ```
 
 Static quality:

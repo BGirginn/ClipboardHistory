@@ -7,7 +7,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 repository_root=${0:A:h:h}
-identity='ClipboardHistory Community Beta'
+identity='CoreDeck Community Beta'
 output_directory=${1:A}
 if [[ -e "$output_directory" && -n "$(find "$output_directory" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
   print -u2 "artifact build: output directory must be empty"
@@ -26,8 +26,8 @@ derived_data=$(mktemp -d /private/tmp/coredeck-community-build.XXXXXX)
 trap 'rm -rf "$derived_data"' EXIT
 
 xcodebuild -quiet \
-  -project ClipboardHistory.xcodeproj \
-  -scheme ClipboardHistory \
+  -project CoreDeck.xcodeproj \
+  -scheme CoreDeck \
   -configuration CommunityRelease \
   -destination 'generic/platform=macOS' \
   -derivedDataPath "$derived_data" \

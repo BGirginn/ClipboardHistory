@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
@@ -297,7 +297,7 @@ final class ClipboardMonitorTests: XCTestCase, ClipboardMonitorDelegate {
         let delegatePasteboard = NSPasteboard(name: .init("ClipboardMonitorDelegate-\(UUID().uuidString)"))
         let delegateMonitor = ClipboardMonitor(pasteboard: delegatePasteboard)
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: delegateMonitor,
             restorePasteboard: delegatePasteboard,

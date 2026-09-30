@@ -15,16 +15,16 @@ run_sanitizer() {
   local setting=$2
   local log="$evidence/$name.log"
   if ! xcodebuild -quiet \
-      -project "$repository_root/ClipboardHistory.xcodeproj" \
-      -scheme ClipboardHistoryTests \
+      -project "$repository_root/CoreDeck.xcodeproj" \
+      -scheme CoreDeckTests \
       -configuration Debug \
       -destination 'platform=macOS,arch=arm64' \
       -derivedDataPath "$build_root/$name-derived" \
       -resultBundlePath "$evidence/$name.xcresult" \
       CODE_SIGNING_ALLOWED=NO ENABLE_DEBUG_DYLIB=NO \
       "$setting" YES \
-      -only-testing:ClipboardHistoryTests \
-      -skip-testing:ClipboardHistoryTests/PerformanceBenchmarkTests test >"$log" 2>&1; then
+      -only-testing:CoreDeckTests \
+      -skip-testing:CoreDeckTests/PerformanceBenchmarkTests test >"$log" 2>&1; then
     sed -n '1,240p' "$log" >&2
     print -u2 "sanitizer gate: $name failed; evidence=$evidence"
     exit 1

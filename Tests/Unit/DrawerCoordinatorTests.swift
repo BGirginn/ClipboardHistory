@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class DrawerCoordinatorTests: XCTestCase {

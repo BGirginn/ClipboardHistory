@@ -5,7 +5,7 @@ Use these as starting prompts for a new Codex thread. Replace bracketed fields w
 ## Feature implementation
 
 ```text
-Implement [FEATURE/CHANGE] in ClipboardHistory.
+Implement [FEATURE/CHANGE] in CoreDeck.
 
 Before editing:
 1. Read AGENTS.md.
@@ -33,7 +33,7 @@ Deliver:
 ## Bug fix
 
 ```text
-Fix this bug in ClipboardHistory: [BUG].
+Fix this bug in CoreDeck: [BUG].
 
 Do not patch only the visible symptom.
 
@@ -52,7 +52,7 @@ If this touches storage, encryption, deletion, migration, archive import/export,
 ## Architecture review without implementation
 
 ```text
-Review [AREA/PROPOSAL] in ClipboardHistory. Do not write code.
+Review [AREA/PROPOSAL] in CoreDeck. Do not write code.
 
 First read the existing implementation rather than designing from filenames.
 
@@ -76,7 +76,7 @@ Clearly mark facts from the repository versus recommendations/inferences.
 ```text
 Perform an adversarial privacy/data-integrity review of [CHANGE/FILES].
 
-Use docs/ENGINEERING_INVARIANTS.md and the clipboardhistory-privacy-storage skill.
+Use docs/ENGINEERING_INVARIANTS.md and the coredeck-privacy-storage skill.
 
 Trace:
 UI state -> controller -> storage call -> SQLite/assets/backups -> encryption/key state -> restart/recovery.
@@ -99,7 +99,7 @@ Do not accept a passing happy-path unit test as sufficient evidence.
 ```text
 Review [FEATURE] for macOS CPU/battery impact.
 
-Use the clipboardhistory-performance skill.
+Use the coredeck-performance skill.
 
 Inventory:
 - timers,
@@ -122,7 +122,7 @@ Return measured or measurable concerns, not generic optimization advice.
 ```text
 Assess the current commit for release readiness.
 
-Use the clipboardhistory-release skill.
+Use the coredeck-release skill.
 
 Do not infer successful verification from scripts existing in the repo.
 Separate:

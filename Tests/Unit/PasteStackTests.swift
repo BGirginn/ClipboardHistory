@@ -3,7 +3,7 @@ import Combine
 import Foundation
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 private struct ImmediateSleepClock: SleepClock {
     func sleep(for duration: Duration) async throws {}
@@ -57,20 +57,20 @@ final class PasteStackTests: XCTestCase {
     private func makeFixture(
         clock: any SleepClock = SystemSleepClock()
     ) throws -> (
-        viewModel: ClipboardHistoryViewModel,
+        viewModel: CoreDeckViewModel,
         pasteboard: NSPasteboard,
         pasteService: StubActiveApplicationPasteService,
         directory: URL
     ) {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryPasteStack-\(UUID().uuidString)",
+            path: "CoreDeckPasteStack-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         let pasteboard = NSPasteboard(name: .init("PasteStack-\(UUID().uuidString)"))
         let pasteService = StubActiveApplicationPasteService()
         let suite = "PasteStackTests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: StorageService(baseDirectory: directory),
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,

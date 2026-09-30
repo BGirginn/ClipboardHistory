@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class StorageFailClosedTests: XCTestCase {
     private struct InjectedFailure: Error {}
@@ -20,7 +20,7 @@ final class StorageFailClosedTests: XCTestCase {
 
     func testEncryptedAssetNeverFallsBackToPlaintext() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryFailClosed-\(UUID().uuidString)",
+            path: "CoreDeckFailClosed-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -42,7 +42,7 @@ final class StorageFailClosedTests: XCTestCase {
 
     func testTamperedEncryptedTextFailsTheWholeLoad() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryTamperedText-\(UUID().uuidString)",
+            path: "CoreDeckTamperedText-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -83,7 +83,7 @@ final class StorageFailClosedTests: XCTestCase {
 
     func testInjectedSQLiteFailureRollsBackThrowingUpsert() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryInjectedSQLite-\(UUID().uuidString)",
+            path: "CoreDeckInjectedSQLite-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -111,7 +111,7 @@ final class StorageFailClosedTests: XCTestCase {
     @MainActor
     func testViewModelDoesNotPresentItemWhenPersistenceFails() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(
-            path: "ClipboardHistoryViewModelSQLiteFailure-\(UUID().uuidString)",
+            path: "CoreDeckViewModelSQLiteFailure-\(UUID().uuidString)",
             directoryHint: .isDirectory
         )
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -123,7 +123,7 @@ final class StorageFailClosedTests: XCTestCase {
                 throw InjectedFailure()
             }
         )
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             startsAutomatically: false
         )

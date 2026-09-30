@@ -2,7 +2,7 @@ import CoreAudio
 import ServiceManagement
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 private final class AudioDiscoveryStub: AudioProcessDiscovering, @unchecked Sendable {
     var discovered: [AudioApplication]
@@ -682,7 +682,7 @@ final class AudioMixerControllerTests: XCTestCase {
         XCTAssertEqual(workspace.revealed.count, 1)
         controller.openSafariExtensionSettings()
         await Task.yield()
-        XCTAssertEqual(openedSafariIdentifier, "com.brgirgin.ClipboardHistory.SafariExtension")
+        XCTAssertEqual(openedSafariIdentifier, "com.brgirgin.CoreDeck.SafariExtension")
         XCTAssertTrue(controller.extensionMessage?.contains("Enable CoreDeck Safari Audio") == true)
         controller.stop()
 

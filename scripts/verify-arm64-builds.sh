@@ -14,8 +14,8 @@ print "arm64 gate: evidence=$evidence"
 for configuration in Debug Release CommunityRelease; do
   log="$evidence/$configuration.log"
   if ! xcodebuild -quiet \
-      -project ClipboardHistory.xcodeproj \
-      -scheme ClipboardHistory \
+      -project CoreDeck.xcodeproj \
+      -scheme CoreDeck \
       -configuration "$configuration" \
       -destination 'generic/platform=macOS' \
       -derivedDataPath "$derived_data" \
@@ -31,10 +31,10 @@ for configuration in Debug Release CommunityRelease; do
   fi
 
   app="$derived_data/Build/Products/$configuration/CoreDeck.app"
-  helper="$app/Contents/Library/LoginItems/ClipboardHistoryLoginItem.app"
-  xpc_service="$app/Contents/XPCServices/ClipboardHistoryBrowserAudioBridge.xpc"
-  safari_extension="$app/Contents/PlugIns/ClipboardHistorySafariExtension.appex"
-  launch_agent="$app/Contents/Library/LaunchAgents/com.brgirgin.ClipboardHistory.BrowserAudioBridge.plist"
+  helper="$app/Contents/Library/LoginItems/CoreDeckLoginItem.app"
+  xpc_service="$app/Contents/XPCServices/CoreDeckBrowserAudioBridge.xpc"
+  safari_extension="$app/Contents/PlugIns/CoreDeckSafariExtension.appex"
+  launch_agent="$app/Contents/Library/LaunchAgents/com.brgirgin.CoreDeck.BrowserAudioBridge.plist"
   [[ -d "$helper" ]] || {
     print -u2 "arm64 gate: embedded login helper is missing in $configuration"
     exit 1
@@ -49,9 +49,9 @@ for configuration in Debug Release CommunityRelease; do
   }
   for executable in \
       "$app/Contents/MacOS/CoreDeck" \
-      "$helper/Contents/MacOS/ClipboardHistoryLoginItem" \
-      "$xpc_service/Contents/MacOS/ClipboardHistoryBrowserAudioBridge" \
-      "$safari_extension/Contents/MacOS/ClipboardHistorySafariExtension"; do
+      "$helper/Contents/MacOS/CoreDeckLoginItem" \
+      "$xpc_service/Contents/MacOS/CoreDeckBrowserAudioBridge" \
+      "$safari_extension/Contents/MacOS/CoreDeckSafariExtension"; do
     architectures=$(lipo -archs "$executable")
     [[ "$architectures" == "arm64" ]] || {
       print -u2 "arm64 gate: $configuration architecture mismatch: $architectures"

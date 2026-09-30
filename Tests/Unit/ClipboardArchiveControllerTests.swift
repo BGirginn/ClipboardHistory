@@ -2,7 +2,7 @@ import AppKit
 import UniformTypeIdentifiers
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class ClipboardArchiveControllerTests: XCTestCase {
@@ -218,7 +218,7 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         let defaultsSuite: String
         let storage: StorageService
         let panels: ArchivePanelSelectorStub
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
     }
 
     private func makeContext(
@@ -234,7 +234,7 @@ final class ClipboardArchiveControllerTests: XCTestCase {
         let storage = StorageService(baseDirectory: directory.appending(path: "Storage"))
         let panels = ArchivePanelSelectorStub()
         let pasteboard = NSPasteboard(name: .init("ArchiveController-\(UUID().uuidString)"))
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,

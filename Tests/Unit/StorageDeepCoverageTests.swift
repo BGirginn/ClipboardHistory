@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class StorageDeepCoverageTests: XCTestCase {
     func testRepositoryReconcilesPartialLegacyMalformedAndMissingRecords() async throws {

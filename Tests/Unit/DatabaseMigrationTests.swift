@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class DatabaseMigrationTests: XCTestCase {
     private var directory: URL!

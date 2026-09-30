@@ -2,7 +2,7 @@ import AppKit
 import CoreImage
 import XCTest
 
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class ContentAnalysisServiceTests: XCTestCase {
     func testColorNormalizationAndClassification() {
@@ -13,7 +13,7 @@ final class ContentAnalysisServiceTests: XCTestCase {
     }
 
     func testQRCodeAnalysisRunsLocallyWhenOCRIsDisabled() async throws {
-        let expected = "clipboardhistory://local/qr-42"
+        let expected = "coredeck://local/qr-42"
         let pngData = try makeQRCodePNG(expected)
         let content = ClipboardContent.images(
             pngData: [pngData],

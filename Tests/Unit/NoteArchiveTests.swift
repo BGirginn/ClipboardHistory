@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 final class NoteArchiveTests: XCTestCase {
     func testV3FullRoundTripAndMetadataExclusion() async throws {

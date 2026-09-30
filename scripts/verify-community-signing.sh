@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 
-identity='ClipboardHistory Community Beta'
+identity='CoreDeck Community Beta'
 matches=$(security find-identity -v -p codesigning | rg -F "\"$identity\"" || true)
 count=$(wc -l <<<"$matches" | tr -d ' ')
 if [[ -z "$matches" || "$count" -ne 1 ]]; then
@@ -9,7 +9,7 @@ if [[ -z "$matches" || "$count" -ne 1 ]]; then
   exit 1
 fi
 
-certificate=$(mktemp /private/tmp/clipboardhistory-community-certificate.XXXXXX)
+certificate=$(mktemp /private/tmp/coredeck-community-certificate.XXXXXX)
 trap 'rm -f -- "$certificate"' EXIT
 security find-certificate -c "$identity" -p >"$certificate"
 

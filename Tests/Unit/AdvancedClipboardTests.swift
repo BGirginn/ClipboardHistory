@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import PDFKit
 import XCTest
-@testable import ClipboardHistoryTestHost
+@testable import CoreDeckTestHost
 
 @MainActor
 final class AdvancedClipboardTests: XCTestCase {
@@ -317,7 +317,7 @@ final class AdvancedClipboardTests: XCTestCase {
     private struct Context {
         let directory: URL
         let storage: StorageService
-        let viewModel: ClipboardHistoryViewModel
+        let viewModel: CoreDeckViewModel
         let defaultsSuite: String
         let pasteboard: NSPasteboard
     }
@@ -330,7 +330,7 @@ final class AdvancedClipboardTests: XCTestCase {
         settings.closePanelAfterCopying = false
         let storage = StorageService(baseDirectory: directory, encryptionService: .ephemeral())
         let pasteboard = NSPasteboard(name: .init("AdvancedClipboardPasteboard-\(UUID().uuidString)"))
-        let viewModel = ClipboardHistoryViewModel(
+        let viewModel = CoreDeckViewModel(
             storage: storage,
             monitor: ClipboardMonitor(pasteboard: pasteboard),
             restorePasteboard: pasteboard,
